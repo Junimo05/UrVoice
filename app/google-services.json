@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "12771192312",
+    "firebase_url": "https://urvoice-98254-default-rtdb.asia-southeast1.firebasedatabase.app",
+    "project_id": "urvoice-98254",
+    "storage_bucket": "urvoice-98254.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:12771192312:android:1577fc746a43fe59013a0d",
+        "android_client_info": {
+          "package_name": "com.example.urvoices"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "12771192312-l7urshotot9ssf4uiqffvmv2l9mddt6g.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.urvoices",
+            "certificate_hash": "d7c92ed6908c40a906572ec6bb2ea7abd5a3c0b9"
+          }
+        },
+        {
+          "client_id": "12771192312-6gfd8fegov8ae9deln13d64jh5rcle5d.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAqnKX5Bzw6Do5kXmvGghkcYVHoGyhwf84"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "12771192312-6gfd8fegov8ae9deln13d64jh5rcle5d.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

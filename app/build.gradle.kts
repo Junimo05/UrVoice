@@ -2,16 +2,18 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.jetbrains.kotlin.android)
     id("kotlin-kapt")
+    id("kotlin-parcelize")
     id("com.google.dagger.hilt.android")
     kotlin("plugin.serialization") version "2.0.0"
+    id("com.google.gms.google-services")
 }
 
 android {
-    namespace = "com.example.thevoices"
+    namespace = "com.example.urvoices"
     compileSdk = 34
 
     defaultConfig {
-        applicationId = "com.example.thevoices"
+        applicationId = "com.example.urvoices"
         minSdk = 24
         targetSdk = 34
         versionCode = 1
@@ -33,11 +35,11 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
+        sourceCompatibility = JavaVersion.VERSION_11
+        targetCompatibility = JavaVersion.VERSION_11
     }
     kotlinOptions {
-        jvmTarget = "1.8"
+        jvmTarget = "11"
     }
     buildFeatures {
         compose = true
@@ -67,6 +69,7 @@ dependencies {
     implementation(libs.androidx.media3.exoplayer)
     implementation(libs.androidx.media3.session)
     implementation(libs.androidx.media3.ui)
+    implementation(libs.androidx.recyclerview)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -78,6 +81,7 @@ dependencies {
     //room
     val room_version = "2.6.1"
     implementation("androidx.room:room-runtime:$room_version")
+    implementation("androidx.room:room-paging:$room_version")
     kapt("androidx.room:room-compiler:$room_version")
     implementation("androidx.room:room-ktx:$room_version")
 
@@ -112,6 +116,10 @@ dependencies {
     implementation("androidx.media3:media3-exoplayer-dash:1.4.0")
     implementation("androidx.media3:media3-ui:1.4.0")
     implementation("androidx.legacy:legacy-support-v4:1.0.0")
+
+    //FireBase
+    implementation(platform("com.google.firebase:firebase-bom:33.2.0"))
+    implementation("com.google.firebase:firebase-analytics")
 }
 
 kapt {

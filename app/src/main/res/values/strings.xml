@@ -1,9 +1,9 @@
 <resources>
     <string name="app_name">TheVoices</string>
-    <string name="register">Register</string>
+    <string name="signUp">Sign up</string>
     <string name="usernameLogin">Username</string>
     <string name="passwordLogin">Password</string>
-    <string name="loginLogin">Login</string>
+    <string name="signinLogin">Sign in</string>
     <string name="donthaveaccount">Don\'t have an account ?</string>
     <string name="forgotpasswordLogin">Forgot password ?</string>
     <string name="registerRegister">Register</string>
@@ -13,4 +13,8 @@
     <string name="haveaccount">Have account ?</string>
     <string name="title_PostDetail">Post Detail</string>
     <string name="retypePasswordRegister">Re-type Password</string>
+    <string name="remembermeLogin">Remember Me</string>
+    <string name="orLogin">or</string>
+    <string name="googleLogin">Google</string>
+    <string name="facebookLogin">Facebook</string>
 </resources>
