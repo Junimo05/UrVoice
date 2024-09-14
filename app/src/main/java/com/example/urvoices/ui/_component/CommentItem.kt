@@ -84,7 +84,7 @@ fun CommentItem(
 
             // Comment content
             Text(
-                text = "This is a comment",
+                text = "This is a comment dawioudjawdoiawjdoiwajdoiawdjaowidjawoidjawoiddjaoiwjdoiawdjawoidjdjioawjdoaiwjdwaoidawoidjwaoidjwaioddadwwdwajwaodijwaoidjwaoidjwaoidjawdoiwajdoaiwdjwaoidjawoidaj",
                 modifier = Modifier
                     .padding(16.dp)
                     .clickable { isExpandedComment.value = !isExpandedComment.value }, // Toggle expanded status on click

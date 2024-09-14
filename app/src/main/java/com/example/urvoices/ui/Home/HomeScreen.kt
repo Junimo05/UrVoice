@@ -23,6 +23,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
@@ -66,8 +69,18 @@ fun Home(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .size(90.dp)
+                        .size(70.dp)
                         .background(MaterialTheme.colorScheme.background)
+                        .drawBehind {
+                            val strokeWidth = 2.dp.toPx()
+                            val y = size.height - strokeWidth / 2
+                            drawLine(
+                                color = Color.Black,
+                                start = Offset(0f, y),
+                                end = Offset(size.width, y),
+                                strokeWidth = strokeWidth
+                            )
+                        }
                     ,
                     verticalAlignment = Alignment.CenterVertically
                 ){

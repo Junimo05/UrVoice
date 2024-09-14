@@ -26,6 +26,8 @@ fun Navigator() {
             when (destination.parent?.route) {
                 Graph.AUTHENTICATION -> isVisibleBottomBar.value = false
                 Graph.NAV_SCREEN -> isVisibleBottomBar.value = true
+                Graph.POST -> isVisibleBottomBar.value = false
+                Graph.NOTI_MSG -> isVisibleBottomBar.value = false
             }
         }
     }
@@ -59,4 +61,5 @@ object Graph {
     const val AUTHENTICATION = "auth_graph"
     const val NAV_SCREEN = "nav_graph"
     const val POST = "post_graph"
+    const val NOTI_MSG = "noti_msg_graph"
 }

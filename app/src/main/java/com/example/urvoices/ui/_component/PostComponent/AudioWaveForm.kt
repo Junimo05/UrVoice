@@ -42,7 +42,7 @@ fun AudioWaveform(
             .fillMaxWidth()
             .padding(8.dp)
             .height(62.dp)
-            .width(268.dp)
+            .width(240.dp)
             .background(MaterialTheme.colorScheme.inversePrimary)
             .border(1.dp, MaterialTheme.colorScheme.onBackground, MaterialTheme.shapes.small)
             .padding(8.dp)

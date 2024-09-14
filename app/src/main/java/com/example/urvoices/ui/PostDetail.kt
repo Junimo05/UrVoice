@@ -8,20 +8,25 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -37,6 +42,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -81,7 +87,12 @@ fun PostDetail(
         topBar = {
             TopBarBackButton(
                 navController = navController,
-                title = "Luca Morrison"
+                title = "Luca Morrison",
+                endIcon = R.drawable.ic_actions_more_1,
+                endIconAction = {
+                    /*TODO*/
+                },
+                modifier = Modifier.background(MaterialTheme.colorScheme.surfaceVariant)
             )
         },
         modifier = Modifier.fillMaxSize()
@@ -124,7 +135,7 @@ fun ProfileDetail(
             painter = painterResource(id = R.drawable.person),
             contentDescription = "Avatar",
             modifier = Modifier
-                .size(64.dp)
+                .size(100.dp)
                 .clip(CircleShape)
                 .border(2.dp, Color.Black, CircleShape)
         )
@@ -151,7 +162,7 @@ fun ProfileDetail(
                 onClick = { /*TODO*/ },
                 modifier = Modifier.size(120.dp, 40.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFFFFFFFF),
+                    containerColor = MaterialTheme.colorScheme.secondaryContainer,
                 ),
                 border = BorderStroke(
                     1.dp,
@@ -160,7 +171,7 @@ fun ProfileDetail(
             ) {
                 Text(
                     text = "Follow",
-                    color = Color(0xFF000000),
+                    color = MaterialTheme.colorScheme.onSecondaryContainer,
                     style = TextStyle(
                         fontWeight = FontWeight.Bold
                     )
@@ -171,7 +182,7 @@ fun ProfileDetail(
                 onClick = { /*TODO*/ },
                 modifier = Modifier.size(120.dp, 40.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFFFFFFFF),
+                    containerColor = MaterialTheme.colorScheme.secondaryContainer,
                 ),
                 border = BorderStroke(
                     1.dp,
@@ -180,7 +191,7 @@ fun ProfileDetail(
             ) {
                 Text(
                     text = "Message",
-                    color = Color(0xFF000000),
+                    color = MaterialTheme.colorScheme.onSecondaryContainer,
                     style = TextStyle(
                         fontWeight = FontWeight.Bold
                     )
@@ -198,6 +209,10 @@ fun ContentDetail(
         mutableStateOf(true)
     }
 
+    val contentExpanded = remember {
+        mutableStateOf(false)
+    }
+
     LaunchedEffect(scrollThroughContentDetail.value) {
         transitionVisible.value = !scrollThroughContentDetail.value
         Log.e("scrollChange", "Scroll" + scrollThroughContentDetail.value)
@@ -206,22 +221,37 @@ fun ContentDetail(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .background(Color(0xFFFFFFFF))
+            .background(MaterialTheme.colorScheme.background)
             .padding(4.dp),
     ) {
         AnimatedVisibility(
             visible = transitionVisible.value,
+            modifier = Modifier.align(Alignment.CenterHorizontally)
         ) {
-            Text(
-                text = "Content Info",
+            Card(
+                shape = RoundedCornerShape(50.dp),
                 modifier = Modifier
-                    .align(Alignment.Start)
-                    .padding(start = 16.dp),
-                style = TextStyle(
-                    fontWeight = FontWeight.Normal,
-                    fontSize = 18.sp
+                    .fillMaxWidth(0.8f)
+                    .heightIn(min = 100.dp)
+                    .clickable {
+                        contentExpanded.value = !contentExpanded.value
+                    }
+                    .background(MaterialTheme.colorScheme.primaryContainer)
+            ) {
+                Text(
+                    text = "Content Info doiawjdoawidjwaoidajwdoiwajdaoiwjdaoiwjdaoiwjcvndjaiowdjwadjaowidjaowidojiawdjawoidjaoiwdjaoiwdjwaodiojawoidjawoidjawoidjawoidjawdoiajw",
+                    modifier = Modifier
+                        .align(Alignment.Start)
+                        .padding(start = 16.dp, top = 8.dp, bottom = 8.dp, end = 16.dp),
+                    style = TextStyle(
+                        fontWeight = FontWeight.Normal,
+                        fontSize = 18.sp,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer
+                    ),
+                    maxLines = if (contentExpanded.value) Int.MAX_VALUE else 4,
+                    overflow = if (contentExpanded.value) TextOverflow.Visible else TextOverflow.Ellipsis
                 )
-            )
+            }
         }
         AudioWaveform(isPlaying = false, duration = "4:12", percentPlayed = 0.5f)
         InteractionRow(Post_Interactions(/*Todo interaction data*/))

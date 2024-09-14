@@ -78,7 +78,7 @@ fun ProfilePostItem(
                             padding(top = 16.dp, start = 16.dp, end = 16.dp, bottom = 40.dp)
                         .clickable(onClick = { isExpandedContext.value = !isExpandedContext.value })
                 )
-                Spacer(modifier = Modifier.height(55.dp))
+                Spacer(modifier = Modifier.height(40.dp))
                 InteractionRow(
                     interactions = Post_Interactions(),
                     modifier = Modifier.align(Alignment.CenterHorizontally)
