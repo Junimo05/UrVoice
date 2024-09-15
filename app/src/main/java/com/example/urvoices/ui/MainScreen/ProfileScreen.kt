@@ -1,4 +1,4 @@
-package com.example.urvoices.ui.Profile
+package com.example.urvoices.ui.MainScreen
 
 import android.annotation.SuppressLint
 import android.content.res.Configuration.UI_MODE_NIGHT_NO
@@ -33,7 +33,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -71,7 +70,7 @@ fun ProfileScreen(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(54.dp)
+                    .height(56.dp)
                     .background(MaterialTheme.colorScheme.surfaceVariant)
                     .drawBehind {
                         val strokeWidth = 2.dp.toPx()

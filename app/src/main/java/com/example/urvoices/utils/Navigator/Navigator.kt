@@ -52,6 +52,7 @@ fun Navigator() {
         ){
             authGraph(navController) //authentication nav
             mainGraph(navController) //home nav
+            notiMsgGraph(navController) //notification nav
         }
     }
 }

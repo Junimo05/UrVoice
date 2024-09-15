@@ -45,6 +45,8 @@ fun NotificationScreen(
                 .fillMaxSize()
         ) {
             NotiPart(titlePart = "New")
+            NotiPart(titlePart = "Today")
+            NotiPart(titlePart = "7 days ago")
         }
     }
 }
@@ -60,7 +62,7 @@ fun NotiPart(
         style = TextStyle(
             color = MaterialTheme.colorScheme.onSurface,
             fontSize = 20.sp,
-            fontWeight = FontWeight.Bold
+            fontWeight = FontWeight.ExtraBold
         ),
         modifier = Modifier.padding(start = 40.dp)
     )

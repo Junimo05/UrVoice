@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -53,7 +54,8 @@ fun TopBarBackButton(
             style = TextStyle(
                 fontWeight = FontWeight.Bold,
                 fontSize = 20.sp,
-                fontStyle = FontStyle.Normal
+                fontStyle = FontStyle.Normal,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             ),
             modifier = Modifier.align(Alignment.Center)
         )
@@ -67,7 +69,8 @@ fun TopBarBackButton(
         ) {
             Icon(
                 painter = painterResource(id = R.drawable.ic_back),
-                contentDescription = "Back"
+                contentDescription = "Back",
+                tint = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
 

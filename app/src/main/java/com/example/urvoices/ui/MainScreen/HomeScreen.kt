@@ -1,4 +1,4 @@
-package com.example.urvoices.ui.Home
+package com.example.urvoices.ui.MainScreen
 
 import android.annotation.SuppressLint
 import androidx.compose.animation.AnimatedVisibility
@@ -33,6 +33,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.urvoices.R
 import com.example.urvoices.ui._component.PostComponent.NewFeedPostItem
@@ -69,7 +70,7 @@ fun Home(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .size(70.dp)
+                        .size(56.dp)
                         .background(MaterialTheme.colorScheme.background)
                         .drawBehind {
                             val strokeWidth = 2.dp.toPx()
@@ -90,7 +91,7 @@ fun Home(
                             .padding(16.dp)
                         ,
                         style = TextStyle(
-                            fontSize = with(LocalDensity.current) { dimensionResource(id = R.dimen.Title).toSp()},
+                            fontSize = 26.sp,
                             fontWeight = FontWeight.Bold
                         )
                     )

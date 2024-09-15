@@ -30,6 +30,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.urvoices.R
 import com.example.urvoices.presentations.theme.MyTheme
@@ -38,10 +39,9 @@ import com.example.urvoices.ui._component.TopBarBackButton
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
-fun MessageScreen() {
-
-    val navController = rememberNavController()
-
+fun MessageScreen(
+    navController: NavController
+) {
     Scaffold(
         topBar = {
             TopBarBackButton(
@@ -83,7 +83,10 @@ fun MessageScreen() {
 }
 
 @Composable
-fun SearchBar(){
+fun SearchBar(
+
+    searchMech: () -> Unit = {}
+){
     var text by remember { mutableStateOf("") }
 
     Card(
@@ -121,6 +124,6 @@ fun SearchBar(){
 @Composable
 fun DefaultPreview() {
     MyTheme {
-        MessageScreen()
+        MessageScreen(navController = rememberNavController())
     }
 }

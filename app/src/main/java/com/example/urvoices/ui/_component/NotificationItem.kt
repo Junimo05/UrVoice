@@ -62,7 +62,7 @@ fun NotificationItem (
             painter = painterResource(id = R.drawable.person),
             contentDescription = "Avatar",
             modifier = Modifier
-                .padding(start = 20.dp, end = 8.dp, top = 8.dp, bottom = 8.dp)
+                .padding(start = 10.dp, end = 8.dp, top = 8.dp, bottom = 8.dp)
                 .size(64.dp)
                 .clip(CircleShape)
                 .border(2.dp, Color.Black, CircleShape)
@@ -84,7 +84,7 @@ fun NotificationItem (
                         withStyle(
                             style = SpanStyle(
                                 color = MaterialTheme.colorScheme.onBackground,
-                                fontWeight = FontWeight.Bold,
+                                fontWeight = FontWeight.ExtraBold,
                                 fontSize = 16.sp
                             )
                         ) {

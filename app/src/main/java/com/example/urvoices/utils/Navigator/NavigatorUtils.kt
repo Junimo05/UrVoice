@@ -17,8 +17,13 @@ sealed class MainScreen(
     object RecordScreen: MainScreen("RECORD_SCREEN")
     object ProfileScreen: MainScreen("PROFILE_SCREEN")
     object SettingsScreen: MainScreen("SETTINGS_SCREEN")
-    object NotificationScreen: MainScreen("NOTIFICATION_SCREEN")
-    object MessageScreen: MainScreen("MESSAGE_SCREEN")
+}
+
+sealed class NotiMsgicationScreen(
+    val route: String
+) {
+    object NotificationScreen: NotiMsgicationScreen("NOTIFICATION_SCREEN")
+    object MessageScreen: NotiMsgicationScreen("MESSAGE_SCREEN")
 }
 
 sealed class PostDetailScreen(
