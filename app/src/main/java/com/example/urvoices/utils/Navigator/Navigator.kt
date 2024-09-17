@@ -12,10 +12,11 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
 import com.example.urvoices.ui._component.BottomBar
 import com.example.urvoices.utils.SharedPreferencesHelper
+import com.example.urvoices.viewmodel.AuthViewModel
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
-fun Navigator() {
+fun Navigator(authViewModel: AuthViewModel) {
     val navController = rememberNavController()
     val selectedPage = rememberSaveable { mutableIntStateOf(0) }
     val isVisibleBottomBar = rememberSaveable { mutableStateOf(false) }
@@ -50,8 +51,8 @@ fun Navigator() {
             startDestination = if (sharedPreferences.isLoggedIn()) Graph.NAV_SCREEN else Graph.AUTHENTICATION,
             route = Graph.ROOT
         ){
-            authGraph(navController) //authentication nav
-            mainGraph(navController) //home nav
+            authGraph(navController, authViewModel) //authentication nav
+            mainGraph(navController, authViewModel) //home nav
             notiMsgGraph(navController) //notification nav
         }
     }

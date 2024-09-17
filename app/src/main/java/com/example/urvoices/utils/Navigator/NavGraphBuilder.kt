@@ -13,17 +13,18 @@ import com.example.urvoices.ui.Register.RegisterScreen
 import com.example.urvoices.ui.Splash.SplashScreen
 import com.example.urvoices.ui.noti_msg.MessageScreen
 import com.example.urvoices.ui.noti_msg.NotificationScreen
+import com.example.urvoices.viewmodel.AuthViewModel
 
-fun NavGraphBuilder.authGraph(navController: NavController){
+fun NavGraphBuilder.authGraph(navController: NavController, authViewModel: AuthViewModel){
     navigation(route = Graph.AUTHENTICATION, startDestination = AuthScreen.SplashScreen.route){
         composable(route = AuthScreen.SplashScreen.route){
             SplashScreen(navController = navController)
         }
         composable(route = AuthScreen.LoginScreen.route){
-            LoginScreen(navController = navController)
+            LoginScreen(navController = navController, authViewModel = authViewModel)
         }
         composable(route = AuthScreen.RegisterScreen.route){
-            RegisterScreen(navController = navController)
+            RegisterScreen(navController = navController, authViewModel = authViewModel)
         }
         composable(route = AuthScreen.ForgetPasswordScreen.route){
 
@@ -31,10 +32,10 @@ fun NavGraphBuilder.authGraph(navController: NavController){
     }
 }
 
-fun NavGraphBuilder.mainGraph(navController: NavController){
+fun NavGraphBuilder.mainGraph(navController: NavController, authViewModel: AuthViewModel){
     navigation(route = Graph.NAV_SCREEN, startDestination = MainScreen.HomeScreen.route){
         composable(route = MainScreen.HomeScreen.route){
-            HomeScreen(navController = navController)
+            HomeScreen(navController = navController, authViewModel = authViewModel)
         }
         composable(route = MainScreen.SearchScreen.route){
             SearchScreen(navController = navController)

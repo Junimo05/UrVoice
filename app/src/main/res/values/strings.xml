@@ -17,4 +17,5 @@
     <string name="orLogin">or</string>
     <string name="googleLogin">Google</string>
     <string name="facebookLogin">Facebook</string>
+    <string name="web_client_id">12771192312-6gfd8fegov8ae9deln13d64jh5rcle5d.apps.googleusercontent.com</string>
 </resources>

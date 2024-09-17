@@ -1,6 +1,7 @@
 package com.example.urvoices.ui.Register
 
 import android.annotation.SuppressLint
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -23,12 +24,15 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
@@ -41,15 +45,18 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.example.urvoices.R
-import com.example.urvoices.ViewModel.RegisterViewModel
 import com.example.urvoices.ui._component.TopBarBackButton
+import com.example.urvoices.utils.Navigator.AuthScreen
+import com.example.urvoices.utils.Navigator.MainScreen
+import com.example.urvoices.viewmodel.AuthState
+import com.example.urvoices.viewmodel.AuthViewModel
 
 
 @Composable
-fun RegisterScreen(navController: NavController) {
-    val viewModel: RegisterViewModel = hiltViewModel()
+fun RegisterScreen(navController: NavController, authViewModel: AuthViewModel) {
+
     Register(
-        viewModel = viewModel,
+        viewModel = authViewModel,
         navController = navController
     )
 }
@@ -57,18 +64,33 @@ fun RegisterScreen(navController: NavController) {
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter", "UnrememberedMutableState")
 @Composable
 fun Register(
-    viewModel: RegisterViewModel,
+    viewModel: AuthViewModel,
     navController: NavController,
     modifier: Modifier = Modifier
 ){
+    val context = LocalContext.current
+    val authState = viewModel.authState.observeAsState()
+    var username by remember { mutableStateOf("") }
+    var email by remember { mutableStateOf("") }
+    var password by remember { mutableStateOf("") }
+    var retypePassword by remember { mutableStateOf("") }
 
     var passwordVisible by remember { mutableStateOf(false) }
     var retypePasswordVisible by remember { mutableStateOf(false) }
 
+    LaunchedEffect(key1 = authState.value) {
+        when(authState.value){
+            is AuthState.Authenticated -> navController.navigate(MainScreen.HomeScreen.route)
+            is AuthState.Error -> Toast.makeText(
+                context,
+                (authState.value as AuthState.Error).message,
+                Toast.LENGTH_SHORT
+            ).show()
+            else -> Unit
+        }
+    }
+
     Scaffold(
-        topBar = {
-            TopBarBackButton(navController = navController)
-        },
         modifier = Modifier.fillMaxSize()
     ){paddingvalues ->
         Column(
@@ -94,8 +116,8 @@ fun Register(
             }
             Column {
                 TextField(
-                    value = viewModel.username,
-                    onValueChange = {viewModel.username = it},
+                    value = username,
+                    onValueChange = {username = it},
                     label = { Text(text = stringResource(id = R.string.usernameRegister)) },
                     colors = TextFieldDefaults.colors(
                         focusedContainerColor = MaterialTheme.colorScheme.primaryContainer,
@@ -105,8 +127,8 @@ fun Register(
                 )
                 Spacer(modifier = Modifier.padding(4.dp))
                 TextField(
-                    value = viewModel.email,
-                    onValueChange = {viewModel.email = it},
+                    value = email,
+                    onValueChange = {email = it},
                     label = { Text(text = stringResource(id = R.string.emailRegister)) },
                     colors = TextFieldDefaults.colors(
                         focusedContainerColor = MaterialTheme.colorScheme.primaryContainer,
@@ -116,8 +138,8 @@ fun Register(
                 )
                 Spacer(modifier = Modifier.padding(4.dp))
                 TextField(
-                    value = viewModel.password,
-                    onValueChange = {viewModel.password = it},
+                    value = password,
+                    onValueChange = {password = it},
                     label = { Text(text = stringResource(id = R.string.passwordLogin)) },
                     colors = TextFieldDefaults.colors(
                         focusedContainerColor = MaterialTheme.colorScheme.primaryContainer,
@@ -146,8 +168,8 @@ fun Register(
                 )
                 Spacer(modifier = Modifier.padding(4.dp))
                 TextField(
-                    value = viewModel.retypePassword,
-                    onValueChange = {viewModel.retypePassword = it},
+                    value =  retypePassword,
+                    onValueChange = {retypePassword = it},
                     label = { Text(text = stringResource(id = R.string.retypePasswordRegister)) },
                     colors = TextFieldDefaults.colors(
                         focusedContainerColor = MaterialTheme.colorScheme.primaryContainer,
@@ -182,9 +204,8 @@ fun Register(
                 verticalArrangement = Arrangement.Center
             ) {
                 Button(onClick = {
-//                if (viewModel.onLoginClicked()) {
-//                    navController?.navigate("home")
-//                }
+                    //Sign Up Email & Password
+                    viewModel.signUpEmailPassword(email, password, username, retypePassword)
                 },
                     colors = ButtonDefaults.buttonColors(
                         contentColor = MaterialTheme.colorScheme.onPrimary,
@@ -221,7 +242,7 @@ fun Register(
                         modifier = Modifier
                             .size(200.dp, 60.dp)
                             .clickable {
-
+                                //TODO: Implement Google Sign In
                             },
                     ){
                         Row(
@@ -249,7 +270,7 @@ fun Register(
                         modifier = Modifier
                             .size(200.dp, 60.dp)
                             .clickable {
-
+                                //TODO: Implement Facebook Login
                             },
                     ){
                         Row(
@@ -277,7 +298,11 @@ fun Register(
             }
 
 
-            Row {
+            Row(
+                modifier = Modifier.clickable{
+                    navController.navigate(AuthScreen.LoginScreen.route)
+                }
+            ) {
                 Text(text = stringResource(id = R.string.haveaccount),
                     modifier = Modifier
                         .align(Alignment.CenterVertically)
@@ -287,11 +312,13 @@ fun Register(
                     modifier = Modifier
                         .align(Alignment.CenterVertically)
                         .padding(start = 5.dp)
-                        .clickable {
-                            navController.navigate("login")
-                        }
                 )
             }
         }
     }
+}
+
+fun validatePassword(password: String): Boolean {
+    val passwordRegex = """^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[@#${'$'}%^&+=])(?=\S+${'$'}).{8,}${'$'}""".toRegex()
+    return passwordRegex.matches(password)
 }

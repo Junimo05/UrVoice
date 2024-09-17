@@ -1,4 +1,4 @@
-package com.example.urvoices.ViewModel.State
+package com.example.urvoices.viewmodel.State
 
 data class AppGlobalState(
     val isLogin: Boolean = false,

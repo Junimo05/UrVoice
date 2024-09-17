@@ -17,7 +17,9 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -34,24 +36,31 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.example.urvoices.R
 import com.example.urvoices.ui._component.PostComponent.NewFeedPostItem
 import com.example.urvoices.presentations.theme.MyTheme
+import com.example.urvoices.utils.Navigator.AuthScreen
+import com.example.urvoices.viewmodel.AuthState
+import com.example.urvoices.viewmodel.AuthViewModel
 
 @Composable
 fun HomeScreen(
-    navController: NavController
+    navController: NavController,
+    authViewModel: AuthViewModel
 ) {
-    Home(navController)
+    Home(navController, authViewModel)
 }
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 fun Home(
     navController: NavController,
+    authViewModel: AuthViewModel,
     modifier: Modifier = Modifier
 ) {
+    val authState = authViewModel.authState.observeAsState()
     val mainStateList = rememberLazyListState()
     val isScrolled = remember {
         mutableStateOf(mainStateList.firstVisibleItemIndex > 0)
@@ -63,6 +72,16 @@ fun Home(
     }
 
     //
+
+    LaunchedEffect(authState.value) {
+        when(authState.value){
+            is AuthState.Unauthenticated -> {
+                navController.navigate(AuthScreen.LoginScreen.route)
+            }
+            else -> Unit
+        }
+     }
+
 
     Scaffold(
         topBar = {
@@ -123,6 +142,16 @@ fun Home(
                                     //TODO: Implement Message
                                 }
                         )
+                        Icon(
+                            painter = painterResource(id = R.drawable.ic_actions_log_out),
+                            contentDescription = null,
+                            modifier = Modifier
+                                .size(36.dp)
+                                .padding(end = 4.dp)
+                                .clickable {
+                                    authViewModel.signOut()
+                                }
+                        )
                     }
                 }
             }
@@ -149,7 +178,8 @@ fun Home(
 @Composable
 fun HomePreview() {
     val context = androidx.compose.ui.platform.LocalContext.current
+    val authViewModel: AuthViewModel = hiltViewModel()
     MyTheme {
-        Home(navController = NavController(context = context))
+        Home(navController = NavController(context = context), authViewModel = authViewModel)
     }
 }

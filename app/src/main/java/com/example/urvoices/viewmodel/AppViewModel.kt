@@ -1,7 +1,7 @@
-package com.example.urvoices.ViewModel
+package com.example.urvoices.viewmodel
 
 import androidx.lifecycle.ViewModel
-import com.example.urvoices.ViewModel.State.AppGlobalState
+import com.example.urvoices.viewmodel.State.AppGlobalState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow

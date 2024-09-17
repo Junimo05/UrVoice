@@ -1,6 +1,8 @@
 package com.example.urvoices.ui.Login
 
 import android.annotation.SuppressLint
+import android.util.Patterns
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -26,12 +28,17 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
@@ -43,45 +50,66 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
 import com.example.urvoices.R
-import com.example.urvoices.ViewModel.LoginViewModel
+import com.example.urvoices.utils.GoogleSignIn
 import com.example.urvoices.utils.Navigator.AuthScreen
 import com.example.urvoices.utils.Navigator.MainScreen
+import com.example.urvoices.viewmodel.AuthState
+import com.example.urvoices.viewmodel.AuthViewModel
 
 @Composable
 fun LoginScreen(
-    navController: NavController
+    navController: NavController,
+    authViewModel: AuthViewModel
 ){
-    val viewModel: LoginViewModel = hiltViewModel()
     Login(
         navController = navController,
-        username = viewModel.username,
-        onUsernameChange = { viewModel.onUsernameChange(it)},
-        password = viewModel.password,
-        onPasswordChange = { viewModel.onPasswordChange(it)},
-        onLoginClicked = { viewModel.onLoginClicked() }
+        authViewModel = authViewModel
     )
 }
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 fun Login(
-    username: String,
-    onUsernameChange: (String) -> Unit,
-    password: String,
-    onPasswordChange: (String) -> Unit,
-    onLoginClicked: () -> Boolean,
-    navController: NavController? = null,
+    navController: NavController,
+    authViewModel: AuthViewModel,
     modifier: Modifier = Modifier
 ){
+    val authState = authViewModel.authState.observeAsState()
+
+    val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
+
+    var email by remember { mutableStateOf("") }
+    var validateEmail by remember {
+        mutableStateOf("")
+    }
+    var password by remember { mutableStateOf("") }
+    var validatePassword by remember{
+        mutableStateOf("")
+    }
 
     var passwordVisible by remember { mutableStateOf(false) }
     var rememberMe by remember { mutableStateOf(false) }
-    Scaffold(
 
-    ) { paddingvalues ->
+
+    LaunchedEffect(authState.value) {
+        when(authState.value){
+            is AuthState.Authenticated -> {
+                navController.navigate(MainScreen.HomeScreen.route)
+            }
+            is AuthState.Error -> Toast.makeText(
+                context,
+                (authState.value as AuthState.Error).message,
+                Toast.LENGTH_SHORT
+            ).show()
+            else -> Unit
+        }
+    }
+
+    Scaffold { paddingvalues ->
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -110,19 +138,34 @@ fun Login(
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     TextField(
-                        value = username,
-                        onValueChange = {onUsernameChange(it)},
-                        label = { Text(text = stringResource(id = R.string.usernameLogin)) },
+                        value = email,
+                        onValueChange = {value ->
+                            email = value
+                            validateEmail = if(value.isValidEmail()) "" else "Email is not valid"
+                        },
+                        isError = validateEmail.isNotEmpty(),
+                        label = { Text(text = stringResource(id = R.string.emailRegister)) },
                         colors = TextFieldDefaults.colors(
                             focusedContainerColor = MaterialTheme.colorScheme.primaryContainer,
                             unfocusedContainerColor = MaterialTheme.colorScheme.secondaryContainer,
                         ),
-                        modifier = Modifier.size(400.dp, 60.dp)
+                        modifier = Modifier.size(400.dp, 60.dp),
                     )
+                    if (validateEmail.isNotEmpty()) {
+                        Text(
+                            text = validateEmail,
+                            color = Color.Red,
+                            fontSize = 12.sp,
+                            modifier = Modifier.align(Alignment.Start).padding(start = 4.dp)
+                        )
+                    }
                     Spacer(modifier = Modifier.padding(4.dp))
                     TextField(
                         value = password,
-                        onValueChange = {onPasswordChange(it)},
+                        onValueChange = {value ->
+                            password = value
+                        },
+                        isError = validatePassword.isNotEmpty(),
                         label = { Text(text = stringResource(id = R.string.passwordLogin)) },
                         colors = TextFieldDefaults.colors(
                             focusedContainerColor = MaterialTheme.colorScheme.primaryContainer,
@@ -149,33 +192,19 @@ fun Login(
                         },
                         modifier = Modifier.size(400.dp, 60.dp)
                     )
+
                     Spacer(modifier = Modifier.padding(4.dp))
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(top = 10.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween
+                        horizontalArrangement = Arrangement.End
                     ) {
-                        Row (
-                            verticalAlignment = Alignment.CenterVertically
-                        ){
-                            Checkbox(
-                                checked = rememberMe,
-                                onCheckedChange = {rememberMe = !rememberMe},
-                                modifier = Modifier.size(24.dp)
-                            )
-                            Text(text = stringResource(id = R.string.remembermeLogin),
-                                modifier = Modifier
-                                    .padding(start = 10.dp)
-                                    .clickable {
-                                        rememberMe = !rememberMe
-                                    }
-                            )
-                        }
                         Text(text = stringResource(id = R.string.forgotpasswordLogin),
                             modifier = Modifier
                                 .clickable(
                                     onClick = {
+                                        //TODO: Implement Forgot Password
 //                                    navController?.navigate(AuthScreen.ForgotPasswordScreen.route)
                                     }
                                 )
@@ -190,14 +219,24 @@ fun Login(
                 ) {
                     Button(
                         onClick = {
-                        if(onLoginClicked()){
-                            navController?.navigate(MainScreen.HomeScreen.route)
-                        }
-                    },
+                            //Login
+                            if (email.isEmpty()) {
+                                validateEmail = "Email cannot be empty"
+                            }
+                            if (password.isEmpty()) {
+                                validatePassword = "Password cannot be empty"
+                            }
+
+                            if(email.isNotEmpty() && password.isNotEmpty()){
+                                // Fields are not empty, proceed with login
+                                authViewModel.signInEmailPassword(email, password)
+                            }
+                        },
                         colors = ButtonDefaults.buttonColors(
                             contentColor = MaterialTheme.colorScheme.onPrimary,
                             containerColor = MaterialTheme.colorScheme.primary
                         ),
+                        enabled = authState.value != AuthState.Loading,
                         modifier = Modifier
                             .height(60.dp)
                             .fillMaxWidth()
@@ -231,7 +270,10 @@ fun Login(
                             modifier = Modifier
                                 .size(200.dp, 60.dp)
                                 .clickable {
-
+                                    //TODO: Implement Google Login
+                                    GoogleSignIn(context, coroutineScope){credential ->
+                                        authViewModel.signInWithGoogle(credential)
+                                    }
                                 },
                         ){
                             Row(
@@ -259,7 +301,7 @@ fun Login(
                             modifier = Modifier
                                 .size(200.dp, 60.dp)
                                 .clickable {
-
+                                    //TODO: Implement Facebook Login
                                 },
                         ){
                             Row(
@@ -286,7 +328,11 @@ fun Login(
                     }
                 }
 
-                Row {
+                Row(
+                    modifier = Modifier.clickable {
+                        navController.navigate(AuthScreen.RegisterScreen.route)
+                    }
+                ) {
                     Text(text = stringResource(id = R.string.donthaveaccount),
                         modifier = Modifier
                             .align(Alignment.CenterVertically)
@@ -296,26 +342,24 @@ fun Login(
                         modifier = Modifier
                             .align(Alignment.CenterVertically)
                             .padding(start = 5.dp)
-                            .clickable {
-                                navController?.navigate(AuthScreen.RegisterScreen.route)
-                            }
                     )
                 }
             }
         }
     }
-
 }
+
+fun String.isValidEmail() = Patterns.EMAIL_ADDRESS.matcher(this).matches()
+
+
 
 @Preview(showBackground = true)
 @Composable
 fun LoginPreview(){
-    val loginViewModel: LoginViewModel = viewModel()
+    val authViewModel: AuthViewModel = hiltViewModel()
+    val navController = rememberNavController()
     Login(
-        username = loginViewModel.username,
-        onUsernameChange = { loginViewModel.onUsernameChange(it)},
-        password = loginViewModel.password,
-        onPasswordChange = { loginViewModel.onPasswordChange(it)},
-        onLoginClicked = { loginViewModel.onLoginClicked() }
+        authViewModel = authViewModel,
+        navController = navController
     )
 }
