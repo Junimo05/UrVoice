@@ -2,6 +2,7 @@ package com.example.urvoices.ui.Splash
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -28,6 +29,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -51,28 +53,30 @@ import com.example.urvoices.presentations.theme.MyTheme
 import com.example.urvoices.utils.Navigator.AuthScreen
 import com.example.urvoices.utils.Navigator.MainScreen
 import com.example.urvoices.utils.SharedPreferencesHelper
+import com.example.urvoices.viewmodel.AuthState
+import com.example.urvoices.viewmodel.AuthViewModel
 
 @Composable
 fun SplashScreen(
     navController: NavController,
+    authViewModel: AuthViewModel
 ) {
-    var isVisible by remember { mutableStateOf(false) }
     val context = LocalContext.current
-    LaunchedEffect(key1 = true) {
-        isVisible = true
-    }
-
-    AnimatedVisibility(
-        visible = isVisible,
-        enter = fadeIn(), // Add fade in animation when the content appears
-        exit = fadeOut(), // Add fade out animation when the content disappears
-    ) {
-        if(SharedPreferencesHelper(context = context).isLoggedIn()){
-            navController.navigate(MainScreen.HomeScreen.route)
-        }else {
-            Splash(navController = navController)
+    val authState = authViewModel.authState.observeAsState()
+    LaunchedEffect(authState.value) {
+        when(authState.value){
+            is AuthState.Authenticated -> {
+                navController.navigate(MainScreen.HomeScreen.route)
+            }
+            is AuthState.Error -> Toast.makeText(
+                context,
+                (authState.value as AuthState.Error).message,
+                Toast.LENGTH_SHORT
+            ).show()
+            else -> Unit
         }
     }
+    Splash(navController = navController)
 }
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
@@ -84,10 +88,6 @@ fun Splash(
 
 
     val textColor = remember { mutableStateOf(Color.Black) }
-    val buttonColor = remember {
-        mutableStateOf(Color.White)
-    }
-
     val TAG = "Splash_Screen"
 
 

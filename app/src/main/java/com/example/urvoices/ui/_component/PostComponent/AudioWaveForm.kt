@@ -2,41 +2,79 @@ package com.example.urvoices.ui._component.PostComponent
 
 import android.annotation.SuppressLint
 import android.content.Context
-import androidx.compose.foundation.Canvas
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.graphics.drawscope.Fill
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.content.edit
 import com.example.urvoices.R
+import com.example.urvoices.presentations.theme.MyTheme
+import com.example.urvoices.utils.waveform.AudioWaveform
 import com.google.common.reflect.TypeToken
 import com.google.gson.Gson
-import kotlin.random.Random
+import com.linc.audiowaveform.infiniteLinearGradient
+import com.linc.audiowaveform.model.AmplitudeType
+import com.linc.audiowaveform.model.WaveformAlignment
 
 @Composable
-fun AudioWaveform(
+fun AudioWaveformItem(
     //exoPlayer: ExoPlayer,
     percentPlayed: Float,
-    amplitudes: List<Float> = emptyList(),
+    initAmplitudes: List<Int> = listOf(
+        45, 23, 67, 89, 12, 34, 56, 78, 90, 11, 22, 33, 44, 55, 66, 77, 88,
+        99, 10, 20, 30, 40, 50, 60, 70, 80, 91, 92, 93, 94, 95, 96, 97, 98,
+        1, 2, 3, 4, 5, 6, 7, 8, 9, 13, 14, 15, 16, 17, 18, 19, 21, 24, 25,
+        26, 27, 28, 29, 31, 32, 35, 36, 37, 38, 39, 41, 42, 43, 46, 47, 48,
+        49, 51, 52, 53, 54, 57, 58, 59, 61, 62, 63, 64, 65, 68, 69, 71, 72,
+        73, 74, 75, 76, 79, 81, 82, 83, 84, 85, 86, 87, 100
+    ),
+    redrawTrigger: Int = 0,
+    waveformProgress: MutableState<Float> = remember {
+        mutableStateOf(0F)
+    },
     isPlaying: Boolean,
     duration: String,
     @SuppressLint("ModifierParameter") modifier: Modifier = Modifier
 ) {
+    var amplitudes by remember { mutableStateOf(initAmplitudes) }
+    val colorBrush = SolidColor(MaterialTheme.colorScheme.onPrimary)
+    val colorDone = SolidColor(MaterialTheme.colorScheme.surfaceVariant)
+    val staticGradientBrush = Brush.linearGradient(colors = listOf(Color(0xff22c1c3), Color(0xfffdbb2d)))
+    val animatedGradientBrush = Brush.infiniteLinearGradient(
+        colors = listOf(Color(0xff22c1c3), Color(0xfffdbb2d)),
+        animation = tween(durationMillis = 6000, easing = LinearEasing),
+        width = 128F
+    )
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -50,66 +88,41 @@ fun AudioWaveform(
         ,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        //TODO: Change
-        // Placeholder for waveform graphic
-        val random = Random
-        val barCount = 100
-        val barHeights = floatArrayOf(
-            0.123f, 0.456f, 0.789f, 0.234f, 0.567f, 0.890f, 0.345f, 0.678f, 0.901f, 0.012f,
-            0.345f, 0.678f, 0.901f, 0.234f, 0.567f, 0.890f, 0.123f, 0.456f, 0.789f, 0.012f,
-            0.345f, 0.678f, 0.901f, 0.234f, 0.567f, 0.890f, 0.123f, 0.456f, 0.789f, 0.012f,
-            0.345f, 0.678f, 0.901f, 0.234f, 0.567f, 0.890f, 0.123f, 0.456f, 0.789f, 0.012f,
-            0.345f, 0.678f, 0.901f, 0.234f, 0.567f, 0.890f, 0.123f, 0.456f, 0.789f, 0.012f,
-            0.345f, 0.678f, 0.901f, 0.234f, 0.567f, 0.890f, 0.123f, 0.456f, 0.789f, 0.012f,
-            0.345f, 0.678f, 0.901f, 0.234f, 0.567f, 0.890f, 0.123f, 0.456f, 0.789f, 0.012f,
-            0.345f, 0.678f, 0.901f, 0.234f, 0.567f, 0.890f, 0.123f, 0.456f, 0.789f, 0.012f,
-            0.345f, 0.678f, 0.901f, 0.234f, 0.567f, 0.890f, 0.123f, 0.456f, 0.789f, 0.012f,
-            0.345f, 0.678f, 0.901f, 0.234f, 0.567f, 0.890f, 0.123f, 0.456f, 0.789f, 0.012f
-        )
-
-
-        val playedColor = MaterialTheme.colorScheme.onBackground
-//        val notPlayedColor = MaterialTheme.colors.onSurface.copy(alpha = ContentAlpha.medium)
-        val notPlayedColor = MaterialTheme.colorScheme.background
-
         // Todo: Button to play/pause audio
-        Icon(
-            painter = painterResource(id = R.drawable.ic_media_play),
-            contentDescription = "Play"
-        )
-        Spacer(modifier = Modifier.width(8.dp))
-
-
-        Canvas(modifier = Modifier.fillMaxWidth().height(50.dp)) {
-            val barWidth = size.width / barCount // Decrease the width of each bar
-            // Remove space between bars
-
-            for (i in barHeights.indices) {
-                val barHeight = barHeights[i] * size.height / 2f
-                val barTop = size.height / 2f - barHeight
-                val barBottom = size.height / 2f + barHeight
-                val barLeft = i * barWidth
-                val barRight = barLeft + barWidth
-
-                val isBarPlayed = i <= barCount * percentPlayed
-                val barColor = if (isBarPlayed) playedColor else notPlayedColor
-
-                // Draw upflip
-                drawRect(
-                    color = barColor,
-                    topLeft = Offset(x = barLeft, y = barTop),
-                    size = Size(width = barWidth, height = barHeight)
-                )
-
-                // Draw downflip
-                drawRect(
-                    color = barColor,
-                    topLeft = Offset(x = barLeft, y = size.height / 2f),
-                    size = Size(width = barWidth, height = barHeight)
-                )
-            }
+        IconButton(
+            onClick = {
+                      /*TODO*/
+            },
+            modifier = Modifier.size(36.dp)
+        ) {
+            Icon(
+                painter = if(!isPlaying) painterResource(id = R.drawable.ic_media_stop) else painterResource(id = R.drawable.ic_media_play),
+                contentDescription = "PlayOrPause"
+            )
         }
-        Spacer(modifier = Modifier.width(8.dp))
+        Box(modifier = Modifier.weight(1f)) {
+            AudioWaveform(
+                // Spike DrawStyle: Fill or Stroke
+                style = Fill,
+                waveformAlignment = WaveformAlignment.Center,
+                amplitudeType = AmplitudeType.Avg,
+                // Colors could be updated with Brush API
+                progressBrush = colorDone,
+                waveformBrush = colorBrush,
+                spikeWidth = 4.dp,
+                spikePadding = 2.dp,
+                spikeRadius = 4.dp,
+                progress = waveformProgress.value,
+                amplitudes = amplitudes,
+                onProgressChange = {
+                    waveformProgress.value = it
+                },
+                onProgressChangeFinished = {
+
+                },
+                redrawTrigger = redrawTrigger
+            )
+        }
         Text(text = duration, modifier = Modifier.align(Alignment.CenterVertically))
     }
 }
@@ -134,5 +147,16 @@ fun loadWaveform(context: Context, audioId: String): List<Float>? {
 @Preview(showBackground = true)
 @Composable
 fun AudioWaveformPreview() {
-    AudioWaveform(isPlaying = true, duration = "4:12", percentPlayed = 0.5f)
+    val redrawTrigger = remember {
+        mutableStateOf(0)
+    }
+    val waveformProgress = remember {
+        mutableStateOf(0F)
+    }
+    MyTheme {
+        AudioWaveformItem(isPlaying = true, duration = "4:12", percentPlayed = 0.5f,
+            redrawTrigger = redrawTrigger.value,
+            waveformProgress =waveformProgress
+        )
+    }
 }

@@ -10,14 +10,11 @@ data class Audio(
     val uri: Uri,
     val displayName: String,
     val id: Long,
-    val artist: String,
     val data: String,
     val duration: Int,
-    val title: String,
     val audioCreated: Long,
     val audioSize: Long,
     val audioFavorite: Boolean,
-    var audioAmplitudes: List<Float> = emptyList()
 ): Parcelable {
     companion object {
         val DiffCallback = object: DiffUtil.ItemCallback<Audio>() {

@@ -1,12 +1,14 @@
 package com.example.urvoices.utils.Navigator
 
 import android.annotation.SuppressLint
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
@@ -20,7 +22,6 @@ fun Navigator(authViewModel: AuthViewModel) {
     val navController = rememberNavController()
     val selectedPage = rememberSaveable { mutableIntStateOf(0) }
     val isVisibleBottomBar = rememberSaveable { mutableStateOf(false) }
-    val sharedPreferences = SharedPreferencesHelper(context = LocalContext.current)
 
     LaunchedEffect(navController) {
         navController.addOnDestinationChangedListener { _, destination, _ ->
@@ -33,8 +34,9 @@ fun Navigator(authViewModel: AuthViewModel) {
         }
     }
 
-    //
-    sharedPreferences.setLoggedIn(false)
+    LaunchedEffect(authViewModel.authState.value) {
+
+    }
 
     Scaffold(
         bottomBar = {
@@ -48,8 +50,9 @@ fun Navigator(authViewModel: AuthViewModel) {
     ) {
         NavHost(
             navController = navController,
-            startDestination = if (sharedPreferences.isLoggedIn()) Graph.NAV_SCREEN else Graph.AUTHENTICATION,
-            route = Graph.ROOT
+            startDestination = Graph.AUTHENTICATION,
+            route = Graph.ROOT,
+            modifier = Modifier.padding(it)
         ){
             authGraph(navController, authViewModel) //authentication nav
             mainGraph(navController, authViewModel) //home nav

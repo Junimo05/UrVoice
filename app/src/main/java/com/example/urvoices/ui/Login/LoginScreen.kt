@@ -270,7 +270,6 @@ fun Login(
                             modifier = Modifier
                                 .size(200.dp, 60.dp)
                                 .clickable {
-                                    //TODO: Implement Google Login
                                     GoogleSignIn(context, coroutineScope){credential ->
                                         authViewModel.signInWithGoogle(credential)
                                     }

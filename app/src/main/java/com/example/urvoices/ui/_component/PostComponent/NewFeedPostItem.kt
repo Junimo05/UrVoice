@@ -19,6 +19,12 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -35,9 +41,28 @@ import com.example.urvoices.presentations.theme.MyTheme
 import com.example.urvoices.utils.Post_Interactions
 @Composable
 fun NewFeedPostItem(
-    //Todo: Add post data list
-    //Todo: NavController
+    redrawTrigger: Int
 ) {
+    val amplitudesTest = rememberSaveable {
+        mutableStateOf(
+            listOf(
+                45, 23, 67, 89, 12, 34, 56, 78, 90, 11, 22, 33, 44, 55, 66, 77, 88,
+                99, 10, 20, 30, 40, 50, 60, 70, 80, 91, 92, 93, 94, 95, 96, 97, 98,
+                1, 2, 3, 4, 5, 6, 7, 8, 9, 13, 14, 15, 16, 17, 18, 19, 21, 24, 25,
+                26, 27, 28, 29, 31, 32, 35, 36, 37, 38, 39, 41, 42, 43, 46, 47, 48,
+                49, 51, 52, 53, 54, 57, 58, 59, 61, 62, 63, 64, 65, 68, 69, 71, 72,
+                73, 74, 75, 76, 79, 81, 82, 83, 84, 85, 86, 87, 100
+            )
+        )
+    }
+    var waveformProgress = rememberSaveable { mutableStateOf(0F)}
+
+    DisposableEffect(key1 = redrawTrigger){
+        onDispose {
+            //Do nothing
+        }
+    }
+
     Card(
         shape = RoundedCornerShape(40.dp),
     ) {
@@ -74,7 +99,14 @@ fun NewFeedPostItem(
                 modifier = Modifier.padding(top = 4.dp, bottom = 0.dp, start = 14.dp, end = 0.dp)
             )
             Spacer(modifier = Modifier.width(16.dp))
-            AudioWaveform(duration = "4:12", isPlaying = true, percentPlayed = 0.5f)
+            AudioWaveformItem(
+                duration = "4:12",
+                isPlaying = true,
+                percentPlayed = 0.5f,
+                initAmplitudes = amplitudesTest.value,
+                redrawTrigger = redrawTrigger,
+                waveformProgress = waveformProgress
+            )
             Spacer(modifier = Modifier.height(8.dp))
             InteractionRow(interactions = Post_Interactions(/*Todo interaction data*/))
         }
@@ -125,7 +157,10 @@ fun ProfileInfo(
 @Preview(showBackground = true)
 @Composable
 fun ProfileNewFeedPreview() {
+    val redrawTrigger = remember {
+        mutableStateOf(0)
+    }
     MyTheme {
-        NewFeedPostItem()
+        NewFeedPostItem(redrawTrigger.value)
     }
 }

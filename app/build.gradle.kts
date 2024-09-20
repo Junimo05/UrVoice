@@ -73,6 +73,7 @@ dependencies {
     implementation(libs.androidx.runtime.livedata)
     implementation(libs.play.services.auth)
     implementation(libs.googleid)
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -120,10 +121,22 @@ dependencies {
     implementation("androidx.media3:media3-ui:1.4.0")
     implementation("androidx.legacy:legacy-support-v4:1.0.0")
 
+    //Waveform
+    implementation("com.github.lincollincol:amplituda:2.2.2")
+    implementation("com.github.lincollincol:compose-audiowaveform:1.1.1")
+
     //FireBase
     implementation(platform("com.google.firebase:firebase-bom:33.2.0"))
     implementation("com.google.firebase:firebase-analytics")
     implementation(libs.firebase.auth)
+    implementation(libs.firebase.firestore)
+    implementation("com.facebook.android:facebook-login:latest.release")
+    implementation(libs.firebase.storage)
+
+    //DataStore
+    implementation(libs.androidx.datastore.core.android)
+    implementation(libs.androidx.datastore.preferences.core.jvm)
+    implementation("androidx.datastore:datastore-preferences:1.0.0")
 
     //CoroutineCore
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.2")

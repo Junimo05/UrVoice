@@ -359,6 +359,9 @@ fun UserInfo(
                 modifier = Modifier
                     .fillMaxWidth()
                     .fillMaxHeight(0.65f)
+                    .clickable {
+
+                    }
                     ,
 
             ){
@@ -382,7 +385,9 @@ fun UserInfo(
                         .width(100.dp)
                         .padding(4.dp)
                         .border(1.dp, MaterialTheme.colorScheme.primary, CircleShape)
-                        .clickable { /*TODO*/ }
+                        .clickable {
+                            /*TODO*/
+                        }
                 ) {
                     Text(
                         text = "Follow",

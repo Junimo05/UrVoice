@@ -9,6 +9,7 @@ import com.example.urvoices.ui.MainScreen.HomeScreen
 import com.example.urvoices.ui.MainScreen.ProfileScreen
 import com.example.urvoices.ui.MainScreen.SearchScreen
 import com.example.urvoices.ui.MainScreen.SettingsScreen
+import com.example.urvoices.ui.MainScreen.UploadScreen
 import com.example.urvoices.ui.Register.RegisterScreen
 import com.example.urvoices.ui.Splash.SplashScreen
 import com.example.urvoices.ui.noti_msg.MessageScreen
@@ -18,7 +19,7 @@ import com.example.urvoices.viewmodel.AuthViewModel
 fun NavGraphBuilder.authGraph(navController: NavController, authViewModel: AuthViewModel){
     navigation(route = Graph.AUTHENTICATION, startDestination = AuthScreen.SplashScreen.route){
         composable(route = AuthScreen.SplashScreen.route){
-            SplashScreen(navController = navController)
+            SplashScreen(navController = navController, authViewModel = authViewModel)
         }
         composable(route = AuthScreen.LoginScreen.route){
             LoginScreen(navController = navController, authViewModel = authViewModel)
@@ -40,8 +41,8 @@ fun NavGraphBuilder.mainGraph(navController: NavController, authViewModel: AuthV
         composable(route = MainScreen.SearchScreen.route){
             SearchScreen(navController = navController)
         }
-        composable(route = MainScreen.RecordScreen.route){
-//            RecordScreen(navController = navController)
+        composable(route = MainScreen.UploadScreen.route){
+             UploadScreen(navController = navController)
         }
         composable(route = MainScreen.ProfileScreen.route){
             ProfileScreen(navController = navController)

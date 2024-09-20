@@ -36,25 +36,25 @@ fun BottomBar(
             contentDescription = "Home"
         ),
         BottomBarItem(
-            route = AuthScreen.SplashScreen.route,
+            route = MainScreen.SearchScreen.route,
             selectedIcon = R.drawable.search,
             unselectedIcon = R.drawable.search,
             contentDescription = "Search"
         ),
         BottomBarItem(
-            route = "record",
+            route = MainScreen.UploadScreen.route,
             selectedIcon = R.drawable.ic_actions_add,
             unselectedIcon = R.drawable.ic_actions_add,
             contentDescription = "Record"
         ),
         BottomBarItem(
-            route = "profile",
+            route = MainScreen.ProfileScreen.route,
             selectedIcon = R.drawable.person,
             unselectedIcon = R.drawable.person,
             contentDescription = "Profile"
         ),
         BottomBarItem(
-            route = "settings",
+            route = MainScreen.SettingsScreen.route,
             selectedIcon = R.drawable.setting,
             unselectedIcon = R.drawable.setting,
             contentDescription = "Settings"

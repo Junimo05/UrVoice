@@ -18,4 +18,9 @@
     <string name="googleLogin">Google</string>
     <string name="facebookLogin">Facebook</string>
     <string name="web_client_id">12771192312-6gfd8fegov8ae9deln13d64jh5rcle5d.apps.googleusercontent.com</string>
+
+    <string name="facebook_app_id">534850875571785</string>
+    <string name="fb_login_protocol_scheme">fb534850875571785</string>
+    <string name="facebook_client_token">0fa2afefc4929289c4e1c5ad0efeb8a9</string>
+    <string name="fire_storage">gs://urvoice-98254.appspot.com/</string>
 </resources>

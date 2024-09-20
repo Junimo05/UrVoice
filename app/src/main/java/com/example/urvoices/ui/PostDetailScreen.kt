@@ -34,6 +34,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -51,7 +52,7 @@ import androidx.navigation.compose.rememberNavController
 import com.example.urvoices.R
 import com.example.urvoices.ui._component.CommentItem
 import com.example.urvoices.ui._component.InteractionRow
-import com.example.urvoices.ui._component.PostComponent.AudioWaveform
+import com.example.urvoices.ui._component.PostComponent.AudioWaveformItem
 import com.example.urvoices.ui._component.TopBarBackButton
 import com.example.urvoices.presentations.theme.MyTheme
 import com.example.urvoices.utils.Post_Interactions
@@ -253,7 +254,21 @@ fun ContentDetail(
                 )
             }
         }
-        AudioWaveform(isPlaying = false, duration = "4:12", percentPlayed = 0.5f)
+
+        val amplitudesTest = rememberSaveable {
+            mutableStateOf(
+                listOf(
+                    45, 23, 67, 89, 12, 34, 56, 78, 90, 11, 22, 33, 44, 55, 66, 77, 88,
+                    99, 10, 20, 30, 40, 50, 60, 70, 80, 91, 92, 93, 94, 95, 96, 97, 98,
+                    1, 2, 3, 4, 5, 6, 7, 8, 9, 13, 14, 15, 16, 17, 18, 19, 21, 24, 25,
+                    26, 27, 28, 29, 31, 32, 35, 36, 37, 38, 39, 41, 42, 43, 46, 47, 48,
+                    49, 51, 52, 53, 54, 57, 58, 59, 61, 62, 63, 64, 65, 68, 69, 71, 72,
+                    73, 74, 75, 76, 79, 81, 82, 83, 84, 85, 86, 87, 100
+                )
+            )
+        }
+
+        AudioWaveformItem(isPlaying = false, duration = "4:12", percentPlayed = 0.5f, initAmplitudes = amplitudesTest.value)
         InteractionRow(Post_Interactions(/*Todo interaction data*/))
     }
 }
