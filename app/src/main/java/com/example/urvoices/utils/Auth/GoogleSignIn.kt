@@ -1,4 +1,4 @@
-package com.example.urvoices.utils
+package com.example.urvoices.utils.Auth
 
 import android.content.Context
 import android.util.Log

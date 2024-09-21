@@ -8,7 +8,7 @@ import com.example.urvoices.data.model.Audio
 
 @Entity(tableName = "audio")
 data class AudioDes(
-    @PrimaryKey(autoGenerate = true) var id: Int = 0,
+    @PrimaryKey(autoGenerate = true) var id: String,
     @ColumnInfo(name = "audio_name") var audioName: String,
     @ColumnInfo(name = "audio_duration") var audioDuration: Long,
     @ColumnInfo(name = "audio_path") var audioPath: String,
@@ -22,13 +22,13 @@ data class AudioDes(
 
 fun AudioDes.toAudio(): Audio {
     return Audio(
-        id = this.id.toLong(),
-        uri = Uri.parse(this.audioPath),
+        id = this.id,
+        url = this.audioPath,
         displayName = this.audioName,
-        data = this.audioPath,
-        duration = this.audioDuration.toInt(),
+        duration = this.audioDuration,
         audioCreated = this.audioCreated,
         audioSize = this.audioSize,
-        audioFavorite = this.audioFavorite
+        type = this.audioType,
+        amplitudes = emptyList(),
     )
 }

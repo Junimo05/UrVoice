@@ -26,9 +26,9 @@ import javax.inject.Inject
 class AuthViewModel @Inject constructor(
     private val sharedPreferences: SharedPreferencesHelper,
     private val firestore: FirebaseFirestore,
-    private val userDataStore: UserPreferences
+    private val userDataStore: UserPreferences,
+    private val auth: FirebaseAuth
 ): ViewModel(){
-    private val auth : FirebaseAuth = FirebaseAuth.getInstance()
     private val scope = CoroutineScope(Dispatchers.Main)
 
     private val _authState = MutableLiveData<AuthState>()
@@ -98,6 +98,7 @@ class AuthViewModel @Inject constructor(
                             "ID" to user.uid,
                             "bio" to "",
                             "country" to "",
+                            "avatarUrl" to "",
                             "email" to user.email,
                             "username" to username,
                             "createAt" to user.metadata?.creationTimestamp,
@@ -148,6 +149,7 @@ class AuthViewModel @Inject constructor(
                                         "ID" to user.uid,
                                         "bio" to "",
                                         "country" to "",
+                                        "avatarUrl" to "",
                                         "email" to user.email,
                                         "username" to user.displayName,
                                         "createAt" to user.metadata?.creationTimestamp,

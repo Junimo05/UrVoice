@@ -19,7 +19,6 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
-import androidx.compose.material3.Checkbox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -53,7 +52,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.urvoices.R
-import com.example.urvoices.utils.GoogleSignIn
+import com.example.urvoices.utils.Auth.GoogleSignIn
 import com.example.urvoices.utils.Navigator.AuthScreen
 import com.example.urvoices.utils.Navigator.MainScreen
 import com.example.urvoices.viewmodel.AuthState

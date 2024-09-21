@@ -1,20 +1,19 @@
 package com.example.urvoices.data.model
 
-import android.net.Uri
 import android.os.Parcelable
 import androidx.recyclerview.widget.DiffUtil
 import kotlinx.parcelize.Parcelize
 
 @Parcelize
 data class Audio(
-    val uri: Uri,
+    val url: String,
     val displayName: String,
-    val id: Long,
-    val data: String,
-    val duration: Int,
+    val id: String,
+    val amplitudes: List<Int>,
+    val type: String,
+    val duration: Long,
     val audioCreated: Long,
     val audioSize: Long,
-    val audioFavorite: Boolean,
 ): Parcelable {
     companion object {
         val DiffCallback = object: DiffUtil.ItemCallback<Audio>() {
