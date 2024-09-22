@@ -1,5 +1,5 @@
 package com.example.urvoices.data.model
-data class Likes(
+data class Like(
     val id: String,
     val commentID: String = "",
     val postID: String = "",

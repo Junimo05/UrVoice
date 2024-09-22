@@ -1,6 +1,7 @@
 package com.example.urvoices.ui.MainScreen
 
 import android.annotation.SuppressLint
+import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -41,12 +42,14 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.example.urvoices.R
+import com.example.urvoices.data.service.FirebasePostService
 import com.example.urvoices.presentations.theme.MyTheme
 import com.example.urvoices.ui._component.PostComponent.NewFeedPostItem
 import com.example.urvoices.utils.Navigator.AuthScreen
 import com.example.urvoices.utils.UserPreferences
 import com.example.urvoices.viewmodel.AuthState
 import com.example.urvoices.viewmodel.AuthViewModel
+import com.example.urvoices.viewmodel.HomeViewModel
 import kotlinx.coroutines.launch
 
 @Composable
@@ -54,14 +57,16 @@ fun HomeScreen(
     navController: NavController,
     authViewModel: AuthViewModel
 ) {
-    Home(navController, authViewModel)
+    val viewModel: HomeViewModel = hiltViewModel()
+    Home(navController, authViewModel, viewModel)
 }
 
-@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
+@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter", "CoroutineCreationDuringComposition")
 @Composable
 fun Home(
     navController: NavController,
     authViewModel: AuthViewModel,
+    homeViewModel: HomeViewModel,
     modifier: Modifier = Modifier
 ) {
 
@@ -83,6 +88,10 @@ fun Home(
     }
 
     //
+    scope.launch {
+        val result = homeViewModel.getAllPostFromUser("user1")
+        Log.e("Home", "Home: $result")
+    }
 
     LaunchedEffect(authState.value) {
         when(authState.value){
@@ -208,7 +217,8 @@ fun Home(
 fun HomePreview() {
     val context = androidx.compose.ui.platform.LocalContext.current
     val authViewModel: AuthViewModel = hiltViewModel()
+    val homeViewModel: HomeViewModel = hiltViewModel()
     MyTheme {
-        Home(navController = NavController(context = context), authViewModel = authViewModel)
+        Home(navController = NavController(context = context), authViewModel = authViewModel, homeViewModel = homeViewModel)
     }
 }

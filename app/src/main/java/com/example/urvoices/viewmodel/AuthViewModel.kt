@@ -80,7 +80,10 @@ class AuthViewModel @Inject constructor(
                 }else{
                     _authState.value = AuthState.Error("Email or Password is incorrect")
                 }
-        }
+            }
+            .addOnFailureListener{
+                _authState.value = AuthState.Error(it.message ?: "An error occurred")
+            }
     }
 
     fun signUpEmailPassword(email: String, password: String, username: String, retypedPassword: String){
@@ -115,7 +118,10 @@ class AuthViewModel @Inject constructor(
                 }else{
                     _authState.value = AuthState.Error(task.exception?.message ?: "An error occurred")
                 }
-        }
+            }
+            .addOnFailureListener {
+                _authState.value = AuthState.Error(it.message ?: "An error occurred")
+            }
     }
 
 

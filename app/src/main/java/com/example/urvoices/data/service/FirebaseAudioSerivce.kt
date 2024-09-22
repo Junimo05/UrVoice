@@ -69,7 +69,7 @@ class FirebaseAudioService @Inject constructor(
 
     suspend fun getAllAudioFilesByUserID(userId: String): List<String> {
         // get all audio files from firebase storage
-        val dirRef = storage.child("$userId/audio")
+        val dirRef = storage.child("audios/$userId")
 
         val result = mutableListOf<String>()
 

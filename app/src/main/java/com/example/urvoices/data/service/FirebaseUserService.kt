@@ -48,7 +48,7 @@ class FirebaseUserService @Inject constructor(
         val user = auth.currentUser
         val imgName = user?.uid + ".jpg"
         try {
-            val imgRef = storage.child("${user?.uid}/img/$imgName")
+            val imgRef = storage.child("imgs/${user?.uid}/$imgName")
             imgRef.putFile(avatarUri).await()
             val url = imgRef.downloadUrl.await().toString()
             firebaseFirestore.collection("users").document(user?.uid!!).update("avatarUrl", url).await()
