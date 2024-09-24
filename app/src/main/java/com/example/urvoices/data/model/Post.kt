@@ -3,10 +3,10 @@ package com.example.urvoices.data.model
 data class Post(
     val id: String,
     val userId: String,
-    val url: String,
+    val url: String?,
     val description: String,
-    val likes: Int,
-    val comments: Int,
+    val likes: Int?,
+    val comments: Int?,
     val tag: List<String>?,
     val createdAt: Long,
     val updateAt: Long?,
@@ -20,7 +20,6 @@ data class Post(
             "createdAt" to createdAt,
             "updateAt" to updateAt,
             "deleteAt" to deleteAt,
-            "url" to url,
         )
     }
 }

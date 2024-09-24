@@ -14,16 +14,21 @@ data class Comment(
     val updateAt: Long?,
     val deleteAt: Long?,
 ):Parcelable {
-    fun toMap(): Map<String, Any?> {
+    fun toCommentMap(): Map<String, Any?> {
         return mapOf(
             "id" to id,
-            "userID" to userId,
-            "postID" to postId,
             "content" to content,
-            "parentCommentID" to parentCommentId,
             "createdAt" to createdAt,
             "updateAt" to updateAt,
             "deleteAt" to deleteAt,
+        )
+    }
+    fun toRelationMap(): Map<String, Any?> {
+        return mapOf(
+            "id" to id,
+            "userId" to userId,
+            "postId" to postId,
+            "parentCommentId" to parentCommentId,
         )
     }
 }

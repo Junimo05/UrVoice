@@ -42,6 +42,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.example.urvoices.R
+import com.example.urvoices.data.model.Post
 import com.example.urvoices.data.service.FirebasePostService
 import com.example.urvoices.presentations.theme.MyTheme
 import com.example.urvoices.ui._component.PostComponent.NewFeedPostItem
@@ -89,7 +90,19 @@ fun Home(
 
     //
     scope.launch {
-        val result = homeViewModel.getAllPostFromUser("user1")
+        val test: Post = Post(
+            id = "test",
+            userId = "user1",
+            url = null,
+            tag = null,
+            likes = null,
+            comments = null,
+            deleteAt = null,
+            updateAt = null,
+            createdAt = 0,
+            description = "test",
+        )
+        val result = homeViewModel.createPostTest(test)
         Log.e("Home", "Home: $result")
     }
 

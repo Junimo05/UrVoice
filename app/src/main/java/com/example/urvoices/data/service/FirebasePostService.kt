@@ -140,45 +140,66 @@ class FirebasePostService @Inject constructor(
     suspend fun createPost(post: Post, audioUrl: Uri): Boolean {
         // create post
         val postToCreate = post.toMap()
-        val newFileRef = storage.child("${post.userId}/audios/")
+        val newFileRef = storage.child("audios/${post.userId}/")
 
-        try {
+        return try {
             // Upload the file to the new location
             CoroutineScope(Dispatchers.IO).launch {
-                newFileRef.putFile(audioUrl)
+                newFileRef.putFile(audioUrl).await()
             }
 
-            firebaseFirestore.collection("posts").document(post.id).set(postToCreate)
-                .addOnSuccessListener {
-                    // create rela_posts_users
-                    val relaPostUser = mapOf(
-                        "ID" to "${post.userId}_${post.id}",
-                        "postID" to post.id,
-                        "userID" to post.userId
-                    )
-                    firebaseFirestore.collection("rela_posts_users").document("${post.userId}_${post.id}").set(relaPostUser)
-                        .addOnSuccessListener {
-                            // Update the 'url' field in the Firestore document
-                            CoroutineScope(Dispatchers.IO).launch {
-                                val url = newFileRef.downloadUrl.await().toString()
-                                firebaseFirestore.collection("posts").document(post.id).update("url", url).await()
-                            }
-                        }
-                        .addOnFailureListener { e ->
-                            Log.w(TAG, "Error writing document", e)
-                            // Delete the file if creating relation fails
-                            CoroutineScope(Dispatchers.IO).launch {
-                                newFileRef.delete()
-                            }
-                        }
-                }
-                .addOnFailureListener { e ->
-                    Log.w(TAG, "Error writing document", e)
-                    // Delete the file if creating post fails
-                    CoroutineScope(Dispatchers.IO).launch {
-                        newFileRef.delete()
-                    }
-                }
+            firebaseFirestore.collection("posts").document(post.id).set(postToCreate).await()
+
+            // create rela_posts_users
+            val relaPostUser = mapOf(
+                "ID" to "${post.userId}_${post.id}",
+                "postID" to post.id,
+                "userID" to post.userId
+            )
+            firebaseFirestore.collection("rela_posts_users")
+                .document("${post.userId}_${post.id}").set(relaPostUser).await()
+
+            // Update the 'url' field in the Firestore document
+            firebaseFirestore.collection("posts").document(post.id).update("url", newFileRef.path).await()
+
+            true
+        } catch (e: Exception) {
+            e.printStackTrace()
+            false
+        }
+    }
+
+    suspend fun updatePost(post: Post): Boolean {
+        // update post
+        try {
+            firebaseFirestore.collection("posts").document(post.id).update(post.toMap())
+                .await()
+            return true
+
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+        return false
+    }
+
+    suspend fun deletePost(post: Post): Boolean {
+        // delete post
+        try {
+            firebaseFirestore.collection("posts").document(post.id).update("deletedAt", System.currentTimeMillis())
+                .await()
+            return true
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+        return false
+    }
+
+    suspend fun deletePermanentlyPost(post: Post): Boolean {
+        // delete post
+        try {
+            firebaseFirestore.collection("posts").document(post.id).delete().await()
+            //delete rela_posts_users
+            firebaseFirestore.collection("rela_posts_users").document("${post.userId}_${post.id}").delete().await()
             return true
         } catch (e: Exception) {
             e.printStackTrace()
