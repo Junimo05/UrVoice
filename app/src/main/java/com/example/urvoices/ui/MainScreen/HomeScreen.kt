@@ -90,20 +90,7 @@ fun Home(
 
     //
     scope.launch {
-        val test: Post = Post(
-            id = "test",
-            userId = "user1",
-            url = null,
-            tag = null,
-            likes = null,
-            comments = null,
-            deleteAt = null,
-            updateAt = null,
-            createdAt = 0,
-            description = "test",
-        )
-        val result = homeViewModel.createPostTest(test)
-        Log.e("Home", "Home: $result")
+
     }
 
     LaunchedEffect(authState.value) {

@@ -152,11 +152,6 @@ suspend fun commentPost(userID: String, postID: String = "", comment: Comment): 
         val result = firebasePostService.getReplies_Comments(commentID)
         return result
     }
-
-    suspend fun createPostTest(post: Post): Boolean {
-        val result = firebasePostService.createPost(post, "ddddd".toUri())
-        return result
-    }
 }
 
 sealed class HomeEvent {

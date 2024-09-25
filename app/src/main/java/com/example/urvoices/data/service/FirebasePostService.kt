@@ -18,9 +18,8 @@ import java.io.File
 import javax.inject.Inject
 
 class FirebasePostService @Inject constructor(
-    private val audioManager: AudioManager,
-    private val storage: StorageReference,
     private val firebaseFirestore: FirebaseFirestore,
+    private val storage: StorageReference,
     private val firebaseAudioService: FirebaseAudioService
 ){
     val TAG = "FirebasePostService"
@@ -55,6 +54,7 @@ class FirebasePostService @Inject constructor(
                     id = postID,
                     userId = userID,
                     url = audioUrl,
+                    audioName = audioUrl.split("/").last(),
                     description = description,
                     createdAt = createdAt,
                     updateAt = updateAt,
@@ -117,6 +117,7 @@ class FirebasePostService @Inject constructor(
                         id = postID,
                         userId = userID,
                         url = audioUrl,
+                        audioName = audioUrl.split("/").last(),
                         description = description,
                         createdAt = createdAt,
                         updateAt = updateAt,
@@ -139,8 +140,8 @@ class FirebasePostService @Inject constructor(
 
     suspend fun createPost(post: Post, audioUrl: Uri): Boolean {
         // create post
-        val postToCreate = post.toMap()
-        val newFileRef = storage.child("audios/${post.userId}/")
+        val postToCreate = post.copy(id = null).toMap()
+        val newFileRef = storage.child("audios/${post.userId}/${post.audioName}")
 
         return try {
             // Upload the file to the new location
@@ -148,32 +149,39 @@ class FirebasePostService @Inject constructor(
                 newFileRef.putFile(audioUrl).await()
             }
 
-            firebaseFirestore.collection("posts").document(post.id).set(postToCreate).await()
+            // Add the post to Firestore and get the auto-generated ID
+            val newPostRef = firebaseFirestore.collection("posts").add(postToCreate).await()
+            val newPostId = newPostRef.id
+
+            // Update the 'id' field in the Firestore document
+            newPostRef.update("id", newPostId).await()
 
             // create rela_posts_users
             val relaPostUser = mapOf(
-                "ID" to "${post.userId}_${post.id}",
-                "postID" to post.id,
+                "ID" to "${post.userId}_$newPostId",
+                "postID" to newPostId,
                 "userID" to post.userId
             )
             firebaseFirestore.collection("rela_posts_users")
-                .document("${post.userId}_${post.id}").set(relaPostUser).await()
+                .document("${post.userId}_$newPostId").set(relaPostUser).await()
 
             // Update the 'url' field in the Firestore document
-            firebaseFirestore.collection("posts").document(post.id).update("url", newFileRef.path).await()
+            firebaseFirestore.collection("posts").document(newPostId).update("url", newFileRef.path).await()
 
             true
         } catch (e: Exception) {
             e.printStackTrace()
+            Log.e(TAG, "createPost: ${e.message}")
             false
         }
     }
-
     suspend fun updatePost(post: Post): Boolean {
         // update post
         try {
-            firebaseFirestore.collection("posts").document(post.id).update(post.toMap())
-                .await()
+            post.id?.let {
+                firebaseFirestore.collection("posts").document(it).update(post.toMap())
+                    .await()
+            }
             return true
 
         } catch (e: Exception) {
@@ -185,8 +193,10 @@ class FirebasePostService @Inject constructor(
     suspend fun deletePost(post: Post): Boolean {
         // delete post
         try {
-            firebaseFirestore.collection("posts").document(post.id).update("deletedAt", System.currentTimeMillis())
-                .await()
+            post.id?.let {
+                firebaseFirestore.collection("posts").document(it).update("deletedAt", System.currentTimeMillis())
+                    .await()
+            }
             return true
         } catch (e: Exception) {
             e.printStackTrace()
@@ -197,7 +207,7 @@ class FirebasePostService @Inject constructor(
     suspend fun deletePermanentlyPost(post: Post): Boolean {
         // delete post
         try {
-            firebaseFirestore.collection("posts").document(post.id).delete().await()
+            post.id?.let { firebaseFirestore.collection("posts").document(it).delete().await() }
             //delete rela_posts_users
             firebaseFirestore.collection("rela_posts_users").document("${post.userId}_${post.id}").delete().await()
             return true

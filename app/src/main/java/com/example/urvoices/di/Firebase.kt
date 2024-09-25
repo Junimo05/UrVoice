@@ -2,6 +2,7 @@ package com.example.urvoices.di
 
 import com.example.urvoices.data.AudioManager
 import com.example.urvoices.data.service.FirebaseAudioService
+import com.example.urvoices.data.service.FirebasePostService
 import com.example.urvoices.data.service.FirebaseUserService
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
@@ -54,4 +55,15 @@ object Firebase {
     ): FirebaseUserService {
         return FirebaseUserService(audioManager, storage, firebaseFirestore, auth)
     }
+
+    @Provides
+    @Singleton
+    fun provideFirebasePostService(
+        firestore: FirebaseFirestore,
+        storage: StorageReference,
+        firebaseAudioService: FirebaseAudioService,
+    ): FirebasePostService {
+        return FirebasePostService(firestore, storage, firebaseAudioService)
+    }
+
 }

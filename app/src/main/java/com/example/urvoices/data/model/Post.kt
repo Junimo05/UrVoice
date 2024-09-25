@@ -1,9 +1,10 @@
 package com.example.urvoices.data.model
 
 data class Post(
-    val id: String,
+    val id: String?,
     val userId: String,
     val url: String?,
+    val audioName: String?,
     val description: String,
     val likes: Int?,
     val comments: Int?,
@@ -14,7 +15,7 @@ data class Post(
 ) {
     fun toMap(): Map<String, Any?> {
         return mapOf(
-            "id" to id,
+            "userId" to userId,
             "description" to description,
             "tag" to tag,
             "createdAt" to createdAt,

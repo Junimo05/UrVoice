@@ -148,7 +148,14 @@ class AuthViewModel @Inject constructor(
                                 if(document != null && document.exists()){
                                     _authState.value = AuthState.Authenticated
                                     sharedPreferences.setLoggedIn(true)
-
+                                    //save data to user preference
+                                    val username = document.getString("username")
+                                    val email = document.getString("email")
+                                    val id = document.getString("ID")
+                                    requireNotNull(username) { "Username is null"}
+                                    requireNotNull(email) { "Email is null"}
+                                    requireNotNull(id) { "ID is null"}
+                                    saveDataUserPreference(id, username, email)
                                 } else {
                                     // User does not exist in Firestore, create a new document
                                     userRef.set(mapOf(

@@ -6,14 +6,11 @@ import android.net.Uri
 import android.provider.OpenableColumns
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -21,15 +18,18 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FabPosition
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Snackbar
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
@@ -52,19 +52,62 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.urvoices.R
 import com.example.urvoices.presentations.theme.MyTheme
+import com.example.urvoices.ui._component.TagInputField
+import com.example.urvoices.utils.Navigator.MainScreen
 import com.example.urvoices.utils.formatFileSize
+import com.example.urvoices.viewmodel.UploadState
 import com.example.urvoices.viewmodel.UploadViewModel
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 @Composable
 fun UploadScreen(
     navController: NavController,
 ){
     val uploadViewModel: UploadViewModel = hiltViewModel()
-    Upload(
-        navController = navController,
-        context = LocalContext.current,
-        uploadViewModel = uploadViewModel
-    )
+    val uploadState by uploadViewModel.uploadState.observeAsState()
+    var snackbar by remember {
+        mutableStateOf(false)
+    }
+
+    LaunchedEffect(key1 =uploadState){
+        when(uploadState){
+            is UploadState.Success -> {
+                // Show success message
+                snackbar = true
+                delay(3000)
+                snackbar = false
+                navController.navigate(MainScreen.UploadScreen.route)
+            }
+            is UploadState.Error -> {
+                // Show error message
+            }
+            else -> {}
+        }
+
+    }
+
+    Box(modifier = Modifier.fillMaxSize()) {
+        Upload(
+            navController = navController,
+            context = LocalContext.current,
+            uploadViewModel = uploadViewModel
+        )
+        if(snackbar){
+            Snackbar(
+                modifier = Modifier.align(Alignment.BottomCenter),
+            ) {
+                Text("Upload success")
+            }
+        }
+        if (uploadState is UploadState.Loading) {
+            CircularProgressIndicator(
+                modifier = Modifier.align(Alignment.Center)
+            )
+        }
+    }
 }
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
@@ -75,9 +118,10 @@ fun Upload(
     context: Context
 ){
     var audioUri by remember { mutableStateOf<Uri?>(null) }
-    var audioName by remember { mutableStateOf<String?>(null) }
-    var audioDes by remember { mutableStateOf<String?>("") }
+    var audioName by remember { mutableStateOf<String>("") }
+    var audioDes by remember { mutableStateOf<String>("") }
     var audioSize by remember { mutableStateOf<Long?>(null) }
+    var tag by remember { mutableStateOf<List<String>>(emptyList()) }
 
     var uploadState = uploadViewModel.uploadState.observeAsState()
 
@@ -97,6 +141,8 @@ fun Upload(
             }
         }
     }
+
+
 
     Scaffold(
         topBar = {
@@ -174,7 +220,7 @@ fun Upload(
                             TextField(
                                 value = name,
                                 onValueChange = { audioName = it },
-                                label = { Text("Name") },
+                                label = { Text("Urvoice's Name") },
                                 modifier = Modifier.fillMaxWidth()
                             )
                         }
@@ -184,32 +230,37 @@ fun Upload(
                         TextField(
                             value = audioSize?.let { size -> formatFileSize(size) } ?: "Unknown",
                             onValueChange = { /* Handle text change */},
-                            label = { Text("File Size") },
+                            label = { Text("UrVoice's Size") },
                             readOnly = true,
                             modifier = Modifier.fillMaxWidth()
                         )
                         Spacer(modifier = Modifier.height(8.dp))
-                        audioDes?.let { des ->
-                            TextField(
-                                value = des,
-                                onValueChange = { audioDes = it },
-                                label = { Text("Description") },
-                                minLines = 3,
-                                modifier = Modifier.fillMaxWidth()
-                            )
-                        }
+
+                        TextField(
+                            value = audioDes,
+                            onValueChange = { audioDes = it },
+                            label = { Text("About this urvoice") },
+                            minLines = 3,
+                            modifier = Modifier.fillMaxWidth()
+                        )
 
                         Spacer(modifier = Modifier.height(16.dp))
 
+                        TagInputField(
+                            value = tag,
+                            onValueChange = {tag = it},
+                            modifier = Modifier.fillMaxWidth()
+                        )
+
                         Button(
                             onClick = {
-                                // Here you would implement the actual upload logic
-                                // For example, you might call a ViewModel method to handle the upload
-                                // uploadAudio(audioUri, audioName)
+                                  CoroutineScope(Dispatchers.Main).launch {
+                                      uploadViewModel.createPost(audioUri!!, audioName , audioDes, tag)
+                                  }
                             },
                             modifier = Modifier.align(Alignment.CenterHorizontally)
                         ) {
-                            Text("Upload Audio")
+                            Text("Upload")
                         }
                     }
                 }
