@@ -1,6 +1,6 @@
 package com.example.urvoices.ui._component.PostComponent
 
-import androidx.compose.foundation.Image
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Column
@@ -14,35 +14,52 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
 import com.example.urvoices.R
+import com.example.urvoices.data.model.Post
 import com.example.urvoices.ui._component.InteractionRow
-import com.example.urvoices.presentations.theme.MyTheme
 import com.example.urvoices.utils.Post_Interactions
+import com.example.urvoices.utils.getTimeElapsed
+import com.example.urvoices.viewmodel.HomeViewModel
+import com.example.urvoices.viewmodel.MediaPlayerViewModel
+import com.example.urvoices.viewmodel.UIEvents
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+
 @Composable
 fun NewFeedPostItem(
-    redrawTrigger: Int
+    post: Post,
+    homeViewModel: HomeViewModel,
+    playerViewModel: MediaPlayerViewModel,
+    modifier: Modifier = Modifier
 ) {
+    val TAG = "NewFeedPostItem"
+    val timeText = getTimeElapsed(post.createdAt)
+    val scope = CoroutineScope(Dispatchers.Main)
     val amplitudesTest = rememberSaveable {
         mutableStateOf(
             listOf(
@@ -55,13 +72,8 @@ fun NewFeedPostItem(
             )
         )
     }
-    var waveformProgress = rememberSaveable { mutableStateOf(0F)}
 
-    DisposableEffect(key1 = redrawTrigger){
-        onDispose {
-            //Do nothing
-        }
-    }
+    var waveformProgress = rememberSaveable { mutableStateOf(0F)}
 
     Card(
         shape = RoundedCornerShape(40.dp),
@@ -74,7 +86,12 @@ fun NewFeedPostItem(
         )
         {
             Row{
-                ProfileInfo(modifier = Modifier.weight(1f))
+                ProfileInfo(
+                    userId = post.userId,
+                    postDes = post.description,
+                    homeViewModel = homeViewModel,
+                    modifier = Modifier.weight(1f)
+                )
                 IconButton(
                     modifier = Modifier.align(Alignment.CenterVertically),
                     onClick = {
@@ -90,7 +107,7 @@ fun NewFeedPostItem(
                 }
             }
             Text(
-                text = "2 hours ago",
+                text = timeText,
                 style = TextStyle(
                     fontWeight = FontWeight.Light,
                     fontSize = 12.sp,
@@ -98,13 +115,27 @@ fun NewFeedPostItem(
                 ),
                 modifier = Modifier.padding(top = 4.dp, bottom = 0.dp, start = 14.dp, end = 0.dp)
             )
+            IconButton(
+                onClick = {
+                    Log.e(TAG, "Playing audio: ${post.url}")
+                    playerViewModel.onUIEvents(
+                        UIEvents.PlayingAudio(post.url!!)
+                    )
+                }
+            ) {
+                Icon(
+                    painter = painterResource(id = R.drawable.ic_media_play),
+                    contentDescription = "ActionMore",
+                    modifier = Modifier
+                        .weight(0.1f)
+                )
+            }
             Spacer(modifier = Modifier.width(16.dp))
             AudioWaveformItem(
                 duration = "4:12",
                 isPlaying = true,
                 percentPlayed = 0.5f,
                 initAmplitudes = amplitudesTest.value,
-                redrawTrigger = redrawTrigger,
                 waveformProgress = waveformProgress
             )
             Spacer(modifier = Modifier.height(8.dp))
@@ -116,51 +147,73 @@ fun NewFeedPostItem(
 
 @Composable
 fun ProfileInfo(
+    userId: String,
+    postDes: String,
+    homeViewModel: HomeViewModel,
     modifier: Modifier = Modifier
 ){
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier
-            .then(modifier)
-    ) {
-        Image(
-            painter = painterResource(id = R.drawable.person),
-            contentDescription = "Avatar",
+    val (isLoaded, setIsLoaded) = rememberSaveable { mutableStateOf(false) }
+    val userInfo by produceState(initialValue = mapOf<String, String>(), producer = {
+        value = homeViewModel.getUserInfo(userId).let {
+            setIsLoaded(true)
+            it
+        }
+    })
+
+    if(!isLoaded){
+        CircularProgressIndicator()
+    }else {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier
-                .size(64.dp)
-                .clip(CircleShape)
-                .border(2.dp, Color.Black, CircleShape)
-        )
-        Spacer(modifier = Modifier.width(4.dp))
-        Column {
-            Text(
-                text = "Luca Morrison",
-                style = TextStyle(
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 16.sp,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer
-                ),
+                .then(modifier)
+        ) {
+            AsyncImage(
+                model = ImageRequest.Builder(LocalContext.current)
+                    .data(userInfo["avatarUrl"])
+                    .crossfade(true)
+                    .build(),
+                contentDescription = "Avatar",
+                placeholder = painterResource(id = R.drawable.person),
+                contentScale = ContentScale.Crop,
+                modifier = Modifier
+                    .size(64.dp)
+                    .clip(CircleShape)
+                    .border(2.dp, Color.Black, CircleShape)
             )
-            Spacer(modifier = Modifier.height(10.dp))
-            Text(
-                text = "My story of moving to Japan",
-                style = TextStyle(
-                    fontWeight = FontWeight.Normal,
-                    fontSize = 14.sp,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer
-                ),
-            )
+            Spacer(modifier = Modifier.width(4.dp))
+            Column {
+                Text(
+                    text = userInfo["username"] ?: "Unknown",
+                    style = TextStyle(
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 16.sp,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer
+                    ),
+                )
+                Spacer(modifier = Modifier.height(10.dp))
+                Text(
+                    text = postDes,
+                    style = TextStyle(
+                        fontWeight = FontWeight.Normal,
+                        fontSize = 14.sp,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer
+                    ),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
         }
     }
 }
 
-@Preview(showBackground = true)
-@Composable
-fun ProfileNewFeedPreview() {
-    val redrawTrigger = remember {
-        mutableStateOf(0)
-    }
-    MyTheme {
-        NewFeedPostItem(redrawTrigger.value)
-    }
-}
+//@Preview(showBackground = true)
+//@Composable
+//fun ProfileNewFeedPreview() {
+//    val redrawTrigger = remember {
+//        mutableStateOf(0)
+//    }
+//    MyTheme {
+//        NewFeedPostItem(redrawTrigger.value)
+//    }
+//}

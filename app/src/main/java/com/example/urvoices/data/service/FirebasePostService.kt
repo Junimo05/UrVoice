@@ -15,6 +15,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
 import java.io.File
+import java.util.Dictionary
 import javax.inject.Inject
 
 class FirebasePostService @Inject constructor(
@@ -28,11 +29,16 @@ class FirebasePostService @Inject constructor(
         val posts = mutableListOf<Post>()
         try {
             // get posts
-            val postRefs = firebaseFirestore.collection("posts")
+            val postQuery = firebaseFirestore.collection("posts")
                 .orderBy("createdAt", Query.Direction.DESCENDING)
                 .limit(limit)
-                .get()
-                .await()
+
+            // If there is a last visible post, start after it
+            if (lastVisiblePost != null) {
+                postQuery.startAfter(lastVisiblePost)
+            }
+
+            val postRefs = postQuery.get().await()
             lastVisiblePost = postRefs.documents.lastOrNull()
             posts.addAll(postRefs.documents.mapNotNull { document ->
                 val deleteAt = document.getLong("deletedAt")
@@ -48,7 +54,6 @@ class FirebasePostService @Inject constructor(
                 val updateAt = document.getLong("updatedAt")
                 val likes = getLikes_Posts(postID)
                 val comments = getComments_Posts(postID).size
-
 
                 Post(
                     id = postID,
@@ -67,13 +72,27 @@ class FirebasePostService @Inject constructor(
 
         } catch (e: Exception) {
             e.printStackTrace()
-            Log.e(TAG, "getNewFeed: ${e.message}")
         }
-        Log.e(TAG, "getNewFeed: $posts")
         return posts
     }
 
-    suspend fun getUserIDByPostID(postID: String): String{
+    suspend fun getUserInfo(userID: String): Map<String, String> {
+        var result = mapOf<String, String>()
+        try {
+            val userRef = firebaseFirestore.collection("users").document(userID).get().await()
+            val username = userRef.getString("username") ?: ""
+            val avatar = userRef.getString("avatar") ?: ""
+            result = mapOf(
+                "username" to username,
+                "avatar" to avatar
+            )
+        }catch (e: Exception){
+            e.printStackTrace()
+        }
+        return result
+    }
+
+    private suspend fun getUserIDByPostID(postID: String): String{
         var result = ""
         try {
             val postRef = firebaseFirestore.collection("rela_posts_users")
@@ -142,11 +161,12 @@ class FirebasePostService @Inject constructor(
         // create post
         val postToCreate = post.copy(id = null).toMap()
         val newFileRef = storage.child("audios/${post.userId}/${post.audioName}")
-
+        var downloadUrl = ""
         return try {
             // Upload the file to the new location
             CoroutineScope(Dispatchers.IO).launch {
-                newFileRef.putFile(audioUrl).await()
+                val uploadTask = newFileRef.putFile(audioUrl).await()
+                downloadUrl = uploadTask.storage.downloadUrl.await().toString()
             }
 
             // Add the post to Firestore and get the auto-generated ID
@@ -166,7 +186,7 @@ class FirebasePostService @Inject constructor(
                 .document("${post.userId}_$newPostId").set(relaPostUser).await()
 
             // Update the 'url' field in the Firestore document
-            firebaseFirestore.collection("posts").document(newPostId).update("url", newFileRef.path).await()
+            firebaseFirestore.collection("posts").document(newPostId).update("url", downloadUrl).await()
 
             true
         } catch (e: Exception) {

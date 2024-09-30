@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">TheVoices</string>
+    <string name="app_name">UrVoices</string>
     <string name="signUp">Sign up</string>
     <string name="usernameLogin">Username</string>
     <string name="passwordLogin">Password</string>

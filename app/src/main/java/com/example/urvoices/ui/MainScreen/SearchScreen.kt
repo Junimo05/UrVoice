@@ -29,15 +29,18 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.urvoices.presentations.theme.MyTheme
 import com.example.urvoices.ui.noti_msg.SearchBar
+import com.example.urvoices.viewmodel.MediaPlayerViewModel
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 fun SearchScreen(
     navController: NavController,
+    playerViewModel: MediaPlayerViewModel,
 ) {
     Scaffold(
         topBar = {
@@ -157,6 +160,6 @@ fun TagSectionPreview() {
 fun SearchScreenPreview() {
     var navController = rememberNavController()
     MyTheme {
-        SearchScreen(navController = navController)
+        SearchScreen(navController = navController, playerViewModel = hiltViewModel())
     }
 }

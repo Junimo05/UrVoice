@@ -15,6 +15,7 @@ import com.example.urvoices.ui.Splash.SplashScreen
 import com.example.urvoices.ui.noti_msg.MessageScreen
 import com.example.urvoices.ui.noti_msg.NotificationScreen
 import com.example.urvoices.viewmodel.AuthViewModel
+import com.example.urvoices.viewmodel.MediaPlayerViewModel
 
 fun NavGraphBuilder.authGraph(navController: NavController, authViewModel: AuthViewModel){
     navigation(route = Graph.AUTHENTICATION, startDestination = AuthScreen.SplashScreen.route){
@@ -33,22 +34,38 @@ fun NavGraphBuilder.authGraph(navController: NavController, authViewModel: AuthV
     }
 }
 
-fun NavGraphBuilder.mainGraph(navController: NavController, authViewModel: AuthViewModel){
+fun NavGraphBuilder.mainGraph(navController: NavController, authViewModel: AuthViewModel, playerViewModel: MediaPlayerViewModel){
     navigation(route = Graph.NAV_SCREEN, startDestination = MainScreen.HomeScreen.route){
         composable(route = MainScreen.HomeScreen.route){
-            HomeScreen(navController = navController, authViewModel = authViewModel)
+            HomeScreen(
+                navController = navController,
+                authViewModel = authViewModel,
+                playerViewModel = playerViewModel
+            )
         }
         composable(route = MainScreen.SearchScreen.route){
-            SearchScreen(navController = navController)
+            SearchScreen(
+                navController = navController,
+                playerViewModel = playerViewModel
+            )
         }
         composable(route = MainScreen.UploadScreen.route){
-             UploadScreen(navController = navController)
+            UploadScreen(
+                navController = navController,
+                playerViewModel = playerViewModel
+            )
         }
         composable(route = MainScreen.ProfileScreen.route){
-            ProfileScreen(navController = navController)
+            ProfileScreen(
+                navController = navController,
+                playerViewModel = playerViewModel
+            )
         }
         composable(route = MainScreen.SettingsScreen.route){
-            SettingsScreen()
+            SettingsScreen(
+                navController = navController,
+                playerViewModel = playerViewModel
+            )
         }
     }
 }

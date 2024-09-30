@@ -55,6 +55,7 @@ import com.example.urvoices.presentations.theme.MyTheme
 import com.example.urvoices.ui._component.TagInputField
 import com.example.urvoices.utils.Navigator.MainScreen
 import com.example.urvoices.utils.formatFileSize
+import com.example.urvoices.viewmodel.MediaPlayerViewModel
 import com.example.urvoices.viewmodel.UploadState
 import com.example.urvoices.viewmodel.UploadViewModel
 import kotlinx.coroutines.CoroutineScope
@@ -65,6 +66,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun UploadScreen(
     navController: NavController,
+    playerViewModel: MediaPlayerViewModel,
 ){
     val uploadViewModel: UploadViewModel = hiltViewModel()
     val uploadState by uploadViewModel.uploadState.observeAsState()

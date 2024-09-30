@@ -35,7 +35,7 @@ class UploadViewModel @Inject constructor(
             _uploadState.value = UploadState.Loading
             val userID = userData.userIdFlow.first()
 
-            Log.e("UploadViewModel", "createPost: $userID")
+//            Log.e("UploadViewModel", "createPost: $userID")
 
             val post = Post(
                 id = null,

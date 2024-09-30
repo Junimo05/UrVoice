@@ -1,7 +1,6 @@
 package com.example.urvoices.ui.MainScreen
 
 import android.annotation.SuppressLint
-import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -12,7 +11,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -42,24 +43,27 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.example.urvoices.R
-import com.example.urvoices.data.model.Post
-import com.example.urvoices.data.service.FirebasePostService
 import com.example.urvoices.presentations.theme.MyTheme
 import com.example.urvoices.ui._component.PostComponent.NewFeedPostItem
 import com.example.urvoices.utils.Navigator.AuthScreen
 import com.example.urvoices.utils.UserPreferences
+import com.example.urvoices.utils.reachedBottom
 import com.example.urvoices.viewmodel.AuthState
 import com.example.urvoices.viewmodel.AuthViewModel
+import com.example.urvoices.viewmodel.HomeState
 import com.example.urvoices.viewmodel.HomeViewModel
+import com.example.urvoices.viewmodel.MediaPlayerViewModel
 import kotlinx.coroutines.launch
 
 @Composable
 fun HomeScreen(
     navController: NavController,
-    authViewModel: AuthViewModel
+    authViewModel: AuthViewModel,
+    playerViewModel: MediaPlayerViewModel
 ) {
     val viewModel: HomeViewModel = hiltViewModel()
-    Home(navController, authViewModel, viewModel)
+
+    Home(navController, authViewModel, viewModel, playerViewModel)
 }
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter", "CoroutineCreationDuringComposition")
@@ -68,29 +72,39 @@ fun Home(
     navController: NavController,
     authViewModel: AuthViewModel,
     homeViewModel: HomeViewModel,
+    playerViewModel: MediaPlayerViewModel,
     modifier: Modifier = Modifier
 ) {
-
-
     val authState = authViewModel.authState.observeAsState()
     val scope = rememberCoroutineScope()
     val mainStateList = rememberLazyListState()
-    val userPreferences = UserPreferences(LocalContext.current)
-    val redrawTrigger = remember {
-        mutableStateOf(0)
-    }
+    val homeState = homeViewModel.homeState.observeAsState()
     val isScrolled = remember {
         mutableStateOf(mainStateList.firstVisibleItemIndex > 0)
     }
+
+    val loadThreshold = 600
+    val reachedBottom: Boolean by remember {
+        derivedStateOf {
+            mainStateList.reachedBottom()
+        }
+    }
+    val postList = homeViewModel.posts.observeAsState(emptyList())
+
+    val userPreferences = UserPreferences(LocalContext.current)
 
     //
     val isPlayingAudio by rememberSaveable {
         mutableStateOf(false)
     }
 
-    //
-    scope.launch {
-
+//    LaunchedEffect(reachedBottom) {
+//        homeViewModel.loadingData()
+//    }
+    LaunchedEffect(remember { derivedStateOf { mainStateList.firstVisibleItemScrollOffset } }) {
+        if (mainStateList.firstVisibleItemScrollOffset >= loadThreshold) {
+            homeViewModel.loadingData()
+        }
     }
 
     LaunchedEffect(authState.value) {
@@ -101,10 +115,6 @@ fun Home(
             else -> Unit
         }
      }
-
-    LaunchedEffect(remember { derivedStateOf { mainStateList.firstVisibleItemIndex } }) {
-        redrawTrigger.value++
-    }
 
     Scaffold(
         topBar = {
@@ -205,9 +215,19 @@ fun Home(
             state = mainStateList,
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            items(10){
-                NewFeedPostItem(redrawTrigger = redrawTrigger.value)
+            items(
+                items = postList.value,
+                key = { post -> post.id!! }
+            ){
+                NewFeedPostItem(
+                    post = it,
+                    homeViewModel = homeViewModel,
+                    playerViewModel = playerViewModel
+                )
             }
+        }
+        if(homeState.value == HomeState.LoadingData){
+            CircularProgressIndicator()
         }
     }
 }
@@ -215,10 +235,10 @@ fun Home(
 @Preview(showBackground = true)
 @Composable
 fun HomePreview() {
-    val context = androidx.compose.ui.platform.LocalContext.current
+    val context = LocalContext.current
     val authViewModel: AuthViewModel = hiltViewModel()
     val homeViewModel: HomeViewModel = hiltViewModel()
     MyTheme {
-        Home(navController = NavController(context = context), authViewModel = authViewModel, homeViewModel = homeViewModel)
+        Home(navController = NavController(context = context), authViewModel = authViewModel, homeViewModel = homeViewModel, playerViewModel = hiltViewModel())
     }
 }

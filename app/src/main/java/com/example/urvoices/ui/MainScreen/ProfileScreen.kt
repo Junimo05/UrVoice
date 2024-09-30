@@ -48,18 +48,21 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.urvoices.R
 import com.example.urvoices.presentations.theme.MyTheme
 import com.example.urvoices.ui._component.PlaylistItem
 import com.example.urvoices.ui._component.PostComponent.ProfilePostItem
+import com.example.urvoices.viewmodel.MediaPlayerViewModel
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 fun ProfileScreen(
     navController: NavController,
-    isUser : Boolean = false,
+    isUser: Boolean = false,
+    playerViewModel: MediaPlayerViewModel,
 ) {
     var tab by rememberSaveable {
         mutableIntStateOf(0)
@@ -446,6 +449,6 @@ fun UserInfo(
 fun ProfileScreenPreview() {
     val navController = rememberNavController()
     MyTheme {
-        ProfileScreen(navController)
+        ProfileScreen(navController, playerViewModel = hiltViewModel())
     }
 }

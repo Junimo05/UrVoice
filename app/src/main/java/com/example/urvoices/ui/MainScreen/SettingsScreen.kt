@@ -20,11 +20,15 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
 import com.example.urvoices.presentations.theme.MyTheme
+import com.example.urvoices.viewmodel.MediaPlayerViewModel
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
-fun SettingsScreen() {
+fun SettingsScreen(navController: NavController, playerViewModel: MediaPlayerViewModel) {
     Scaffold(
         topBar = {
             Box(
@@ -66,6 +70,6 @@ fun SettingsScreen() {
 @Composable
 fun PreviewSettingsScreen() {
     MyTheme {
-        SettingsScreen()
+        SettingsScreen(navController = rememberNavController(), playerViewModel = hiltViewModel())
     }
 }

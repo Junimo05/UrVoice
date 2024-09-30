@@ -41,10 +41,9 @@ class FirebasePostServiceTest {
 
         // Tạo một instance của FirebasePostService với FirebaseFirestore đã được giả lập
         val firebasePostService = FirebasePostService(
-            mockk<AudioManager>(),
-            mock(StorageReference::class.java),
             mockFirestore,
-            mockk<FirebaseAudioService>()
+            mock(StorageReference::class.java),
+            mockk<FirebaseAudioService>(),
         )
 
         // Gọi hàm cần kiểm tra

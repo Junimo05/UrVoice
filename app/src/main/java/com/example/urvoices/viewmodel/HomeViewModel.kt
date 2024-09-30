@@ -1,27 +1,59 @@
 package com.example.urvoices.viewmodel
 
+import android.annotation.SuppressLint
 import android.util.Log
-import androidx.core.net.toUri
+import androidx.compose.runtime.mutableStateOf
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.compose.SavedStateHandleSaveableApi
+import androidx.lifecycle.viewmodel.compose.saveable
 import com.example.urvoices.data.model.Comment
 import com.example.urvoices.data.model.MessageNotification
 import com.example.urvoices.data.model.Notification
 import com.example.urvoices.data.model.Post
 import com.example.urvoices.data.model.TypeNotification
+import com.example.urvoices.data.repository.PostRepository
 import com.example.urvoices.data.service.FirebasePostService
 import com.example.urvoices.utils.SharedPreferencesHelper
 import com.google.firebase.firestore.FirebaseFirestore
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 
+@SuppressLint("MutableCollectionMutableState")
 @HiltViewModel
 class HomeViewModel @Inject constructor(
     private val sharedPreferencesHelper: SharedPreferencesHelper,
     private val firestore: FirebaseFirestore,
-    private val firebasePostService: FirebasePostService
+    private val firebasePostService: FirebasePostService,
+    private val postRepository: PostRepository,
+    savedStateHandle: SavedStateHandle
 ): ViewModel(){
 
+    val TAG = "HomeViewModel"
+    private val _homeState = MutableLiveData<HomeState>()
+    val homeState: LiveData<HomeState> = _homeState
+
+    private var _posts = MutableLiveData<List<Post>>()
+    val posts: LiveData<List<Post>> get() = _posts
+
+    init {
+       viewModelScope.launch {
+           loadingData()
+       }
+    }
+
+    suspend fun loadingData() {
+        _homeState.value = HomeState.LoadingData
+        val newPostList = postRepository.getNewFeed()
+        _posts.value = newPostList.value
+        Log.e(TAG, "loadingData: ${newPostList.value}")
+        _homeState.value = HomeState.LoadedData
+    }
 
     //User Like -> Noti
     suspend fun likePost(userID: String, postID: String = ""): Boolean {
@@ -73,7 +105,7 @@ class HomeViewModel @Inject constructor(
     }
 
     //User Comment -> Noti
-suspend fun commentPost(userID: String, postID: String = "", comment: Comment): Boolean {
+    suspend fun commentPost(userID: String, postID: String = "", comment: Comment): Boolean {
         try {
             //create comment
             val resultComment = firestore.collection("comments").add(comment.toCommentMap())
@@ -137,44 +169,35 @@ suspend fun commentPost(userID: String, postID: String = "", comment: Comment): 
         return result
     }
 
-    suspend fun getAllPostFromUser(userID: String): List<Post> {
-        val result = firebasePostService.getAllPostFromUser(userID)
-//        Log.e("HomeViewModel", "getAllPostFromUser: $result")
-        return result
-    }
-
-    suspend fun getComments_Posts(postID: String): List<Comment> {
-        val result = firebasePostService.getComments_Posts(postID)
-        return result
-    }
-
-    suspend fun getReply_Comments(commentID: String): List<Comment>{
-        val result = firebasePostService.getReplies_Comments(commentID)
+    suspend fun getUserInfo(userID: String): Map<String, String> {
+        val result = firebasePostService.getUserInfo(userID)
         return result
     }
 }
 
-sealed class HomeEvent {
-    data class ShowToast(val message: String) : HomeEvent()
-    data class ShowError(val message: String) : HomeEvent()
-    data class ShowSuccess(val message: String) : HomeEvent()
-    data class ShowLoading(val message: String) : HomeEvent()
-    data class ShowPost(val message: String) : HomeEvent()
-    data class ShowProfile(val message: String) : HomeEvent()
-    data class ShowSettings(val message: String) : HomeEvent()
-    data class ShowSearch(val message: String) : HomeEvent()
-    data class ShowNotification(val message: String) : HomeEvent()
-    data class ShowNewPost(val message: String) : HomeEvent()
-    data class ShowNewFeed(val message: String) : HomeEvent()
-    data class ShowNewProfile(val message: String) : HomeEvent()
-    data class ShowNewSettings(val message: String) : HomeEvent()
-    data class ShowNewSearch(val message: String) : HomeEvent()
-    data class ShowNewNotification(val message: String) : HomeEvent()
-    data class ShowNewPostDetail(val message: String) : HomeEvent()
-    data class ShowNewFeedDetail(val message: String) : HomeEvent()
-    data class ShowNewProfileDetail(val message: String) : HomeEvent()
-    data class ShowNewSettingsDetail(val message: String) : HomeEvent()
-    data class ShowNewSearchDetail(val message: String) : HomeEvent()
-    data class ShowNewNotificationDetail(val message: String) : HomeEvent()
-    data class ShowNewPostDetailComment(val message: String) : HomeEvent()
+sealed class HomeState {
+    object LoadingData : HomeState()
+    object LoadedData : HomeState()
+    data class ShowToast(val message: String) : HomeState()
+    data class ShowError(val message: String) : HomeState()
+    data class ShowSuccess(val message: String) : HomeState()
+    data class ShowLoading(val message: String) : HomeState()
+    data class ShowPost(val message: String) : HomeState()
+    data class ShowProfile(val message: String) : HomeState()
+    data class ShowSettings(val message: String) : HomeState()
+    data class ShowSearch(val message: String) : HomeState()
+    data class ShowNotification(val message: String) : HomeState()
+    data class ShowNewPost(val message: String) : HomeState()
+    data class ShowNewFeed(val message: String) : HomeState()
+    data class ShowNewProfile(val message: String) : HomeState()
+    data class ShowNewSettings(val message: String) : HomeState()
+    data class ShowNewSearch(val message: String) : HomeState()
+    data class ShowNewNotification(val message: String) : HomeState()
+    data class ShowNewPostDetail(val message: String) : HomeState()
+    data class ShowNewFeedDetail(val message: String) : HomeState()
+    data class ShowNewProfileDetail(val message: String) : HomeState()
+    data class ShowNewSettingsDetail(val message: String) : HomeState()
+    data class ShowNewSearchDetail(val message: String) : HomeState()
+    data class ShowNewNotificationDetail(val message: String) : HomeState()
+    data class ShowNewPostDetailComment(val message: String) : HomeState()
 }

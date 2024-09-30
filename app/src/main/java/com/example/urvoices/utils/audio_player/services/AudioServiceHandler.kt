@@ -1,7 +1,9 @@
 package com.example.urvoices.utils.audio_player.services
 
+import android.net.Uri
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
+import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
@@ -28,19 +30,32 @@ class AudioServiceHandler @Inject constructor(
         exoPlayer.addListener(this)
     }
 
-    fun addMediaItem(mediaItem: MediaItem){
+    fun addMediaItemFromUrl(url: String){
+        val mediaItem = MediaItem.fromUri(url)
         exoPlayer.setMediaItem(mediaItem)
         exoPlayer.prepare()
     }
 
-    fun setMediaItemList(mediaItems: List<MediaItem>){
-        exoPlayer.setMediaItems(mediaItems)
+    fun addMediaItemToQueue(audioUrl: String){
+        val mediaItem = MediaItem.fromUri(audioUrl)
+        exoPlayer.addMediaItem(mediaItem)
+    }
+
+    fun addMediaItemLocal(mediaItem: MediaItem){
+        exoPlayer.setMediaItem(mediaItem)
         exoPlayer.prepare()
     }
 
+//    fun setMediaItemListLocal(mediaItems: List<MediaItem>){
+//        exoPlayer.setMediaItems(mediaItems)
+//        exoPlayer.prepare()
+//    }
+
     suspend fun onPlayerEvents(
         playerEvent: PlayerEvent,
-        selectAudioIndex: Int = -1,
+        selectedAudioIndex: Int = -1,
+        index : Int = -1,
+        url: String = "",
         seekPosition: Long = 0,
 
         ){
@@ -50,32 +65,62 @@ class AudioServiceHandler @Inject constructor(
             //seek backward the audio
             PlayerEvent.Backward -> exoPlayer.seekBack()
             //play or pause the audio
+            PlayerEvent.StartPlaying -> {
+                addMediaItemFromUrl(url)
+                _audioState.value = AudioState.Playing(true)
+                exoPlayer.playWhenReady = true
+                startProgressUpdate()
+            }
             PlayerEvent.PlayPause -> playOrPause()
             //seek to the selected position
             PlayerEvent.SeekTo -> exoPlayer.seekTo(seekPosition)
             //change the audio to the selected audio
             PlayerEvent.SelectedAudioChange -> {
-                when(selectAudioIndex){
+                when(selectedAudioIndex){
                     exoPlayer.currentMediaItemIndex -> {
                         exoPlayer.seekToDefaultPosition()
                         playOrPause()
                     }
                     else -> {
-                        exoPlayer.seekToDefaultPosition(selectAudioIndex)
+                        exoPlayer.seekToDefaultPosition(selectedAudioIndex)
                         _audioState.value = AudioState.Playing(true)
                         exoPlayer.playWhenReady = true
                         startProgressUpdate()
                     }
                 }
             }
-            PlayerEvent.Stop -> stopProgressUpdate()
+            PlayerEvent.AddToQueue -> {
+                if(url != ""){
+                    addMediaItemToQueue(url)
+                }
+            }
+            PlayerEvent.DeleteFromQueue -> {
+                exoPlayer.removeMediaItem(index)
+            }
+            PlayerEvent.Stop -> {
+                exoPlayer.stop()
+                _audioState.value = AudioState.Stop
+                stopProgressUpdate()
+            }
             is PlayerEvent.UpdateProgress -> {
                 exoPlayer.seekTo((exoPlayer.duration * playerEvent.newProgress).toLong())
             }
             PlayerEvent.SeekToNext -> exoPlayer.seekToNext()
+            PlayerEvent.LoopModeChange -> {
+                exoPlayer.repeatMode = when(exoPlayer.repeatMode) {
+                    Player.REPEAT_MODE_OFF -> Player.REPEAT_MODE_ONE
+                    Player.REPEAT_MODE_ONE -> Player.REPEAT_MODE_ALL
+                    else -> Player.REPEAT_MODE_OFF
+                }
+            }
         }
     }
 
+
+
+    fun getRepeatMode(): Int {
+        return exoPlayer.repeatMode
+    }
 
     //listen to the playback state of the audio
     override fun onPlaybackStateChanged(playbackState: Int) {
@@ -89,7 +134,7 @@ class AudioServiceHandler @Inject constructor(
         }
     }
 
-    @OptIn(DelicateCoroutinesApi::class)
+    @androidx.annotation.OptIn(UnstableApi::class)
     override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
         super.onMediaItemTransition(mediaItem, reason)
         if(reason == Player.MEDIA_ITEM_TRANSITION_REASON_AUTO){
@@ -99,7 +144,7 @@ class AudioServiceHandler @Inject constructor(
     }
 
 
-
+    @androidx.annotation.OptIn(UnstableApi::class)
     @OptIn(DelicateCoroutinesApi::class)
     override fun onIsPlayingChanged(isPlaying: Boolean) {
         _audioState.value = AudioState.Playing(isPlaying = isPlaying)
@@ -139,17 +184,22 @@ class AudioServiceHandler @Inject constructor(
         _audioState.value = AudioState.Playing(false)
     }
 
+    //
 }
 
 //sealed class for the player events
 sealed class PlayerEvent {
+    object StartPlaying: PlayerEvent()
     object PlayPause: PlayerEvent()
     object SelectedAudioChange: PlayerEvent()
+    object AddToQueue: PlayerEvent()
+    object DeleteFromQueue: PlayerEvent()
     object Forward: PlayerEvent()
     object Backward: PlayerEvent()
     object SeekToNext: PlayerEvent()
     object SeekTo: PlayerEvent()
     object Stop: PlayerEvent()
+    object LoopModeChange: PlayerEvent()
     data class UpdateProgress(val newProgress: Float): PlayerEvent()
 }
 
@@ -160,5 +210,6 @@ sealed class AudioState {
     data class Progress(val progress: Long): AudioState()
     data class Buffering(val progress: Long): AudioState()
     data class Playing(val isPlaying: Boolean): AudioState()
+    object Stop: AudioState()
     data class CurrentPlaying(val mediaItemIndex: Int): AudioState()
 }

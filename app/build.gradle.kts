@@ -25,6 +25,12 @@ android {
         }
     }
 
+    kapt {
+        arguments {
+            arg("room.schemaLocation", "$projectDir/schemas")
+        }
+    }
+
     buildTypes {
         release {
             isMinifyEnabled = false
@@ -73,7 +79,6 @@ dependencies {
     implementation(libs.androidx.runtime.livedata)
     implementation(libs.play.services.auth)
     implementation(libs.googleid)
-
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -89,19 +94,17 @@ dependencies {
     kapt("androidx.room:room-compiler:$room_version")
     implementation("androidx.room:room-ktx:$room_version")
 
+
+
     //material3
     val material3_version = "1.2.1"
     implementation("androidx.compose.material3:material3:$material3_version")
     implementation("androidx.compose.foundation:foundation-layout-android:1.6.8@aar")
 
-
     //DaggerHilt
     implementation("com.google.dagger:hilt-android:2.48")
     kapt("com.google.dagger:hilt-compiler:2.48")
     implementation("androidx.hilt:hilt-navigation-compose:1.0.0")
-
-    //Glide
-    implementation("com.github.bumptech.glide:glide:4.16.0")
 
     //navigation
     implementation("androidx.navigation:navigation-compose:2.8.0-beta01")
@@ -141,12 +144,17 @@ dependencies {
     //CoroutineCore
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.2")
 
+
     //Mockito
     dependencies {
         testImplementation("org.mockito:mockito-core:3.+")
         testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.5.2")
         testImplementation("io.mockk:mockk:1.12.0")
     }
+    // Coil
+    implementation("io.coil-kt:coil:2.7.0")
+    implementation("io.coil-kt:coil-compose:2.7.0")
+
 }
 
 kapt {

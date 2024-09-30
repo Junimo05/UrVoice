@@ -1,5 +1,7 @@
 package com.example.urvoices.data.model
 
+import com.example.urvoices.data.db.Entity.PostEntity
+
 data class Post(
     val id: String?,
     val userId: String,
@@ -21,6 +23,22 @@ data class Post(
             "createdAt" to createdAt,
             "updateAt" to updateAt,
             "deleteAt" to deleteAt,
+        )
+    }
+
+    fun toEntity(): PostEntity {
+        return PostEntity(
+            id = id!!,
+            userId = userId,
+            description = description,
+            audioName = audioName,
+            audioUrl = url,
+            likes = likes,
+            comments = comments,
+            tags = tag,
+            createdAt = createdAt,
+            updatedAt = updateAt,
+            deletedAt = deleteAt,
         )
     }
 }
