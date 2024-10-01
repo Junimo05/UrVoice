@@ -4,7 +4,8 @@ import com.example.urvoices.R
 import com.example.urvoices.ui._component.Interaction
 
 fun Post_Interactions(
-    //interactions data
+    love_act: (Boolean) -> Unit,
+    comment_act: () -> Unit
 ): List<Interaction> {
     return listOf(
         Interaction(

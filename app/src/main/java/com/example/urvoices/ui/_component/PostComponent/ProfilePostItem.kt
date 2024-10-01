@@ -74,9 +74,16 @@ fun ProfilePostItem(
             }
         }
         AudioWaveformItem(
-            duration = "4:12",
+            id = "Post",
+            duration = 1000,
             isPlaying = true,
             percentPlayed = 0.5f,
+            onPercentChange = {},
+            onPlayStart = {},
+            onPlayPause = {},
+            isStop = false,
+            currentPlayingAudio = 0,
+            currentPlayingPost = "Post",
             modifier = Modifier
                 .align(Alignment.Center)
         )

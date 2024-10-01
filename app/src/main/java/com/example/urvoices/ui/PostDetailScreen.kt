@@ -268,7 +268,7 @@ fun ContentDetail(
             )
         }
 
-        AudioWaveformItem(isPlaying = false, duration = "4:12", percentPlayed = 0.5f, initAmplitudes = amplitudesTest.value)
+        AudioWaveformItem(id = "", isPlaying = false, duration = 100, onPlayStart = {} ,percentPlayed = 0.5f, onPercentChange = {}, onPlayPause = {}, isStop = false, currentPlayingAudio = 0, currentPlayingPost = "")
         InteractionRow(Post_Interactions(/*Todo interaction data*/))
     }
 }

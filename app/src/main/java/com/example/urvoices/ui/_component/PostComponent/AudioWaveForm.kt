@@ -2,6 +2,7 @@ package com.example.urvoices.ui._component.PostComponent
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.util.Log
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
@@ -38,17 +39,25 @@ import androidx.compose.ui.unit.dp
 import androidx.core.content.edit
 import com.example.urvoices.R
 import com.example.urvoices.presentations.theme.MyTheme
+import com.example.urvoices.utils.audio_player.services.AudioState
+import com.example.urvoices.utils.timeStampToDuration
 import com.example.urvoices.utils.waveform.AudioWaveform
 import com.google.common.reflect.TypeToken
 import com.google.gson.Gson
 import com.linc.audiowaveform.infiniteLinearGradient
 import com.linc.audiowaveform.model.AmplitudeType
 import com.linc.audiowaveform.model.WaveformAlignment
+import okhttp3.internal.concurrent.formatDuration
 
 @Composable
 fun AudioWaveformItem(
-    //exoPlayer: ExoPlayer,
+    id: String,
+    currentPlayingAudio: Int,
+    currentPlayingPost: String,
+    onPlayStart: () -> Unit,
+    onPlayPause: () -> Unit,
     percentPlayed: Float,
+    onPercentChange: (Float) -> Unit,
     initAmplitudes: List<Int> = listOf(
         45, 23, 67, 89, 12, 34, 56, 78, 90, 11, 22, 33, 44, 55, 66, 77, 88,
         99, 10, 20, 30, 40, 50, 60, 70, 80, 91, 92, 93, 94, 95, 96, 97, 98,
@@ -57,20 +66,19 @@ fun AudioWaveformItem(
         49, 51, 52, 53, 54, 57, 58, 59, 61, 62, 63, 64, 65, 68, 69, 71, 72,
         73, 74, 75, 76, 79, 81, 82, 83, 84, 85, 86, 87, 100
     ),
-    redrawTrigger: Int = 0,
-    waveformProgress: MutableState<Float> = remember {
-        mutableStateOf(0F)
-    },
     isPlaying: Boolean,
-    duration: String,
-    @SuppressLint("ModifierParameter") modifier: Modifier = Modifier
+    isStop: Boolean,
+    duration: Long,
+    modifier: Modifier = Modifier
 ) {
+    val TAG = "AudioWaveformItem"
+
     var amplitudes by remember { mutableStateOf(initAmplitudes) }
     val colorBrush = SolidColor(MaterialTheme.colorScheme.onPrimary)
     val colorDone = SolidColor(MaterialTheme.colorScheme.surfaceVariant)
     val staticGradientBrush = Brush.linearGradient(colors = listOf(Color(0xff22c1c3), Color(0xfffdbb2d)))
     val animatedGradientBrush = Brush.infiniteLinearGradient(
-        colors = listOf(Color(0xff22c1c3), Color(0xfffdbb2d)),
+        colors = listOf(Color(0xffb597ff), Color(0x005f73ff)),
         animation = tween(durationMillis = 6000, easing = LinearEasing),
         width = 128F
     )
@@ -88,15 +96,21 @@ fun AudioWaveformItem(
         ,
         verticalAlignment = Alignment.CenterVertically
     ) {
+
         // Todo: Button to play/pause audio
+
         IconButton(
             onClick = {
-                      /*TODO*/
+                  if(!isPlaying && isStop) {
+                      onPlayStart()
+                  } else {
+                      onPlayPause()
+                  }
             },
             modifier = Modifier.size(36.dp)
         ) {
             Icon(
-                painter = if(!isPlaying) painterResource(id = R.drawable.ic_media_stop) else painterResource(id = R.drawable.ic_media_play),
+                painter = if(currentPlayingPost == id && isPlaying) painterResource(id = R.drawable.ic_media_stop) else painterResource(id = R.drawable.ic_media_play),
                 contentDescription = "PlayOrPause"
             )
         }
@@ -107,56 +121,47 @@ fun AudioWaveformItem(
                 waveformAlignment = WaveformAlignment.Center,
                 amplitudeType = AmplitudeType.Avg,
                 // Colors could be updated with Brush API
-                progressBrush = colorDone,
+                progressBrush = animatedGradientBrush,
                 waveformBrush = colorBrush,
                 spikeWidth = 4.dp,
                 spikePadding = 2.dp,
                 spikeRadius = 4.dp,
-                progress = waveformProgress.value,
+                progress = if(isPlaying && currentPlayingPost == id) percentPlayed else 0F,
                 amplitudes = amplitudes,
                 onProgressChange = {
-                    waveformProgress.value = it
+                   if(isPlaying && currentPlayingPost == id) {
+                       onPercentChange(it)
+                   }
                 },
                 onProgressChangeFinished = {
 
                 },
-                redrawTrigger = redrawTrigger
             )
         }
-        Text(text = duration, modifier = Modifier.align(Alignment.CenterVertically))
     }
-}
-
-fun saveWaveform(context: Context, audioId: String, barHeights: List<Float>) {
-    val sharedPreferences = context.getSharedPreferences("waveforms", Context.MODE_PRIVATE)
-    val gson = Gson()
-    val json = gson.toJson(barHeights)
-    sharedPreferences.edit {
-        putString(audioId, json)
-    }
-}
-
-fun loadWaveform(context: Context, audioId: String): List<Float>? {
-    val sharedPreferences = context.getSharedPreferences("waveforms", Context.MODE_PRIVATE)
-    val gson = Gson()
-    val json = sharedPreferences.getString(audioId, null) ?: return null
-    val type = object : TypeToken<List<Float>>() {}.type
-    return gson.fromJson(json, type)
 }
 
 @Preview(showBackground = true)
 @Composable
 fun AudioWaveformPreview() {
-    val redrawTrigger = remember {
-        mutableStateOf(0)
-    }
-    val waveformProgress = remember {
-        mutableStateOf(0F)
-    }
     MyTheme {
-        AudioWaveformItem(isPlaying = true, duration = "4:12", percentPlayed = 0.5f,
-            redrawTrigger = redrawTrigger.value,
-            waveformProgress =waveformProgress
+        AudioWaveformItem(
+            id = "Post",
+            isPlaying = true,
+            duration = 100,
+            percentPlayed = 0.5f,
+            onPercentChange = {
+
+            },
+            onPlayStart = {
+
+            },
+            onPlayPause = {
+
+            },
+            isStop = false,
+            currentPlayingAudio = 0,
+            currentPlayingPost = "Post"
         )
     }
 }

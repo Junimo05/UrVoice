@@ -1,8 +1,15 @@
 package com.example.urvoices.utils.audio_player.services
 
 import android.net.Uri
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
+import androidx.lifecycle.SavedStateHandle
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
+import androidx.media3.common.util.Log
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
 import kotlinx.coroutines.DelicateCoroutinesApi
@@ -17,13 +24,13 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 class AudioServiceHandler @Inject constructor(
-    private val exoPlayer: ExoPlayer
+    private val exoPlayer: ExoPlayer,
 ): Player.Listener {
-
+    val TAG = "AudioServiceHandler"
     //state flow for the audio state
     private val _audioState: MutableStateFlow<AudioState> = MutableStateFlow(AudioState.Initial)
     val audioState: StateFlow<AudioState> = _audioState.asStateFlow()
-
+    var isStop: MutableStateFlow<Boolean> = MutableStateFlow(true)
     private var job: Job? = null
 
     init {
@@ -51,6 +58,7 @@ class AudioServiceHandler @Inject constructor(
 //        exoPlayer.prepare()
 //    }
 
+    @androidx.annotation.OptIn(UnstableApi::class)
     suspend fun onPlayerEvents(
         playerEvent: PlayerEvent,
         selectedAudioIndex: Int = -1,
@@ -68,6 +76,7 @@ class AudioServiceHandler @Inject constructor(
             PlayerEvent.StartPlaying -> {
                 addMediaItemFromUrl(url)
                 _audioState.value = AudioState.Playing(true)
+                isStop.value = false
                 exoPlayer.playWhenReady = true
                 startProgressUpdate()
             }
@@ -99,7 +108,7 @@ class AudioServiceHandler @Inject constructor(
             }
             PlayerEvent.Stop -> {
                 exoPlayer.stop()
-                _audioState.value = AudioState.Stop
+                isStop.value = true
                 stopProgressUpdate()
             }
             is PlayerEvent.UpdateProgress -> {
@@ -115,8 +124,6 @@ class AudioServiceHandler @Inject constructor(
             }
         }
     }
-
-
 
     fun getRepeatMode(): Int {
         return exoPlayer.repeatMode
@@ -142,7 +149,6 @@ class AudioServiceHandler @Inject constructor(
             _audioState.value = AudioState.CurrentPlaying(exoPlayer.currentMediaItemIndex)
         }
     }
-
 
     @androidx.annotation.OptIn(UnstableApi::class)
     @OptIn(DelicateCoroutinesApi::class)
@@ -210,6 +216,5 @@ sealed class AudioState {
     data class Progress(val progress: Long): AudioState()
     data class Buffering(val progress: Long): AudioState()
     data class Playing(val isPlaying: Boolean): AudioState()
-    object Stop: AudioState()
     data class CurrentPlaying(val mediaItemIndex: Int): AudioState()
 }

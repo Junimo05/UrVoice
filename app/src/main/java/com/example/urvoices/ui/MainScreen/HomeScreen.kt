@@ -62,7 +62,6 @@ fun HomeScreen(
     playerViewModel: MediaPlayerViewModel
 ) {
     val viewModel: HomeViewModel = hiltViewModel()
-
     Home(navController, authViewModel, viewModel, playerViewModel)
 }
 
@@ -147,8 +146,9 @@ fun Home(
                             fontWeight = FontWeight.Bold
                         )
                     )
+
                     val userName by userPreferences.userNameFlow.collectAsState(initial = "")
-                    val userEmail by userPreferences.userEmailFlow.collectAsState(initial = "")
+
                     userName?.let {
                         Text(
                             text = it,
@@ -209,7 +209,7 @@ fun Home(
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValue)
+                .padding(top = paddingValue.calculateTopPadding())
                 .background(MaterialTheme.colorScheme.background),
             userScrollEnabled = true,
             state = mainStateList,
@@ -222,7 +222,7 @@ fun Home(
                 NewFeedPostItem(
                     post = it,
                     homeViewModel = homeViewModel,
-                    playerViewModel = playerViewModel
+                    playerViewModel = playerViewModel,
                 )
             }
         }

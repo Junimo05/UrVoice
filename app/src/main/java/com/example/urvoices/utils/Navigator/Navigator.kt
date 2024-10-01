@@ -22,7 +22,7 @@ import com.example.urvoices.viewmodel.AuthViewModel
 import com.example.urvoices.viewmodel.MediaPlayerViewModel
 import com.example.urvoices.viewmodel.UIEvents
 
-@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
+@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter", "StateFlowValueCalledInComposition")
 @Composable
 fun Navigator(authViewModel: AuthViewModel) {
     val navController = rememberNavController()
@@ -60,13 +60,13 @@ fun Navigator(authViewModel: AuthViewModel) {
 
     ) {paddingValues ->
         Scaffold(
-            modifier = Modifier.padding(paddingValues),
+            modifier = Modifier.padding(bottom = paddingValues.calculateBottomPadding()),
             bottomBar = {
-                if(playerViewModel.isPlaying){
+                if(!playerViewModel.isStop.collectAsState().value){
                     MediaPlayer(
                         progress = playerViewModel.progress,
                         isAudioPlaying = playerViewModel.isPlaying,
-                        currentPlayingAudio = playerViewModel.currentPlayingAudio.toString(),
+                        currentPlayingAudio = playerViewModel.currentPlayingAudio,
                         duration = playerViewModel.duration,
                         onProgress = {
                             playerViewModel.onUIEvents(UIEvents.SeekTo(it))
@@ -80,7 +80,7 @@ fun Navigator(authViewModel: AuthViewModel) {
                         onStop = {
                             playerViewModel.onUIEvents(UIEvents.Stop)
                         },
-                        isStop = playerViewModel.isStop,
+                        isStop = playerViewModel.isStop.value,
                         onForward = {
                             playerViewModel.onUIEvents(UIEvents.Forward)
                         },
@@ -97,8 +97,7 @@ fun Navigator(authViewModel: AuthViewModel) {
                 }else {
                     Text(
                         text = "Not Playing",
-                        color = Color.Black,
-                        modifier = Modifier.padding(16.dp)
+                        color = Color.Black
                     )
                 }
             },

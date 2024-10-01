@@ -1,5 +1,6 @@
 package com.example.urvoices.utils.waveform
 
+import android.util.Log
 import android.view.MotionEvent
 import androidx.compose.animation.core.AnimationSpec
 import androidx.compose.animation.core.animateFloatAsState
@@ -7,16 +8,21 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.requiredHeight
-import androidx.compose.runtime.*
-import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.graphics.*
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.drawscope.DrawStyle
 import androidx.compose.ui.graphics.drawscope.Fill
 import androidx.compose.ui.input.pointer.pointerInput
@@ -49,7 +55,6 @@ fun AudioWaveform(
     style: DrawStyle = Fill,
     waveformBrush: Brush = SolidColor(Color.White),
     progressBrush: Brush = SolidColor(Color.Blue),
-    redrawTrigger: Int,
     waveformAlignment: WaveformAlignment = WaveformAlignment.Center,
     amplitudeType: AmplitudeType = AmplitudeType.Avg,
     onProgressChangeFinished: (() -> Unit)? = null,
@@ -64,7 +69,7 @@ fun AudioWaveform(
     val density = LocalDensity.current
     var size by remember { mutableStateOf(Size.Zero) }
 
-    val _progress by rememberUpdatedState(progress.coerceIn(0f, 1f))
+    val _progress by rememberUpdatedState(progress.coerceIn(MinProgress, MaxProgress))
     val _spikeWidth by remember { mutableStateOf(spikeWidth.coerceIn(MinSpikeWidthDp, MaxSpikeWidthDp)) }
     val _spikePadding by remember { mutableStateOf(spikePadding.coerceIn(MinSpikePaddingDp, MaxSpikePaddingDp)) }
     val _spikeRadius by remember { mutableStateOf(spikeRadius.coerceIn(MinSpikeRadiusDp, MaxSpikeRadiusDp)) }
@@ -104,6 +109,13 @@ fun AudioWaveform(
         }
     }
 
+    val animatedAmplitudes = spikesAmplitudes.map { amplitude ->
+        animateFloatAsState(
+            targetValue = amplitude,
+            animationSpec = spikeAnimationSpec
+        ).value
+    }
+
     Canvas(
         modifier = modifier
             .fillMaxSize()
@@ -125,7 +137,7 @@ fun AudioWaveform(
         val spikePaddingPx = with(density) { _spikePadding.toPx() }
         val spikeRadiusPx = with(density) { _spikeRadius.toPx() }
 
-        spikesAmplitudes.forEachIndexed { index, amplitude ->
+        animatedAmplitudes.forEachIndexed { index, amplitude ->
             val left = index * (spikeWidthPx + spikePaddingPx)
             val top = when (waveformAlignment) {
                 WaveformAlignment.Top -> 0f
@@ -134,7 +146,7 @@ fun AudioWaveform(
             }
 
             drawRoundRect(
-                brush = if (left <= _progress * size.width) progressBrush else waveformBrush,
+                brush = if (left <= (_progress * size.width) ) progressBrush else waveformBrush,
                 topLeft = Offset(left, top),
                 size = Size(spikeWidthPx, amplitude),
                 cornerRadius = CornerRadius(spikeRadiusPx, spikeRadiusPx)

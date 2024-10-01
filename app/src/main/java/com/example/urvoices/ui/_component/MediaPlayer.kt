@@ -29,7 +29,7 @@ fun MediaPlayer(
     modifier: Modifier = Modifier,
     progress: Float,
     isAudioPlaying: Boolean,
-    currentPlayingAudio: String,
+    currentPlayingAudio: Int,
     duration: Long,
     onProgress: (Float) -> Unit,
     onStartPlayer:(String) -> Unit,
@@ -59,7 +59,7 @@ fun MediaPlayer(
                     Slider(
                         value = progress,
                         onValueChange = {onProgress(it)},
-                        valueRange = 0f..100f,
+                        valueRange = 0f..1f,
                         modifier = Modifier.weight(1f)
                     )
                     TimeStampMedia(
@@ -77,7 +77,7 @@ fun TimeStampMedia(
     progress: Float,
     duration: Long
 ){
-    val progressMillis = (progress / 100f * duration).toLong()
+    val progressMillis = (progress * duration).toLong()
     val progressMinutes = TimeUnit.MILLISECONDS.toMinutes(progressMillis)
     val progressSeconds = TimeUnit.MILLISECONDS.toSeconds(progressMillis) - TimeUnit.MINUTES.toSeconds(progressMinutes)
 

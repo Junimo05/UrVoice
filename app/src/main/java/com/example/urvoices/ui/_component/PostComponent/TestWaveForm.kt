@@ -35,7 +35,9 @@ fun TestWaveForm() {
         userScrollEnabled = true
     ) {
         items(20){
-            AudioWaveformItem(percentPlayed = 0.5f, isPlaying = true, duration = "4.12")
+            AudioWaveformItem(percentPlayed = 0.5f, isPlaying = true, duration = 1000, onPercentChange = {},
+                onPlayStart = {}, onPlayPause = {}, isStop = false, id = "1", currentPlayingAudio = 1, currentPlayingPost = "1"
+            )
         }
     }
 }

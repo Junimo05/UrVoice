@@ -6,6 +6,7 @@ import android.content.Intent
 import android.os.Build
 import android.util.Log
 import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.SavedStateHandle
@@ -34,6 +35,7 @@ class MediaPlayerViewModel @Inject constructor(
     private val audioService: AudioServiceHandler,
     saveStateHandle: SavedStateHandle
 ): ViewModel(){
+    val TAG = "MediaPlayerViewModel"
 
     @OptIn(SavedStateHandleSaveableApi::class)
     var duration by saveStateHandle.saveable { mutableLongStateOf(0L) }
@@ -41,14 +43,15 @@ class MediaPlayerViewModel @Inject constructor(
     var progress by saveStateHandle.saveable { mutableFloatStateOf(0F) }
     @OptIn(SavedStateHandleSaveableApi::class)
     var progressString by saveStateHandle.saveable { mutableStateOf("00:00") }
-    @OptIn(SavedStateHandleSaveableApi::class)
-    var isStop by saveStateHandle.saveable { mutableStateOf(false) }
+    val isStop: StateFlow<Boolean> = audioService.isStop.asStateFlow()
     @OptIn(SavedStateHandleSaveableApi::class)
     var isPlaying by saveStateHandle.saveable { mutableStateOf(false) }
     @OptIn(SavedStateHandleSaveableApi::class)
-    var currentPlayingAudio by saveStateHandle.saveable { mutableStateOf(0) }
+    var currentPlayingAudio by saveStateHandle.saveable { mutableIntStateOf(0) }
     @OptIn(SavedStateHandleSaveableApi::class)
-    var repeatMode by saveStateHandle.saveable { mutableStateOf(Player.REPEAT_MODE_OFF) }
+    var currentPlayingPost by saveStateHandle.saveable { mutableStateOf("") }
+    @OptIn(SavedStateHandleSaveableApi::class)
+    var repeatMode by saveStateHandle.saveable { mutableIntStateOf(Player.REPEAT_MODE_OFF) }
     var isServiceRunning = false
 
     //UI STATE
@@ -62,7 +65,6 @@ class MediaPlayerViewModel @Inject constructor(
                     AudioState.Initial -> _uiState.value = UIStates.Initial
                     is AudioState.Buffering -> setProgressValue(state.progress)
                     is AudioState.Playing -> isPlaying = state.isPlaying
-                    is AudioState.Stop -> isStop = true
                     is AudioState.Progress -> setProgressValue(state.progress)
                     is AudioState.CurrentPlaying -> {
                         currentPlayingAudio = state.mediaItemIndex
@@ -141,7 +143,11 @@ class MediaPlayerViewModel @Inject constructor(
         }
     }
 
-    fun startBackGroundService() {
+    fun updateCurrentPlayingPost(post: String){
+        currentPlayingPost = post
+    }
+
+    private fun startBackGroundService() {
         if (!isServiceRunning) {
             val intent = Intent(context, AudioService::class.java)
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -154,13 +160,16 @@ class MediaPlayerViewModel @Inject constructor(
     }
 
     private fun setProgressValue(currentProgress: Long){
+//        Log.e(TAG, "Current Progress: $currentProgress")
+//        Log.e(TAG, "Duration: $duration")
         progress =
-            if (currentProgress > 0) ((currentProgress.toFloat() / duration.toFloat()) * 100f)
+            if (currentProgress > 0) ((currentProgress.toFloat() / duration.toFloat()) * 1f)
             else 0f
-        progressString = formatDuration(currentProgress)
+//        Log.e(TAG, "Progress: $progress")
+        progressString = formatDurationString(currentProgress)
     }
     @SuppressLint("DefaultLocale")
-    fun formatDuration(duration: Long): String {
+    fun formatDurationString(duration: Long): String {
         val minute = TimeUnit.MINUTES.convert(duration, TimeUnit.MILLISECONDS)
         val seconds = (minute) - minute * TimeUnit.SECONDS.convert(1, TimeUnit.MINUTES)
         return String.format("%02d:%02d", minute, seconds)

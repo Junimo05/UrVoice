@@ -1,5 +1,6 @@
 package com.example.urvoices.ui._component.PostComponent
 
+import android.annotation.SuppressLint
 import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -20,7 +21,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
@@ -50,6 +50,7 @@ import com.example.urvoices.viewmodel.UIEvents
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 
+@SuppressLint("StateFlowValueCalledInComposition")
 @Composable
 fun NewFeedPostItem(
     post: Post,
@@ -73,7 +74,6 @@ fun NewFeedPostItem(
         )
     }
 
-    var waveformProgress = rememberSaveable { mutableStateOf(0F)}
 
     Card(
         shape = RoundedCornerShape(40.dp),
@@ -115,31 +115,35 @@ fun NewFeedPostItem(
                 ),
                 modifier = Modifier.padding(top = 4.dp, bottom = 0.dp, start = 14.dp, end = 0.dp)
             )
-            IconButton(
-                onClick = {
-                    Log.e(TAG, "Playing audio: ${post.url}")
-                    playerViewModel.onUIEvents(
-                        UIEvents.PlayingAudio(post.url!!)
-                    )
-                }
-            ) {
-                Icon(
-                    painter = painterResource(id = R.drawable.ic_media_play),
-                    contentDescription = "ActionMore",
-                    modifier = Modifier
-                        .weight(0.1f)
-                )
-            }
             Spacer(modifier = Modifier.width(16.dp))
             AudioWaveformItem(
-                duration = "4:12",
-                isPlaying = true,
-                percentPlayed = 0.5f,
+                id = post.id!!,
+                currentPlayingAudio = playerViewModel.currentPlayingAudio,
+                currentPlayingPost = playerViewModel.currentPlayingPost,
+                duration = playerViewModel.duration, //fix Duration each Post
+                isPlaying = playerViewModel.isPlaying,
+                isStop = playerViewModel.isStop.value,
+                onPlayStart = {
+                    playerViewModel.onUIEvents(UIEvents.PlayingAudio(
+                        post.url!!
+                    ))
+                    playerViewModel.updateCurrentPlayingPost(post.id)
+                },
+                onPlayPause = {
+                    playerViewModel.onUIEvents(UIEvents.PlayPause)
+                },
+                percentPlayed = playerViewModel.progress,
+                onPercentChange = {
+                    playerViewModel.onUIEvents(UIEvents.SeekTo(it))
+                },
                 initAmplitudes = amplitudesTest.value,
-                waveformProgress = waveformProgress
             )
             Spacer(modifier = Modifier.height(8.dp))
-            InteractionRow(interactions = Post_Interactions(/*Todo interaction data*/))
+            InteractionRow(interactions = Post_Interactions(
+                love_act = {},
+                comment_act = {},
+                //TODO: do act
+            ))
         }
     }
 }
