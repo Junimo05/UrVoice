@@ -2,9 +2,11 @@ package com.example.urvoices.data.service
 
 import android.net.Uri
 import android.util.Log
+import androidx.compose.runtime.MutableState
 import com.example.urvoices.data.AudioManager
 import com.example.urvoices.data.model.Comment
 import com.example.urvoices.data.model.Post
+import com.example.urvoices.utils.SharedPreferencesHelper
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
@@ -13,33 +15,45 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
-import kotlinx.coroutines.withContext
-import java.io.File
-import java.util.Dictionary
 import javax.inject.Inject
 
 class FirebasePostService @Inject constructor(
+    private val audioManager: AudioManager,
     private val firebaseFirestore: FirebaseFirestore,
     private val storage: StorageReference,
-    private val firebaseAudioService: FirebaseAudioService
+    private val firebaseAudioService: FirebaseAudioService,
+    private val sharedPreferences: SharedPreferencesHelper
 ){
     val TAG = "FirebasePostService"
-    private var lastVisiblePost: DocumentSnapshot? = null
-    suspend fun getNewFeed(limit: Long = 10): List<Post>{
+
+
+    suspend fun getNewFeed(page: Int, lastVisiblePost: MutableState<String>, lastvisiblePage: MutableState<Int>): List<Post>{
         val posts = mutableListOf<Post>()
+        val limit = 3L
         try {
             // get posts
-            val postQuery = firebaseFirestore.collection("posts")
+            var postQuery = firebaseFirestore.collection("posts")
                 .orderBy("createdAt", Query.Direction.DESCENDING)
                 .limit(limit)
+            Log.e(TAG, "getNewFeed: $lastVisiblePost")
+            Log.e(TAG, "getNewFeed: $lastvisiblePage")
 
-            // If there is a last visible post, start after it
-            if (lastVisiblePost != null) {
-                postQuery.startAfter(lastVisiblePost)
+            if (lastVisiblePost.value != "" && page > lastvisiblePage.value) {
+                val lastVisiblePostRef = firebaseFirestore.collection("posts").document(lastVisiblePost.value).get().await()
+                postQuery = postQuery.startAfter(lastVisiblePostRef)
+                lastvisiblePage.value = page
             }
 
             val postRefs = postQuery.get().await()
-            lastVisiblePost = postRefs.documents.lastOrNull()
+            val lastVisible = postRefs.documents.lastOrNull()
+
+            if (lastVisible != null) {
+                lastVisiblePost.value = lastVisible.id
+            }else {
+                lastVisiblePost.value = ""
+            }
+
+
             posts.addAll(postRefs.documents.mapNotNull { document ->
                 val deleteAt = document.getLong("deletedAt")
                 if(deleteAt != null){
@@ -48,18 +62,21 @@ class FirebasePostService @Inject constructor(
                 val postID = document.id
                 val userID = getUserIDByPostID(postID)
                 val audioUrl = document.getString("url") ?: return@mapNotNull null
+                val audioName = document.getString("audioName")
                 val description = document.getString("description") ?: return@mapNotNull null
                 val createdAt = document.getLong("createdAt") ?: return@mapNotNull null
                 val tag = document.get("tag") as List<*>?
                 val updateAt = document.getLong("updatedAt")
                 val likes = getLikes_Posts(postID)
                 val comments = getComments_Posts(postID).size
+                val amplitudes = audioManager.getAmplitudes(audioUrl)
 
                 Post(
                     id = postID,
                     userId = userID,
                     url = audioUrl,
-                    audioName = audioUrl.split("/").last(),
+                    amplitudes = amplitudes,
+                    audioName = audioName ?: "No Name",
                     description = description,
                     createdAt = createdAt,
                     updateAt = updateAt,
@@ -69,14 +86,13 @@ class FirebasePostService @Inject constructor(
                     tag = tag?.map { it as String }
                 )
             })
-
         } catch (e: Exception) {
             e.printStackTrace()
         }
         return posts
     }
 
-    suspend fun getUserInfo(userID: String): Map<String, String> {
+    suspend fun getUserInfoDisplayForPost(userID: String): Map<String, String> {
         var result = mapOf<String, String>()
         try {
             val userRef = firebaseFirestore.collection("users").document(userID).get().await()

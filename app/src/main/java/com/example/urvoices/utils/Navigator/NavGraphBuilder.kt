@@ -4,20 +4,24 @@ import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.navigation
-import com.example.urvoices.ui.Login.LoginScreen
+import com.example.urvoices.ui.AuthScreen.LoginScreen
 import com.example.urvoices.ui.MainScreen.HomeScreen
 import com.example.urvoices.ui.MainScreen.ProfileScreen
 import com.example.urvoices.ui.MainScreen.SearchScreen
 import com.example.urvoices.ui.MainScreen.SettingsScreen
 import com.example.urvoices.ui.MainScreen.UploadScreen
-import com.example.urvoices.ui.Register.RegisterScreen
-import com.example.urvoices.ui.Splash.SplashScreen
+import com.example.urvoices.ui.AuthScreen.RegisterScreen
+import com.example.urvoices.ui.AuthScreen.SplashScreen
 import com.example.urvoices.ui.noti_msg.MessageScreen
 import com.example.urvoices.ui.noti_msg.NotificationScreen
 import com.example.urvoices.viewmodel.AuthViewModel
 import com.example.urvoices.viewmodel.MediaPlayerViewModel
+import com.google.firebase.auth.FirebaseAuth
 
-fun NavGraphBuilder.authGraph(navController: NavController, authViewModel: AuthViewModel){
+fun NavGraphBuilder.authGraph(
+    navController: NavController,
+    authViewModel: AuthViewModel
+){
     navigation(route = Graph.AUTHENTICATION, startDestination = AuthScreen.SplashScreen.route){
         composable(route = AuthScreen.SplashScreen.route){
             SplashScreen(navController = navController, authViewModel = authViewModel)
@@ -34,7 +38,11 @@ fun NavGraphBuilder.authGraph(navController: NavController, authViewModel: AuthV
     }
 }
 
-fun NavGraphBuilder.mainGraph(navController: NavController, authViewModel: AuthViewModel, playerViewModel: MediaPlayerViewModel){
+fun NavGraphBuilder.mainGraph(
+    navController: NavController,
+    authViewModel: AuthViewModel,
+    playerViewModel: MediaPlayerViewModel
+){
     navigation(route = Graph.NAV_SCREEN, startDestination = MainScreen.HomeScreen.route){
         composable(route = MainScreen.HomeScreen.route){
             HomeScreen(
@@ -46,7 +54,7 @@ fun NavGraphBuilder.mainGraph(navController: NavController, authViewModel: AuthV
         composable(route = MainScreen.SearchScreen.route){
             SearchScreen(
                 navController = navController,
-                playerViewModel = playerViewModel
+                playerViewModel = playerViewModel,
             )
         }
         composable(route = MainScreen.UploadScreen.route){
@@ -56,10 +64,13 @@ fun NavGraphBuilder.mainGraph(navController: NavController, authViewModel: AuthV
             )
         }
         composable(route = MainScreen.ProfileScreen.route){
-            ProfileScreen(
-                navController = navController,
-                playerViewModel = playerViewModel
-            )
+            authViewModel.getCurrentUser()?.uid?.let { it1 ->
+                ProfileScreen(
+                    navController = navController,
+                    playerViewModel = playerViewModel,
+                    userId = it1
+                )
+            }
         }
         composable(route = MainScreen.SettingsScreen.route){
             SettingsScreen(
@@ -70,7 +81,9 @@ fun NavGraphBuilder.mainGraph(navController: NavController, authViewModel: AuthV
     }
 }
 
-fun NavGraphBuilder.notiMsgGraph(navController: NavController){
+fun NavGraphBuilder.notiMsgGraph(
+    navController: NavController
+){
     navigation(route = Graph.NOTI_MSG, startDestination = NotiMsgicationScreen.NotificationScreen.route){
         composable(route = NotiMsgicationScreen.NotificationScreen.route){
             NotificationScreen(navController = navController)

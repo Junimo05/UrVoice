@@ -37,6 +37,8 @@ class AuthViewModel @Inject constructor(
         checkStatus()
     }
 
+    fun getCurrentUser() = auth.currentUser
+
     fun checkStatus(){
         if(auth.currentUser == null){
             _authState.value = AuthState.Unauthenticated

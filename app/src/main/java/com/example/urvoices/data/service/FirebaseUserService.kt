@@ -19,29 +19,126 @@ class FirebaseUserService @Inject constructor(
 ){
     val TAG = "FirebaseUserService"
 
+    suspend fun getInfoUserByUserID(userId: String): User? {
+        // get user info from firebase firestore
+        var userInfo = mutableMapOf<String, Any>()
+        try {
+            val docRef = firebaseFirestore.collection("users").document(userId).get().await()
+
+            val userID = docRef.data?.get("ID") as String
+            val username = docRef.data?.get("username") as String
+            val email = docRef.data?.get("email") as String
+            val country = docRef.data?.get("country") as String
+            val avatarUrl = docRef.data?.get("avatarUrl") as String
+            val bio = docRef.data?.get("bio") as String
+            return User(userID, username, email, country, avatarUrl, bio)
+
+        }catch (e: Exception){
+            e.printStackTrace()
+        }
+        return null
+    }
+
+
+
+    suspend fun getFollowStatus(userId: String): Boolean {
+        // get follow status
+        val user = auth.currentUser
+        if (user != null) {
+            try {
+                val docRef = firebaseFirestore.collection("follows")
+                    .whereEqualTo("userID", user.uid)
+                    .whereEqualTo("followingUserID", userId)
+                    .get()
+                    .await()
+                return docRef.size() > 0
+            } catch (e: Exception) {
+                // Handle exception
+                e.printStackTrace()
+                Log.e(TAG, "getFollowStatus: ${e.message}")
+            }
+        } else {
+            // Inform the user that they are not signed in
+            println("No user is currently signed in.")
+        }
+        return false
+    }
+
+    suspend fun getFollowingCounts(userId: String): Int {
+        // get following counts
+        try {
+            val docRef = firebaseFirestore.collection("follows")
+                .whereEqualTo("followingUserID", userId)
+                .get()
+                .await()
+            return docRef.size()
+        }catch (e: Exception){
+            e.printStackTrace()
+        }
+        return 0
+    }
+
+    suspend fun getFollowingDetail(userId: String): List<User> {
+        // get following detail
+        val followingList = mutableListOf<User>()
+        try {
+            val docRef = firebaseFirestore.collection("follows")
+                .whereEqualTo("followingUserID", userId)
+                .limit(10)
+                .get()
+                .await()
+            docRef.documents.mapNotNull { doc ->
+                val followingId = doc["userID"] as String
+                val followingInfo = getInfoUserByUserID(followingId)
+                followingInfo?.let {
+                    followingList.add(it)
+                }
+            }
+        }catch (e: Exception){
+            e.printStackTrace()
+        }
+        return followingList
+    }
+
+    suspend fun getFollowerCounts(userId:String): Int{
+         try {
+            val docRef = firebaseFirestore.collection("follows")
+                .whereEqualTo("userID", userId)
+                .get()
+                .await()
+            return docRef.size()
+         }catch (e: Exception){
+             e.printStackTrace()
+         }
+        return 0
+    }
+
+    suspend fun getFollowerDetail(userId: String): List<User> {
+        // get follower detail
+        val followerList = mutableListOf<User>()
+        try {
+            val docRef = firebaseFirestore.collection("follows")
+                .whereEqualTo("userID", userId)
+                .limit(10)
+                .get()
+                .await()
+            docRef.documents.mapNotNull { doc ->
+                val followerId = doc["followingUserID"] as String
+                val followerInfo = getInfoUserByUserID(followerId)
+                followerInfo?.let {
+                    followerList.add(it)
+                }
+            }
+        }catch (e: Exception){
+            e.printStackTrace()
+        }
+        return followerList
+    }
+
     suspend fun resetPassword(email: String){
         // reset password
         auth.sendPasswordResetEmail(email).await()
 
-    }
-    suspend fun getInfoUserByUserID(userId: String): User {
-        // get user info from firebase firestore
-        var userInfo = mutableMapOf<String, Any>()
-        try {
-            val docRef = firebaseFirestore.collection("users").document(userId)
-            val doc = docRef.get().await()
-            userInfo = doc.data as MutableMap<String, Any>
-        }catch (e: Exception){
-            e.printStackTrace()
-        }
-        return User(
-            id = userId,
-            username = userInfo["username"] as String,
-            email = userInfo["email"] as String,
-            country = userInfo["country"] as String,
-            avatarUrl = userInfo["avatarUrl"] as String,
-            bio = userInfo["bio"] as String,
-        )
     }
 
     suspend fun updateAvatar(avatarUri: Uri): Boolean {

@@ -42,6 +42,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import androidx.paging.LoadState
+import androidx.paging.compose.collectAsLazyPagingItems
 import com.example.urvoices.R
 import com.example.urvoices.presentations.theme.MyTheme
 import com.example.urvoices.ui._component.PostComponent.NewFeedPostItem
@@ -77,33 +79,17 @@ fun Home(
     val authState = authViewModel.authState.observeAsState()
     val scope = rememberCoroutineScope()
     val mainStateList = rememberLazyListState()
-    val homeState = homeViewModel.homeState.observeAsState()
+    val homeState = homeViewModel.homeState.collectAsState()
     val isScrolled = remember {
         mutableStateOf(mainStateList.firstVisibleItemIndex > 0)
     }
 
-    val loadThreshold = 600
-    val reachedBottom: Boolean by remember {
-        derivedStateOf {
-            mainStateList.reachedBottom()
-        }
-    }
-    val postList = homeViewModel.posts.observeAsState(emptyList())
+    val postList = homeViewModel.postsPaging3.collectAsLazyPagingItems()
 
     val userPreferences = UserPreferences(LocalContext.current)
 
-    //
     val isPlayingAudio by rememberSaveable {
         mutableStateOf(false)
-    }
-
-//    LaunchedEffect(reachedBottom) {
-//        homeViewModel.loadingData()
-//    }
-    LaunchedEffect(remember { derivedStateOf { mainStateList.firstVisibleItemScrollOffset } }) {
-        if (mainStateList.firstVisibleItemScrollOffset >= loadThreshold) {
-            homeViewModel.loadingData()
-        }
     }
 
     LaunchedEffect(authState.value) {
@@ -216,18 +202,36 @@ fun Home(
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             items(
-                items = postList.value,
-                key = { post -> post.id!! }
+                postList.itemCount
             ){
+                index ->
                 NewFeedPostItem(
-                    post = it,
+                    post = postList[index]!!,
                     homeViewModel = homeViewModel,
                     playerViewModel = playerViewModel,
                 )
             }
-        }
-        if(homeState.value == HomeState.LoadingData){
-            CircularProgressIndicator()
+
+            postList.apply {
+                when {
+                    loadState.refresh is LoadState.Loading -> {
+                        item {
+                            CircularProgressIndicator()
+                        }
+                    }
+                    loadState.append is LoadState.Loading -> {
+                        item { CircularProgressIndicator() }
+                    }
+                    loadState.refresh is LoadState.Error -> {
+                        val e = postList.loadState.refresh as LoadState.Error
+                        item { Text(text = e.error.localizedMessage ?: "Unknown Error") }
+                    }
+                    loadState.append is LoadState.Error -> {
+                        val e = postList.loadState.append as LoadState.Error
+                        item { Text(text = e.error.localizedMessage ?: "Unknown Error") }
+                    }
+                }
+            }
         }
     }
 }

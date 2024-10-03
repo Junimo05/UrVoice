@@ -5,7 +5,10 @@ import com.example.urvoices.data.AudioManager
 import com.example.urvoices.data.db.AppDatabase
 import com.example.urvoices.data.db.Dao.PostDao
 import com.example.urvoices.data.repository.PostRepository
+import com.example.urvoices.data.repository.UserRepository
 import com.example.urvoices.data.service.FirebasePostService
+import com.example.urvoices.data.service.FirebaseUserService
+import com.example.urvoices.utils.SharedPreferencesHelper
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -37,4 +40,11 @@ object DatabaseModule {
         postDao: PostDao,
         firebasePostService: FirebasePostService
     ): PostRepository = PostRepository(manager, firebasePostService, postDao)
+
+    @Provides
+    @Singleton
+    fun provideUserRepo(
+        firebaseUserService: FirebaseUserService,
+        sharedPref: SharedPreferencesHelper
+    ): UserRepository = UserRepository(firebaseUserService, sharedPref)
 }

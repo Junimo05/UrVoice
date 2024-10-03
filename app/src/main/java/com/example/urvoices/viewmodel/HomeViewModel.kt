@@ -2,6 +2,8 @@ package com.example.urvoices.viewmodel
 
 import android.annotation.SuppressLint
 import android.util.Log
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -10,6 +12,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.SavedStateHandleSaveableApi
 import androidx.lifecycle.viewmodel.compose.saveable
+import androidx.paging.Pager
+import androidx.paging.PagingConfig
+import androidx.paging.cachedIn
 import com.example.urvoices.data.model.Comment
 import com.example.urvoices.data.model.MessageNotification
 import com.example.urvoices.data.model.Notification
@@ -20,6 +25,9 @@ import com.example.urvoices.data.service.FirebasePostService
 import com.example.urvoices.utils.SharedPreferencesHelper
 import com.google.firebase.firestore.FirebaseFirestore
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
@@ -35,25 +43,32 @@ class HomeViewModel @Inject constructor(
 ): ViewModel(){
 
     val TAG = "HomeViewModel"
-    private val _homeState = MutableLiveData<HomeState>()
-    val homeState: LiveData<HomeState> = _homeState
+    private val _homeState = MutableStateFlow<HomeState>(HomeState.Initial)
+    val homeState: StateFlow<HomeState> = _homeState.asStateFlow()
+
+    val lastVisiblePost = mutableStateOf<String>("")
+    val lastVisiblePage = mutableStateOf<Int>(1)
 
     private var _posts = MutableLiveData<List<Post>>()
     val posts: LiveData<List<Post>> get() = _posts
 
+    val postsPaging3 = Pager(PagingConfig(pageSize = 3)){
+        postRepository.getNewFeedPaging3(lastVisiblePage, lastVisiblePost)
+    }.flow.cachedIn(viewModelScope)
+
     init {
        viewModelScope.launch {
-           loadingData()
+//           loadingData()
        }
     }
 
-    suspend fun loadingData() {
-        _homeState.value = HomeState.LoadingData
-        val newPostList = postRepository.getNewFeed()
-        _posts.value = newPostList.value
-        Log.e(TAG, "loadingData: ${newPostList.value}")
-        _homeState.value = HomeState.LoadedData
-    }
+//    suspend fun loadingData() {
+//        _homeState.value = HomeState.LoadingData
+//        val newPostList = postRepository.getNewFeed()
+//        _posts.value = newPostList.value
+////        Log.e(TAG, "loadingData: ${newPostList.value}")
+//        _homeState.value = HomeState.LoadedData
+//    }
 
     //User Like -> Noti
     suspend fun likePost(userID: String, postID: String = ""): Boolean {
@@ -163,41 +178,16 @@ class HomeViewModel @Inject constructor(
         return false
     }
 
-    //Post Loader
-    suspend fun getNewFeed(): List<Post> {
-        val result = firebasePostService.getNewFeed()
-        return result
-    }
 
     suspend fun getUserInfo(userID: String): Map<String, String> {
-        val result = firebasePostService.getUserInfo(userID)
+        val result = postRepository.getUserInfoDisplayForPost(userID)
         return result
     }
 }
 
 sealed class HomeState {
+    object Initial : HomeState()
     object LoadingData : HomeState()
     object LoadedData : HomeState()
-    data class ShowToast(val message: String) : HomeState()
-    data class ShowError(val message: String) : HomeState()
-    data class ShowSuccess(val message: String) : HomeState()
-    data class ShowLoading(val message: String) : HomeState()
-    data class ShowPost(val message: String) : HomeState()
-    data class ShowProfile(val message: String) : HomeState()
-    data class ShowSettings(val message: String) : HomeState()
-    data class ShowSearch(val message: String) : HomeState()
-    data class ShowNotification(val message: String) : HomeState()
-    data class ShowNewPost(val message: String) : HomeState()
-    data class ShowNewFeed(val message: String) : HomeState()
-    data class ShowNewProfile(val message: String) : HomeState()
-    data class ShowNewSettings(val message: String) : HomeState()
-    data class ShowNewSearch(val message: String) : HomeState()
-    data class ShowNewNotification(val message: String) : HomeState()
-    data class ShowNewPostDetail(val message: String) : HomeState()
-    data class ShowNewFeedDetail(val message: String) : HomeState()
-    data class ShowNewProfileDetail(val message: String) : HomeState()
-    data class ShowNewSettingsDetail(val message: String) : HomeState()
-    data class ShowNewSearchDetail(val message: String) : HomeState()
-    data class ShowNewNotificationDetail(val message: String) : HomeState()
-    data class ShowNewPostDetailComment(val message: String) : HomeState()
+    data class Error(val message: String) : HomeState()
 }

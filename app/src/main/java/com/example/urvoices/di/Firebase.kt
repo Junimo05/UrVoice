@@ -4,6 +4,7 @@ import com.example.urvoices.data.AudioManager
 import com.example.urvoices.data.service.FirebaseAudioService
 import com.example.urvoices.data.service.FirebasePostService
 import com.example.urvoices.data.service.FirebaseUserService
+import com.example.urvoices.utils.SharedPreferencesHelper
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.storage.FirebaseStorage
@@ -59,11 +60,13 @@ object Firebase {
     @Provides
     @Singleton
     fun provideFirebasePostService(
+        audioManager: AudioManager,
         firestore: FirebaseFirestore,
         storage: StorageReference,
         firebaseAudioService: FirebaseAudioService,
+        sharedPref: SharedPreferencesHelper
     ): FirebasePostService {
-        return FirebasePostService(firestore, storage, firebaseAudioService)
+        return FirebasePostService(audioManager,firestore, storage, firebaseAudioService, sharedPref)
     }
 
 }

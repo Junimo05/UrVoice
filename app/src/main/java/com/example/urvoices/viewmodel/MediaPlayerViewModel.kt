@@ -118,7 +118,7 @@ class MediaPlayerViewModel @Inject constructor(
             is UIEvents.SeekTo -> {
                 audioService.onPlayerEvents(
                     PlayerEvent.SeekTo,
-                    seekPosition = ((duration * uiEvents.position) / 100f).toLong()
+                    seekPosition = (duration * uiEvents.position).toLong()
                 )
             }
             UIEvents.SeekToNext -> audioService.onPlayerEvents(PlayerEvent.SeekToNext)

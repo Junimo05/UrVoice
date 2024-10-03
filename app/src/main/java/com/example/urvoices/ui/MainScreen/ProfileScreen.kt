@@ -2,6 +2,7 @@ package com.example.urvoices.ui.MainScreen
 
 import android.annotation.SuppressLint
 import android.content.res.Configuration.UI_MODE_NIGHT_NO
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -31,6 +32,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -41,6 +43,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -55,15 +58,26 @@ import com.example.urvoices.R
 import com.example.urvoices.presentations.theme.MyTheme
 import com.example.urvoices.ui._component.PlaylistItem
 import com.example.urvoices.ui._component.PostComponent.ProfilePostItem
+import com.example.urvoices.utils.SharedPreferencesHelper
+import com.example.urvoices.utils.UserPreferences
 import com.example.urvoices.viewmodel.MediaPlayerViewModel
+import com.example.urvoices.viewmodel.ProfileViewModel
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.first
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 fun ProfileScreen(
+    userId: String = "",
     navController: NavController,
-    isUser: Boolean = false,
     playerViewModel: MediaPlayerViewModel,
 ) {
+    val TAG = "ProfileScreen"
+    val profileViewModel = hiltViewModel<ProfileViewModel>()
+    profileViewModel.loadData(userId)
+    val scope = CoroutineScope(Dispatchers.Main)
+    val isUser = profileViewModel.isCurrentUser
     var tab by rememberSaveable {
         mutableIntStateOf(0)
     }
@@ -449,6 +463,10 @@ fun UserInfo(
 fun ProfileScreenPreview() {
     val navController = rememberNavController()
     MyTheme {
-        ProfileScreen(navController, playerViewModel = hiltViewModel())
+        ProfileScreen(
+            userId = "lucasmorrison",
+            navController = navController,
+            playerViewModel = hiltViewModel()
+        )
     }
 }

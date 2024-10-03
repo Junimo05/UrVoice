@@ -68,7 +68,10 @@ fun ProfilePostItem(
                 )
                 Spacer(modifier = Modifier.height(40.dp))
                 InteractionRow(
-                    interactions = Post_Interactions(),
+                    interactions = Post_Interactions(
+                        love_act = {},
+                        comment_act = {},
+                    ),
                     modifier = Modifier.align(Alignment.CenterHorizontally)
                 )
             }
@@ -84,6 +87,8 @@ fun ProfilePostItem(
             isStop = false,
             currentPlayingAudio = 0,
             currentPlayingPost = "Post",
+            audioUrl = "",
+            audioAmplitudes = listOf(),
             modifier = Modifier
                 .align(Alignment.Center)
         )

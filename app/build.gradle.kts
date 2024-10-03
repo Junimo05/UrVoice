@@ -136,6 +136,11 @@ dependencies {
     implementation("com.facebook.android:facebook-login:latest.release")
     implementation(libs.firebase.storage)
 
+    //LoadItem Paging3 Lib
+    val paging_version = "3.3.2"
+    implementation("androidx.paging:paging-runtime:$paging_version")
+    implementation("androidx.paging:paging-compose:3.3.2")
+
     //DataStore
     implementation(libs.androidx.datastore.core.android)
     implementation(libs.androidx.datastore.preferences.core.jvm)

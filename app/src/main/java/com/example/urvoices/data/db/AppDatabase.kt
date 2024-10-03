@@ -15,10 +15,10 @@ import com.example.urvoices.data.db.Entity.UserLogin
 
 @Database(
     entities = [UserLogin::class, PostEntity::class],
-    version = 1,
+    version = 2,
     exportSchema = true,
     autoMigrations = [
-
+        AutoMigration(from = 1, to = 2)
     ]
 )
 @TypeConverters(Converters::class)

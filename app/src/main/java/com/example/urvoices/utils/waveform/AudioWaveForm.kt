@@ -34,6 +34,7 @@ import androidx.compose.ui.unit.coerceIn
 import androidx.compose.ui.unit.dp
 import com.linc.audiowaveform.model.AmplitudeType
 import com.linc.audiowaveform.model.WaveformAlignment
+import kotlin.random.Random
 
 private val MinSpikeWidthDp: Dp = 1.dp
 private val MaxSpikeWidthDp: Dp = 24.dp

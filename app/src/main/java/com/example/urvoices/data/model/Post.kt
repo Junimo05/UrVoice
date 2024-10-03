@@ -6,6 +6,7 @@ data class Post(
     val id: String?,
     val userId: String,
     val url: String?,
+    val amplitudes: List<Int>? = null,
     val audioName: String?,
     val description: String,
     val likes: Int?,
@@ -18,6 +19,7 @@ data class Post(
     fun toMap(): Map<String, Any?> {
         return mapOf(
             "userId" to userId,
+            "audioName" to audioName,
             "description" to description,
             "tag" to tag,
             "createdAt" to createdAt,
@@ -33,6 +35,7 @@ data class Post(
             description = description,
             audioName = audioName,
             audioUrl = url,
+            amplitudes = amplitudes,
             likes = likes,
             comments = comments,
             tags = tag,

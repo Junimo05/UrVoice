@@ -1,9 +1,12 @@
 package com.example.urvoices.data.repository
 
 import android.util.Log
+import androidx.compose.runtime.MutableState
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.liveData
+import androidx.paging.PagingSource
+import androidx.paging.PagingState
 import com.example.urvoices.data.AudioManager
 import com.example.urvoices.data.db.Dao.PostDao
 import com.example.urvoices.data.db.Entity.PostEntity
@@ -24,26 +27,53 @@ class PostRepository @Inject constructor(
     val TAG = "PostRepository"
     val scope = CoroutineScope(Dispatchers.Main)
     private val MAX_POSTS = 50
-    suspend fun getNewFeed(): LiveData<List<Post>> = withContext(Dispatchers.IO) {
-        val newPosts = firestorePostService.getNewFeed()
-        val newPostEntities = newPosts.map { it.toEntity() }
-        // Insert new posts into the database
-        postDao.insertAll(newPostEntities)
+//    suspend fun getNewFeed(): LiveData<List<Post>> = withContext(Dispatchers.IO) {
+//        val newPosts = firestorePostService.getNewFeed(1)
+//        val newPostEntities = newPosts.map { it.toEntity() }
+//        // Insert new posts into the database
+//        postDao.insertAll(newPostEntities)
+//
+//        // Get all posts from the database
+//        val allPosts = postDao.getAllPosts()
+//
+//        // If the number of posts exceeds MAX_POSTS, delete the oldest posts
+//        if (allPosts.size > MAX_POSTS) {
+//            val postsToDelete = allPosts.subList(0, allPosts.size - MAX_POSTS)
+//            postDao.deleteAll(postsToDelete)
+//        }
+//
+//        // Get the updated list of posts from the database
+//        val updatedPosts = postDao.getAllPosts().map { it.toPost() }
+//        MutableLiveData(updatedPosts)
+//    }
 
-        // Get all posts from the database
-        val allPosts = postDao.getAllPosts()
+    fun getNewFeedPaging3(lastVisiblePage: MutableState<Int>, lastVisiblePost: MutableState<String>): PagingSource<Int, Post> {
+        return object : PagingSource<Int, Post>() {
 
-        // If the number of posts exceeds MAX_POSTS, delete the oldest posts
-        if (allPosts.size > MAX_POSTS) {
-            val postsToDelete = allPosts.subList(0, allPosts.size - MAX_POSTS)
-            postDao.deleteAll(postsToDelete)
+            override suspend fun load(params: LoadParams<Int>): LoadResult<Int, Post> {
+                return try {
+                    val nextPage = params.key ?: 1
+                    val postList = firestorePostService.getNewFeed(nextPage, lastVisiblePost, lastVisiblePage)
+                    // Check if the new page is the same as the last page
+                    LoadResult.Page(
+                        data = postList,
+                        prevKey = if (nextPage == 1) null else nextPage - 1,
+                        nextKey = if(postList.isEmpty()) null else nextPage + 1
+                    )
+                } catch (e: Exception) {
+                    LoadResult.Error(e)
+                }
+            }
+            override fun getRefreshKey(state: PagingState<Int, Post>): Int? {
+                return state.anchorPosition
+            }
         }
-
-        // Get the updated list of posts from the database
-        val updatedPosts = postDao.getAllPosts().map { it.toPost() }
-        MutableLiveData(updatedPosts)
     }
 
+    suspend fun getUserInfoDisplayForPost(userID: String): Map<String, String> {
+        val result = firestorePostService.getUserInfoDisplayForPost(userID)
+        return result
+    }
 
     //Firebase Only
     suspend fun getAllPostFromUser(userID: String): List<Post> {

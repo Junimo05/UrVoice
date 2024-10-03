@@ -1,8 +1,9 @@
 package com.example.urvoices.ui._component.PostComponent
 
 import android.annotation.SuppressLint
-import android.util.Log
+import androidx.compose.foundation.MarqueeAnimationMode
 import androidx.compose.foundation.background
+import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -61,18 +62,6 @@ fun NewFeedPostItem(
     val TAG = "NewFeedPostItem"
     val timeText = getTimeElapsed(post.createdAt)
     val scope = CoroutineScope(Dispatchers.Main)
-    val amplitudesTest = rememberSaveable {
-        mutableStateOf(
-            listOf(
-                45, 23, 67, 89, 12, 34, 56, 78, 90, 11, 22, 33, 44, 55, 66, 77, 88,
-                99, 10, 20, 30, 40, 50, 60, 70, 80, 91, 92, 93, 94, 95, 96, 97, 98,
-                1, 2, 3, 4, 5, 6, 7, 8, 9, 13, 14, 15, 16, 17, 18, 19, 21, 24, 25,
-                26, 27, 28, 29, 31, 32, 35, 36, 37, 38, 39, 41, 42, 43, 46, 47, 48,
-                49, 51, 52, 53, 54, 57, 58, 59, 61, 62, 63, 64, 65, 68, 69, 71, 72,
-                73, 74, 75, 76, 79, 81, 82, 83, 84, 85, 86, 87, 100
-            )
-        )
-    }
 
 
     Card(
@@ -115,9 +104,25 @@ fun NewFeedPostItem(
                 ),
                 modifier = Modifier.padding(top = 4.dp, bottom = 0.dp, start = 14.dp, end = 0.dp)
             )
-            Spacer(modifier = Modifier.width(16.dp))
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = post.audioName!!,
+                fontWeight = FontWeight.Bold,
+                style = MaterialTheme.typography.titleLarge,
+                overflow = TextOverflow.Clip,
+                maxLines = 1,
+                modifier = if(playerViewModel.currentPlayingPost == post.id) Modifier.basicMarquee(
+                    animationMode = MarqueeAnimationMode.Immediately,
+                    delayMillis = 10000,
+                ) else Modifier,
+                color = if(playerViewModel.currentPlayingPost == post.id) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onPrimaryContainer
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
             AudioWaveformItem(
                 id = post.id!!,
+                audioUrl = post.url!!,
+                audioAmplitudes = post.amplitudes,
                 currentPlayingAudio = playerViewModel.currentPlayingAudio,
                 currentPlayingPost = playerViewModel.currentPlayingPost,
                 duration = playerViewModel.duration, //fix Duration each Post
@@ -125,7 +130,7 @@ fun NewFeedPostItem(
                 isStop = playerViewModel.isStop.value,
                 onPlayStart = {
                     playerViewModel.onUIEvents(UIEvents.PlayingAudio(
-                        post.url!!
+                        post.url
                     ))
                     playerViewModel.updateCurrentPlayingPost(post.id)
                 },
@@ -136,7 +141,6 @@ fun NewFeedPostItem(
                 onPercentChange = {
                     playerViewModel.onUIEvents(UIEvents.SeekTo(it))
                 },
-                initAmplitudes = amplitudesTest.value,
             )
             Spacer(modifier = Modifier.height(8.dp))
             InteractionRow(interactions = Post_Interactions(

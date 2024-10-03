@@ -1,14 +1,10 @@
-package com.example.urvoices.ui.Splash
+package com.example.urvoices.ui.AuthScreen
 
 import android.annotation.SuppressLint
-import android.content.Context
 import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -22,7 +18,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -52,7 +47,6 @@ import com.example.urvoices.R
 import com.example.urvoices.presentations.theme.MyTheme
 import com.example.urvoices.utils.Navigator.AuthScreen
 import com.example.urvoices.utils.Navigator.MainScreen
-import com.example.urvoices.utils.SharedPreferencesHelper
 import com.example.urvoices.viewmodel.AuthState
 import com.example.urvoices.viewmodel.AuthViewModel
 

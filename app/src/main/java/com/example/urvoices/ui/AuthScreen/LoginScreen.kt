@@ -1,4 +1,4 @@
-package com.example.urvoices.ui.Login
+package com.example.urvoices.ui.AuthScreen
 
 import android.annotation.SuppressLint
 import android.util.Patterns

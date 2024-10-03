@@ -36,7 +36,7 @@ fun TestWaveForm() {
     ) {
         items(20){
             AudioWaveformItem(percentPlayed = 0.5f, isPlaying = true, duration = 1000, onPercentChange = {},
-                onPlayStart = {}, onPlayPause = {}, isStop = false, id = "1", currentPlayingAudio = 1, currentPlayingPost = "1"
+                onPlayStart = {}, onPlayPause = {}, isStop = false, id = "1", currentPlayingAudio = 1, currentPlayingPost = "1", audioUrl = "", audioAmplitudes = amplitudes
             )
         }
     }

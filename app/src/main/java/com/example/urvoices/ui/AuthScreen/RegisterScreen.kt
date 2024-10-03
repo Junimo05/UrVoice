@@ -1,4 +1,4 @@
-package com.example.urvoices.ui.Register
+package com.example.urvoices.ui.AuthScreen
 
 import android.annotation.SuppressLint
 import android.widget.Toast
@@ -42,10 +42,8 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.example.urvoices.R
-import com.example.urvoices.ui._component.TopBarBackButton
 import com.example.urvoices.utils.Navigator.AuthScreen
 import com.example.urvoices.utils.Navigator.MainScreen
 import com.example.urvoices.viewmodel.AuthState
