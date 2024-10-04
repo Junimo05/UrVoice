@@ -10,7 +10,21 @@ data class Notification(
     val createdAt: Long,
     val updatedAt: Long?,
     val deleteAt: Long?,
-)
+){
+    fun toMap(): Map<String, Any?> {
+        return mapOf(
+            "id" to id,
+            "userID" to userID,
+            "message" to message,
+            "typeNotification" to typeNotification,
+            "isRead" to isRead,
+            "url" to url,
+            "createdAt" to createdAt,
+            "updatedAt" to updatedAt,
+            "deleteAt" to deleteAt
+        )
+    }
+}
 
 data object TypeNotification {
     const val FOLLOW_USER = "FOLLOW_USER"

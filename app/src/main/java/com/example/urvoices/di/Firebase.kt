@@ -2,6 +2,7 @@ package com.example.urvoices.di
 
 import com.example.urvoices.data.AudioManager
 import com.example.urvoices.data.service.FirebaseAudioService
+import com.example.urvoices.data.service.FirebaseNotificationService
 import com.example.urvoices.data.service.FirebasePostService
 import com.example.urvoices.data.service.FirebaseUserService
 import com.example.urvoices.utils.SharedPreferencesHelper
@@ -66,7 +67,15 @@ object Firebase {
         firebaseAudioService: FirebaseAudioService,
         sharedPref: SharedPreferencesHelper
     ): FirebasePostService {
-        return FirebasePostService(audioManager,firestore, storage, firebaseAudioService, sharedPref)
+        return FirebasePostService(audioManager, firestore, storage, sharedPref)
     }
 
+    @Provides
+    @Singleton
+    fun provideFirebaseNotificationService(
+        storage: FirebaseStorage,
+        firestore: FirebaseFirestore
+    ): FirebaseNotificationService {
+        return FirebaseNotificationService(storage, firestore)
+    }
 }

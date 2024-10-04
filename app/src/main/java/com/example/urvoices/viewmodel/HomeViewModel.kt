@@ -63,54 +63,6 @@ class HomeViewModel @Inject constructor(
 //        _homeState.value = HomeState.LoadedData
 //    }
 
-    //User Like -> Noti
-    suspend fun likePost(userID: String, postID: String = ""): Boolean {
-        val noti = Notification(
-            id = null,
-            userID = userID,
-            message = MessageNotification.LIKE_POST,
-            typeNotification = TypeNotification.LIKE_POST,
-            isRead = false,
-            url = "",
-            createdAt = System.currentTimeMillis(),
-            updatedAt = null,
-            deleteAt = null
-        )
-
-        val result = firestore.collection("notifications").add(noti)
-            .addOnCompleteListener {
-                    firestore.collection("notifications").document(it.result?.id!!).update("id", it.result?.id!!)
-            }
-            .addOnFailureListener {
-                Log.e("HomeViewModel", "likePost: ${it.message}")
-            }
-            .await()
-        return result != null
-    }
-
-    suspend fun likeComment(userID: String, commentID: String = ""): Boolean {
-        val noti: Notification = Notification(
-            id = null,
-            userID = userID,
-            message = MessageNotification.LIKE_COMMENT,
-            typeNotification = TypeNotification.LIKE_COMMENT,
-            isRead = false,
-            url = "",
-            createdAt = System.currentTimeMillis(),
-            updatedAt = null,
-            deleteAt = null
-        )
-
-        val result = firestore.collection("notifications").add(noti)
-            .addOnCompleteListener {
-                firestore.collection("notifications").document(it.result?.id!!).update("id", it.result?.id!!)
-            }
-            .addOnFailureListener {
-                Log.e("HomeViewModel", "likeComment: ${it.message}")
-            }
-            .await()
-        return result != null
-    }
 
     //User Comment -> Noti
     suspend fun commentPost(userID: String, postID: String = "", comment: Comment): Boolean {
@@ -171,11 +123,11 @@ class HomeViewModel @Inject constructor(
         return false
     }
 
-
     suspend fun getUserInfo(userID: String): Map<String, String> {
         val result = postRepository.getUserInfoDisplayForPost(userID)
         return result
     }
+
 }
 
 sealed class HomeState {
