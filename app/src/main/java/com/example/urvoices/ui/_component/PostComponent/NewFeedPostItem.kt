@@ -84,7 +84,8 @@ fun NewFeedPostItem(
                 IconButton(
                     modifier = Modifier.align(Alignment.CenterVertically),
                     onClick = {
-                        /*TODO*/
+                        /*TODO ACTION MORE
+                        *  */
                     }
                 ) {
                     Icon(

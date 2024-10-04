@@ -1,22 +1,15 @@
 package com.example.urvoices.data.repository
 
-import android.util.Log
 import androidx.compose.runtime.MutableState
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.liveData
 import androidx.paging.PagingSource
 import androidx.paging.PagingState
 import com.example.urvoices.data.AudioManager
 import com.example.urvoices.data.db.Dao.PostDao
-import com.example.urvoices.data.db.Entity.PostEntity
 import com.example.urvoices.data.model.Comment
 import com.example.urvoices.data.model.Post
 import com.example.urvoices.data.service.FirebasePostService
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 class PostRepository @Inject constructor(
@@ -47,7 +40,7 @@ class PostRepository @Inject constructor(
 //        MutableLiveData(updatedPosts)
 //    }
 
-    fun getNewFeedPaging3(lastVisiblePage: MutableState<Int>, lastVisiblePost: MutableState<String>): PagingSource<Int, Post> {
+    fun getNewFeed(lastVisiblePage: MutableState<Int>, lastVisiblePost: MutableState<String>): PagingSource<Int, Post> {
         return object : PagingSource<Int, Post>() {
 
             override suspend fun load(params: LoadParams<Int>): LoadResult<Int, Post> {
@@ -70,16 +63,34 @@ class PostRepository @Inject constructor(
         }
     }
 
+    fun getAllPostFromUser(userID: String): PagingSource<Int,Post> {
+        return object : PagingSource<Int, Post>() {
+            override suspend fun load(params: LoadParams<Int>): LoadResult<Int, Post> {
+                return try {
+                    val nextPage = params.key ?: 1
+                    val postList = firestorePostService.getAllPostFromUser(nextPage, userID)
+                    LoadResult.Page(
+                        data = postList,
+                        prevKey = if (nextPage == 1) null else nextPage - 1,
+                        nextKey = if (postList.isEmpty()) null else nextPage + 1
+                    )
+                } catch (e: Exception) {
+                    LoadResult.Error(e)
+                }
+            }
+
+            override fun getRefreshKey(state: PagingState<Int, Post>): Int? {
+                return state.anchorPosition
+            }
+        }
+    }
+
     suspend fun getUserInfoDisplayForPost(userID: String): Map<String, String> {
         val result = firestorePostService.getUserInfoDisplayForPost(userID)
         return result
     }
 
-    //Firebase Only
-    suspend fun getAllPostFromUser(userID: String): List<Post> {
-        val result = firestorePostService.getAllPostFromUser(userID)
-        return result
-    }
+
 
     suspend fun getComments_Posts(postID: String): List<Comment> {
         val result = firestorePostService.getComments_Posts(postID)

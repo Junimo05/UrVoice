@@ -26,6 +26,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.KeyboardArrowDown
 import androidx.compose.material3.Card
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -54,10 +55,14 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import androidx.paging.LoadState
+import androidx.paging.compose.collectAsLazyPagingItems
 import com.example.urvoices.R
+import com.example.urvoices.data.model.User
 import com.example.urvoices.presentations.theme.MyTheme
 import com.example.urvoices.ui._component.PlaylistItem
 import com.example.urvoices.ui._component.PostComponent.ProfilePostItem
+import com.example.urvoices.utils.Navigator.MainScreen
 import com.example.urvoices.utils.SharedPreferencesHelper
 import com.example.urvoices.utils.UserPreferences
 import com.example.urvoices.viewmodel.MediaPlayerViewModel
@@ -74,10 +79,17 @@ fun ProfileScreen(
     playerViewModel: MediaPlayerViewModel,
 ) {
     val TAG = "ProfileScreen"
-    val profileViewModel = hiltViewModel<ProfileViewModel>()
-    profileViewModel.loadData(userId)
     val scope = CoroutineScope(Dispatchers.Main)
+    //State & Data
+    val profileViewModel = hiltViewModel<ProfileViewModel>()
+    val uiState = profileViewModel.uiState.collectAsState()
+    profileViewModel.loadData(userId)
+    val postList = profileViewModel.posts.collectAsLazyPagingItems()
+
     val isUser = profileViewModel.isCurrentUser
+    val user by lazy { profileViewModel.user }
+
+
     var tab by rememberSaveable {
         mutableIntStateOf(0)
     }
@@ -105,9 +117,8 @@ fun ProfileScreen(
                 Row(
                     modifier = Modifier.fillMaxWidth(0.85f)
                 ) {
-                    //TODO: Change text var
                     Text(
-                        text = "lucasmorrison",
+                        text = user.username,
                         style = TextStyle(
                             fontWeight = FontWeight.Bold,
                             fontSize = 24.sp,
@@ -130,7 +141,13 @@ fun ProfileScreen(
                         )
                     }
                 }
-                IconButton(onClick = { /*TODO*/ },
+                IconButton(onClick = {
+                     if(isUser){
+                         navController.navigate(MainScreen.UploadScreen.route)
+                     }else {
+                         //TODO:
+                     }
+                },
                     modifier = Modifier.size(24.dp)
 
                 ){
@@ -147,7 +164,7 @@ fun ProfileScreen(
     ) {
         Column(
             modifier = Modifier
-                .padding(it)
+                .padding(top = it.calculateTopPadding())
                 .fillMaxSize()
                 .padding(top = 8.dp)
                 .background(MaterialTheme.colorScheme.background),
@@ -156,9 +173,11 @@ fun ProfileScreen(
         ) {
             // User handle and name
             UserInfo(
-                postsCount = 10,
-                followingCount = 10,
-                followersCount = 10
+                isUser = isUser,
+                user = user,
+                postsCount = profileViewModel.postCounts,
+                followingCount = profileViewModel.followings,
+                followersCount = profileViewModel.followers
             )
             Spacer(modifier = Modifier.height(4.dp))
 
@@ -224,13 +243,32 @@ fun ProfileScreen(
                         verticalArrangement = Arrangement.spacedBy(8.dp),
 
                     ) {
-                        items(10) {
+                        items(postList.itemCount) { index ->
                             ProfilePostItem(
-                                title = "Title",
-                                starsCount = 10,
-                                commentsCount = 10,
-                                onPlayClick = { /*TODO*/ },
+                                post = postList[index]!!,
+                                playerViewModel = playerViewModel,
                             )
+                        }
+
+                        postList.apply {
+                            when {
+                                loadState.refresh is LoadState.Loading -> {
+                                    item {
+                                        CircularProgressIndicator()
+                                    }
+                                }
+                                loadState.append is LoadState.Loading -> {
+                                    item { CircularProgressIndicator() }
+                                }
+                                loadState.refresh is LoadState.Error -> {
+                                    val e = postList.loadState.refresh as LoadState.Error
+                                    item { Text(text = e.error.localizedMessage ?: "Unknown Error") }
+                                }
+                                loadState.append is LoadState.Error -> {
+                                    val e = postList.loadState.append as LoadState.Error
+                                    item { Text(text = e.error.localizedMessage ?: "Unknown Error") }
+                                }
+                            }
                         }
                     }
                 } else {
@@ -256,6 +294,8 @@ fun ProfileScreen(
 
 @Composable
 fun UserInfo(
+    isUser: Boolean,
+    user: User,
     postsCount: Int,
     followingCount: Int,
     followersCount: Int
@@ -293,7 +333,7 @@ fun UserInfo(
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
-                text = "Lucas Morrison",
+                text = user.displayname,
                 style = TextStyle(
                     fontWeight = FontWeight.Bold,
                     fontSize = 14.sp
@@ -301,7 +341,7 @@ fun UserInfo(
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
-                text = "@lucasmorrison",
+                text = "@${user.username}",
                 style = TextStyle(
                     fontWeight = FontWeight.Light,
                     fontSize = 12.sp
@@ -315,16 +355,9 @@ fun UserInfo(
                     .padding(4.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Icon(
-                    painter = painterResource(id = R.drawable.ic_link),
-                    modifier = Modifier.size(24.dp),
-                    contentDescription = "link",
-                    tint = MaterialTheme.colorScheme.inverseOnSurface
-                )
-                Spacer(modifier = Modifier.width(8.dp))
                 Text(
                     //Link tag
-                    text = "google.com",
+                    text = user.country,
                     style = TextStyle(
                         fontWeight = FontWeight.Normal,
                         fontSize = 14.sp,
@@ -347,7 +380,7 @@ fun UserInfo(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(start = 8.dp, end = 8.dp),
+                    .padding(start = 20.dp, end = 20.dp),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 infoList.forEach { (title, count) ->
@@ -376,14 +409,10 @@ fun UserInfo(
                 modifier = Modifier
                     .fillMaxWidth()
                     .fillMaxHeight(0.65f)
-                    .clickable {
-
-                    }
                     ,
-
             ){
                 Text(
-                    text = "Watchaboutme",
+                    text = user.bio,
                     style = TextStyle(
                         fontWeight = FontWeight.Normal,
                         fontSize = 14.sp
@@ -397,43 +426,65 @@ fun UserInfo(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceAround
             ) {
-                Card(
-                    modifier = Modifier
-                        .width(100.dp)
-                        .padding(4.dp)
-                        .border(1.dp, MaterialTheme.colorScheme.primary, CircleShape)
-                        .clickable {
-                            /*TODO*/
-                        }
-                ) {
-                    Text(
-                        text = "Follow",
-                        style = TextStyle(
-                            fontWeight = FontWeight.Normal,
-                            fontSize = 14.sp
-                        ),
+                if(isUser) {
+                    Card(
                         modifier = Modifier
-                            .padding(8.dp)
-                            .align(Alignment.CenterHorizontally)
-                    )
-                }
-                Card(
-                    modifier = Modifier
-                        .width(100.dp)
-                        .padding(4.dp)
-                        .border(1.dp, MaterialTheme.colorScheme.primary, CircleShape)
-                        .clickable { /*TODO*/ }
-                ) {
-                    Text(
-                        text = "Message",
-                        style = TextStyle(
-                            fontWeight = FontWeight.Normal,
-                            fontSize = 14.sp
-                        ),
+                            .padding(4.dp)
+                            .border(1.dp, MaterialTheme.colorScheme.primary, CircleShape)
+                            .clickable {
+                                /*TODO*/
+                            }
+                    ) {
+                        Text(
+                            text = "Edit Profile",
+                            style = TextStyle(
+                                fontWeight = FontWeight.Normal,
+                                fontSize = 14.sp
+                            ),
+                            modifier = Modifier
+                                .padding(8.dp)
+                                .align(Alignment.CenterHorizontally)
+                        )
+                    }
+                } else {
+                    Card(
                         modifier = Modifier
-                            .padding(8.dp)
-                            .align(Alignment.CenterHorizontally)
-                    )
+                            .width(100.dp)
+                            .padding(4.dp)
+                            .border(1.dp, MaterialTheme.colorScheme.primary, CircleShape)
+                            .clickable {
+                                /*TODO*/
+                            }
+                    ) {
+                        Text(
+                            text = "Follow",
+                            style = TextStyle(
+                                fontWeight = FontWeight.Normal,
+                                fontSize = 14.sp
+                            ),
+                            modifier = Modifier
+                                .padding(8.dp)
+                                .align(Alignment.CenterHorizontally)
+                        )
+                    }
+                    Card(
+                        modifier = Modifier
+                            .width(100.dp)
+                            .padding(4.dp)
+                            .border(1.dp, MaterialTheme.colorScheme.primary, CircleShape)
+                            .clickable { /*TODO*/ }
+                    ) {
+                        Text(
+                            text = "Message",
+                            style = TextStyle(
+                                fontWeight = FontWeight.Normal,
+                                fontSize = 14.sp
+                            ),
+                            modifier = Modifier
+                                .padding(8.dp)
+                                .align(Alignment.CenterHorizontally)
+                        )
+                    }
                 }
             }
         }

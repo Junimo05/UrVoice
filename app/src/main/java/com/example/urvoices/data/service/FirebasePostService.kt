@@ -35,8 +35,8 @@ class FirebasePostService @Inject constructor(
             var postQuery = firebaseFirestore.collection("posts")
                 .orderBy("createdAt", Query.Direction.DESCENDING)
                 .limit(limit)
-            Log.e(TAG, "getNewFeed: $lastVisiblePost")
-            Log.e(TAG, "getNewFeed: $lastvisiblePage")
+//            Log.e(TAG, "getNewFeed: $lastVisiblePost")
+//            Log.e(TAG, "getNewFeed: $lastvisiblePage")
 
             if (lastVisiblePost.value != "" && page > lastvisiblePage.value) {
                 val lastVisiblePostRef = firebaseFirestore.collection("posts").document(lastVisiblePost.value).get().await()
@@ -122,7 +122,7 @@ class FirebasePostService @Inject constructor(
         return result
     }
 
-    suspend fun getAllPostFromUser(userID: String): List<Post>{
+    suspend fun getAllPostFromUser(page: Int, userID: String): List<Post>{
         val posts = mutableListOf<Post>()
         try {
             // get postIDs from rela_posts_users
@@ -144,22 +144,24 @@ class FirebasePostService @Inject constructor(
                     val createdAt = postRef.getLong("createdAt") ?: return@forEach
                     val tag = postRef.get("tag") as List<*>?
                     val updateAt = postRef.getLong("updatedAt")
-
+                    val audioName = postRef.getString("audioName")
                     val likes = getLikes_Posts(postID)
                     val comments = getComments_Posts(postID).size
+                    val amplitudes = audioManager.getAmplitudes(audioUrl)
 
                     val post = Post(
                         id = postID,
                         userId = userID,
                         url = audioUrl,
-                        audioName = audioUrl.split("/").last(),
+                        audioName = audioName,
                         description = description,
                         createdAt = createdAt,
                         updateAt = updateAt,
                         deleteAt = deleteAt,
                         likes = likes,
                         comments = comments,
-                        tag = tag?.map { it as String }
+                        tag = tag?.map { it as String },
+                        amplitudes = amplitudes
                     )
                     posts.add(post)
                 }

@@ -23,18 +23,28 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.urvoices.data.model.Post
 import com.example.urvoices.presentations.theme.MyTheme
 import com.example.urvoices.ui._component.InteractionRow
 import com.example.urvoices.utils.Post_Interactions
+import com.example.urvoices.utils.getTimeElapsed
+import com.example.urvoices.viewmodel.MediaPlayerViewModel
+import com.example.urvoices.viewmodel.UIEvents
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 
-@SuppressLint("UnrememberedMutableState")
+@SuppressLint("UnrememberedMutableState", "StateFlowValueCalledInComposition")
 @Composable
 fun ProfilePostItem(
-    title: String,
-    starsCount: Int,
-    commentsCount: Int,
-    onPlayClick: () -> Unit
+    post: Post,
+    playerViewModel: MediaPlayerViewModel,
+    modifier: Modifier = Modifier
 ){
+    val TAG = "ProfilePostItem"
+    val timeText = getTimeElapsed(post.createdAt)
+    val scope = CoroutineScope(Dispatchers.Main)
+
     val isExpandedContext = mutableStateOf(false)
     Box(
         modifier = Modifier.fillMaxWidth()
@@ -53,7 +63,7 @@ fun ProfilePostItem(
                     .fillMaxWidth()
             ){
                 Text(
-                    text = title,
+                    text = post.description,
                     style = TextStyle(
                         color = MaterialTheme.colorScheme.onPrimaryContainer,
                         fontSize = 14.sp,
@@ -62,13 +72,24 @@ fun ProfilePostItem(
                     color = MaterialTheme.colorScheme.onPrimaryContainer,
                     overflow = if(isExpandedContext.value) TextOverflow.Visible else TextOverflow.Ellipsis,
                     maxLines = if(isExpandedContext.value) Int.MAX_VALUE else 2,
-                    modifier = Modifier.
-                            padding(top = 16.dp, start = 16.dp, end = 16.dp, bottom = 40.dp)
+                    modifier = Modifier
+                        .padding(top = 16.dp, start = 16.dp, end = 16.dp, bottom = 40.dp)
                         .clickable(onClick = { isExpandedContext.value = !isExpandedContext.value })
                 )
                 Spacer(modifier = Modifier.height(40.dp))
+                Text(
+                    text = timeText,
+                    style = TextStyle(
+                        fontWeight = FontWeight.Light,
+                        fontSize = 14.sp,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer
+                    ),
+                    modifier = Modifier.padding(top = 8.dp)
+                        .align(Alignment.CenterHorizontally)
+                )
                 InteractionRow(
                     interactions = Post_Interactions(
+                        //TODO: ACTION POST
                         love_act = {},
                         comment_act = {},
                     ),
@@ -77,18 +98,28 @@ fun ProfilePostItem(
             }
         }
         AudioWaveformItem(
-            id = "Post",
-            duration = 1000,
-            isPlaying = true,
-            percentPlayed = 0.5f,
-            onPercentChange = {},
-            onPlayStart = {},
-            onPlayPause = {},
-            isStop = false,
-            currentPlayingAudio = 0,
-            currentPlayingPost = "Post",
-            audioUrl = "",
-            audioAmplitudes = listOf(),
+            id = post.id!!,
+            audioUrl = post.url!!,
+            audioAmplitudes = post.amplitudes,
+            currentPlayingAudio = playerViewModel.currentPlayingAudio,
+            currentPlayingPost = playerViewModel.currentPlayingPost,
+            duration = playerViewModel.duration, //fix Duration each Post
+            isPlaying = playerViewModel.isPlaying,
+            isStop = playerViewModel.isStop.value,
+            onPlayStart = {
+                playerViewModel.onUIEvents(
+                    UIEvents.PlayingAudio(
+                    post.url
+                ))
+                playerViewModel.updateCurrentPlayingPost(post.id)
+            },
+            onPlayPause = {
+                playerViewModel.onUIEvents(UIEvents.PlayPause)
+            },
+            percentPlayed = playerViewModel.progress,
+            onPercentChange = {
+                playerViewModel.onUIEvents(UIEvents.SeekTo(it))
+            },
             modifier = Modifier
                 .align(Alignment.Center)
         )
@@ -100,10 +131,21 @@ fun ProfilePostItem(
 fun ProfilePostItemPreview() {
     MyTheme {
         ProfilePostItem(
-            title = "Title",
-            starsCount = 10,
-            commentsCount = 5,
-            onPlayClick = {}
+            post = Post(
+                id = "1",
+                description = "This is a description",
+                url = "https://www.google.com",
+                amplitudes = listOf(),
+                audioName = "Audio Name",
+                createdAt = 0,
+                deleteAt = 0,
+                likes = 0,
+                comments = 0,
+                userId = "1",
+                tag = listOf(),
+                updateAt = 0
+            ),
+            playerViewModel = hiltViewModel()
         )
     }
 }

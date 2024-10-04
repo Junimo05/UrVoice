@@ -2,16 +2,12 @@ package com.example.urvoices.viewmodel
 
 import android.annotation.SuppressLint
 import android.util.Log
-import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.lifecycle.viewmodel.compose.SavedStateHandleSaveableApi
-import androidx.lifecycle.viewmodel.compose.saveable
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.cachedIn
@@ -49,11 +45,8 @@ class HomeViewModel @Inject constructor(
     val lastVisiblePost = mutableStateOf<String>("")
     val lastVisiblePage = mutableStateOf<Int>(1)
 
-    private var _posts = MutableLiveData<List<Post>>()
-    val posts: LiveData<List<Post>> get() = _posts
-
     val postsPaging3 = Pager(PagingConfig(pageSize = 3)){
-        postRepository.getNewFeedPaging3(lastVisiblePage, lastVisiblePost)
+        postRepository.getNewFeed(lastVisiblePage, lastVisiblePost)
     }.flow.cachedIn(viewModelScope)
 
     init {

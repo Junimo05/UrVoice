@@ -21,17 +21,17 @@ class FirebaseUserService @Inject constructor(
 
     suspend fun getInfoUserByUserID(userId: String): User? {
         // get user info from firebase firestore
-        var userInfo = mutableMapOf<String, Any>()
         try {
             val docRef = firebaseFirestore.collection("users").document(userId).get().await()
 
             val userID = docRef.data?.get("ID") as String
             val username = docRef.data?.get("username") as String
+            val displayname = docRef.data?.get("displayname")?.toString() ?: username
             val email = docRef.data?.get("email") as String
             val country = docRef.data?.get("country") as String
             val avatarUrl = docRef.data?.get("avatarUrl") as String
             val bio = docRef.data?.get("bio") as String
-            return User(userID, username, email, country, avatarUrl, bio)
+            return User(userID, username, displayname, email, country, avatarUrl, bio)
 
         }catch (e: Exception){
             e.printStackTrace()
@@ -39,7 +39,19 @@ class FirebaseUserService @Inject constructor(
         return null
     }
 
-
+    suspend fun getPostCounts(userId: String): Int {
+        // get post counts
+        try {
+            val docRef = firebaseFirestore.collection("posts")
+                .whereEqualTo("userID", userId)
+                .get()
+                .await()
+            return docRef.size()
+        }catch (e: Exception){
+            e.printStackTrace()
+        }
+        return 0
+    }
 
     suspend fun getFollowStatus(userId: String): Boolean {
         // get follow status
