@@ -5,15 +5,13 @@ import com.example.urvoices.data.model.MessageNotification
 import com.example.urvoices.data.model.Notification
 import com.example.urvoices.data.model.TypeNotification
 import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.storage.FirebaseStorage
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 
 class FirebaseNotificationService @Inject constructor(
-    private val firebaseStorage: FirebaseStorage,
     private val firebaseFirestore: FirebaseFirestore,
 
-){
+    ){
     val TAG = "FirebaseNotificationService"
     suspend fun followUser(userID: String, followerID: String): Boolean {
         val noti = Notification(

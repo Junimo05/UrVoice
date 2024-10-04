@@ -67,7 +67,7 @@ object Firebase {
         firebaseAudioService: FirebaseAudioService,
         sharedPref: SharedPreferencesHelper
     ): FirebasePostService {
-        return FirebasePostService(audioManager, firestore, storage, sharedPref)
+        return FirebasePostService(audioManager, firestore, storage)
     }
 
     @Provides
@@ -76,6 +76,6 @@ object Firebase {
         storage: FirebaseStorage,
         firestore: FirebaseFirestore
     ): FirebaseNotificationService {
-        return FirebaseNotificationService(storage, firestore)
+        return FirebaseNotificationService(firestore)
     }
 }

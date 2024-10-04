@@ -3,8 +3,6 @@ package com.example.urvoices.viewmodel
 import android.annotation.SuppressLint
 import android.util.Log
 import androidx.compose.runtime.mutableStateOf
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -14,11 +12,8 @@ import androidx.paging.cachedIn
 import com.example.urvoices.data.model.Comment
 import com.example.urvoices.data.model.MessageNotification
 import com.example.urvoices.data.model.Notification
-import com.example.urvoices.data.model.Post
 import com.example.urvoices.data.model.TypeNotification
 import com.example.urvoices.data.repository.PostRepository
-import com.example.urvoices.data.service.FirebasePostService
-import com.example.urvoices.utils.SharedPreferencesHelper
 import com.google.firebase.firestore.FirebaseFirestore
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -31,9 +26,7 @@ import javax.inject.Inject
 @SuppressLint("MutableCollectionMutableState")
 @HiltViewModel
 class HomeViewModel @Inject constructor(
-    private val sharedPreferencesHelper: SharedPreferencesHelper,
     private val firestore: FirebaseFirestore,
-    private val firebasePostService: FirebasePostService,
     private val postRepository: PostRepository,
     savedStateHandle: SavedStateHandle
 ): ViewModel(){

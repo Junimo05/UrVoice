@@ -6,7 +6,6 @@ import androidx.compose.runtime.MutableState
 import com.example.urvoices.data.AudioManager
 import com.example.urvoices.data.model.Comment
 import com.example.urvoices.data.model.Post
-import com.example.urvoices.utils.SharedPreferencesHelper
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 import com.google.firebase.storage.StorageReference
@@ -19,8 +18,7 @@ import javax.inject.Inject
 class FirebasePostService @Inject constructor(
     private val audioManager: AudioManager,
     private val firebaseFirestore: FirebaseFirestore,
-    private val storage: StorageReference,
-    private val sharedPreferences: SharedPreferencesHelper
+    private val storage: StorageReference
 ){
     val TAG = "FirebasePostService"
 

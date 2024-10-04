@@ -1,9 +1,7 @@
 package com.example.urvoices.viewmodel
 
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -12,7 +10,6 @@ import androidx.lifecycle.viewmodel.compose.saveable
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
-import androidx.paging.PagingSource
 import androidx.paging.cachedIn
 import com.example.urvoices.data.model.Post
 import com.example.urvoices.data.model.User
@@ -20,7 +17,6 @@ import com.example.urvoices.data.repository.PostRepository
 import com.example.urvoices.data.repository.UserRepository
 import com.example.urvoices.utils.SharedPreferencesHelper
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.firestore.FirebaseFirestore
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -42,7 +38,6 @@ val userTemp = User(
 @HiltViewModel
 class ProfileViewModel @Inject constructor(
     private val sharedPreferencesHelper: SharedPreferencesHelper,
-    private val firestore: FirebaseFirestore,
     private val postRepository: PostRepository,
     private val userRepository: UserRepository,
     private val auth: FirebaseAuth,
