@@ -39,6 +39,37 @@ class FirebaseUserService @Inject constructor(
         return null
     }
 
+    suspend fun followUser(followingUserID: String): String {
+        // follow user
+        val user = auth.currentUser
+        var resultID = ""
+        if (user != null) {
+            try {
+                val follow = hashMapOf(
+                    "ID" to null,
+                    "userID" to user.uid,
+                    "followingUserID" to followingUserID,
+                    "createdAt" to System.currentTimeMillis(),
+                    "deletedAt" to null
+                )
+                firebaseFirestore.collection("follows").add(follow).
+                    addOnCompleteListener {
+                    firebaseFirestore.collection("follows").document(it.result?.id!!).update("ID", it.result?.id!!)
+                        resultID = it.result?.id!!
+                }.await()
+                return resultID
+            } catch (e: Exception) {
+                // Handle exception
+                e.printStackTrace()
+                Log.e(TAG, "followUser: ${e.message}")
+            }
+        } else {
+            // Inform the user that they are not signed in
+            println("No user is currently signed in.")
+        }
+        return ""
+    }
+
     suspend fun getPostCounts(userId: String): Int {
         // get post counts
         try {

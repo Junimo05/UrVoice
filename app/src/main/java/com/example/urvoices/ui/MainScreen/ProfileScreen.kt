@@ -1,6 +1,7 @@
 package com.example.urvoices.ui.MainScreen
 
 import android.annotation.SuppressLint
+import android.content.Context
 import android.content.res.Configuration.UI_MODE_NIGHT_NO
 import android.util.Log
 import androidx.compose.foundation.Image
@@ -63,13 +64,11 @@ import com.example.urvoices.presentations.theme.MyTheme
 import com.example.urvoices.ui._component.PlaylistItem
 import com.example.urvoices.ui._component.PostComponent.ProfilePostItem
 import com.example.urvoices.utils.Navigator.MainScreen
-import com.example.urvoices.utils.SharedPreferencesHelper
-import com.example.urvoices.utils.UserPreferences
 import com.example.urvoices.viewmodel.MediaPlayerViewModel
+import com.example.urvoices.viewmodel.ProfileState
 import com.example.urvoices.viewmodel.ProfileViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.first
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
@@ -79,6 +78,7 @@ fun ProfileScreen(
     playerViewModel: MediaPlayerViewModel,
 ) {
     val TAG = "ProfileScreen"
+    val context = LocalContext.current
     val scope = CoroutineScope(Dispatchers.Main)
     //State & Data
     val profileViewModel = hiltViewModel<ProfileViewModel>()
@@ -87,7 +87,7 @@ fun ProfileScreen(
     val postList = profileViewModel.posts.collectAsLazyPagingItems()
 
     val isUser = profileViewModel.isCurrentUser
-    val user by lazy { profileViewModel.user }
+    val user by lazy { profileViewModel.displayuser }
 
 
     var tab by rememberSaveable {
@@ -173,11 +173,16 @@ fun ProfileScreen(
         ) {
             // User handle and name
             UserInfo(
+                context = context,
+                uiStates = uiState.value,
                 isUser = isUser,
                 user = user,
                 postsCount = profileViewModel.postCounts,
                 followingCount = profileViewModel.followings,
-                followersCount = profileViewModel.followers
+                followersCount = profileViewModel.followers,
+                followAction = {
+                    profileViewModel.followUser()
+                },
             )
             Spacer(modifier = Modifier.height(4.dp))
 
@@ -254,11 +259,17 @@ fun ProfileScreen(
                             when {
                                 loadState.refresh is LoadState.Loading -> {
                                     item {
-                                        CircularProgressIndicator()
+                                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
+                                            CircularProgressIndicator()
+                                        }
                                     }
                                 }
                                 loadState.append is LoadState.Loading -> {
-                                    item { CircularProgressIndicator() }
+                                    item {
+                                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
+                                            CircularProgressIndicator()
+                                        }
+                                    }
                                 }
                                 loadState.refresh is LoadState.Error -> {
                                     val e = postList.loadState.refresh as LoadState.Error
@@ -294,11 +305,16 @@ fun ProfileScreen(
 
 @Composable
 fun UserInfo(
+    context: Context,
+    uiStates: ProfileState,
     isUser: Boolean,
     user: User,
     postsCount: Int,
     followingCount: Int,
-    followersCount: Int
+    followersCount: Int,
+    followAction: () -> Unit,
+    //messageAction: () -> Unit
+    //editAction: () -> Unit
 ){
     val infoList = listOf(
         "Posts" to postsCount,
@@ -433,6 +449,11 @@ fun UserInfo(
                             .border(1.dp, MaterialTheme.colorScheme.primary, CircleShape)
                             .clickable {
                                 /*TODO*/
+                                if(uiStates == ProfileState.Successful){
+                                    //Notification on Screen
+//                                    followAction()
+                                    Log.e("Follow", "Followed")
+                                }
                             }
                     ) {
                         Text(

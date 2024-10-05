@@ -57,65 +57,6 @@ class HomeViewModel @Inject constructor(
 //    }
 
 
-    //User Comment -> Noti
-    suspend fun commentPost(userID: String, postID: String = "", comment: Comment): Boolean {
-        try {
-            //create comment
-            val resultComment = firestore.collection("comments").add(comment.toCommentMap())
-                .addOnCompleteListener {
-                    firestore.collection("comments").document(it.result?.id!!)
-                        .update("id", it.result?.id!!)
-                }
-                .addOnFailureListener {
-                    Log.e("HomeViewModel", "commentPost: ${it.message}")
-                }
-                .await()
-
-            //create relation comment
-            if (resultComment.id.isNotEmpty()) {
-                val resultRelation =
-                    firestore.collection("comments_posts_users").add(comment.toRelationMap())
-                        .addOnCompleteListener {
-                            firestore.collection("relation_comments").document(it.result?.id!!)
-                                .update("id", it.result?.id!!)
-                        }
-                        .addOnFailureListener {
-                            Log.e("HomeViewModel", "commentPost: ${it.message}")
-                        }
-                        .await()
-            }
-
-            //send Noti
-            if (resultComment.id.isNotEmpty()) {
-                val noti = Notification(
-                    id = null,
-                    userID = userID,
-                    message = MessageNotification.COMMENT_POST,
-                    typeNotification = TypeNotification.COMMENT_POST,
-                    isRead = false,
-                    url = "",
-                    createdAt = System.currentTimeMillis(),
-                    updatedAt = null,
-                    deleteAt = null
-                )
-
-                val resultNoti = firestore.collection("notifications").add(noti)
-                    .addOnCompleteListener {
-                        firestore.collection("notifications").document(it.result?.id!!)
-                            .update("id", it.result?.id!!)
-                    }
-                    .addOnFailureListener {
-                        Log.e("HomeViewModel", "commentPost: ${it.message}")
-                    }
-                    .await()
-            }
-            return true
-        } catch (e: Exception) {
-            Log.e("HomeViewModel", "commentPost: ${e.message}")
-        }
-        return false
-    }
-
     suspend fun getUserInfo(userID: String): Map<String, String> {
         val result = postRepository.getUserInfoDisplayForPost(userID)
         return result

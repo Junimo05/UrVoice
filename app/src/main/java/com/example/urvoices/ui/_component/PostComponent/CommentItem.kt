@@ -1,4 +1,4 @@
-package com.example.urvoices.ui._component
+package com.example.urvoices.ui._component.PostComponent
 
 import android.annotation.SuppressLint
 import androidx.compose.foundation.Image
@@ -32,6 +32,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.urvoices.R
 import com.example.urvoices.presentations.theme.MyTheme
+import com.example.urvoices.ui._component.InteractionRow
 import com.example.urvoices.utils.Comment_Interactions
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter", "UnrememberedMutableState")

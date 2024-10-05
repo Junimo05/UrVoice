@@ -10,10 +10,8 @@ import com.example.urvoices.data.model.Comment
 import com.example.urvoices.data.model.Post
 import com.example.urvoices.data.service.FirebaseNotificationService
 import com.example.urvoices.data.service.FirebasePostService
-import com.example.urvoices.viewmodel.UploadState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.first
 import javax.inject.Inject
 
 class PostRepository @Inject constructor(
@@ -65,6 +63,14 @@ class PostRepository @Inject constructor(
                 return try {
                     val nextPage = params.key ?: 1
                     val postList = firestorePostService.getNewFeed(nextPage, lastVisiblePost, lastVisiblePage)
+                    //add to local database
+//                    postDao.insertAll(postList.map { it.toEntity() })
+//                    val allPosts = postDao.getAllPosts()
+//                    // If the number of posts exceeds MAX_POSTS, delete the oldest posts
+//                    if (allPosts.size > MAX_POSTS) {
+//                        val postsToDelete = allPosts.subList(0, allPosts.size - MAX_POSTS)
+//                        postDao.deleteAll(postsToDelete)
+//                    }
                     // Check if the new page is the same as the last page
                     LoadResult.Page(
                         data = postList,
@@ -81,6 +87,28 @@ class PostRepository @Inject constructor(
         }
     }
 
+    //Post Interaction Events
+    suspend fun likePost(actionUserID: String, postID: String): String {
+        val result = firestorePostService.likePost(actionUserID, postID)
+        return result
+    }
+
+    suspend fun likeComment(actionUserID: String, commentID: String, postID: String): String {
+        val result = firestorePostService.likeComment(actionUserID, commentID, postID)
+        return result
+    }
+
+    suspend fun commentPost(actionUserID: String, postID: String, content: String): String {
+        val result = firestorePostService.commentPost(actionUserID, postID, content)
+        return result
+    }
+
+    suspend fun replyComment(actionUserID: String, commentID: String, postID: String, content: String): String {
+        val result = firestorePostService.replyComment(actionUserID, commentID, postID, content)
+        return result
+    }
+
+    //
     fun getAllPostFromUser(userID: String): PagingSource<Int,Post> {
         return object : PagingSource<Int, Post>() {
             override suspend fun load(params: LoadParams<Int>): LoadResult<Int, Post> {
@@ -110,12 +138,12 @@ class PostRepository @Inject constructor(
 
     //Get Comment's Detail
     suspend fun getComments_Posts(postID: String): List<Comment> {
-        val result = firestorePostService.getComments_Posts(postID)
+        val result = firestorePostService.getCommentsPosts(postID)
         return result
     }
 
     suspend fun getReply_Comments(commentID: String): List<Comment>{
-        val result = firestorePostService.getReplies_Comments(commentID)
+        val result = firestorePostService.getRepliesComments(commentID)
         return result
     }
 

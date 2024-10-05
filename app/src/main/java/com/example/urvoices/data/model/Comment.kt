@@ -5,7 +5,7 @@ import kotlinx.parcelize.Parcelize
 
 @Parcelize
 data class Comment(
-    val id: String,
+    val id: String?,
     val userId: String,
     val postId: String,
     val parentCommentId: String?,
@@ -16,7 +16,7 @@ data class Comment(
 ):Parcelable {
     fun toCommentMap(): Map<String, Any?> {
         return mapOf(
-            "id" to id,
+            "ID" to id,
             "content" to content,
             "createdAt" to createdAt,
             "updateAt" to updatedAt,
@@ -25,10 +25,11 @@ data class Comment(
     }
     fun toRelationMap(): Map<String, Any?> {
         return mapOf(
-            "id" to id,
+            "ID" to id,
             "userId" to userId,
             "postId" to postId,
             "parentCommentId" to parentCommentId,
+            "createdAt" to createdAt,
         )
     }
 }

@@ -90,6 +90,8 @@ fun ProfilePostItem(
                 InteractionRow(
                     interactions = Post_Interactions(
                         //TODO: ACTION POST
+                        loveCounts = post.likes,
+                        commentCounts = post.comments,
                         love_act = {},
                         comment_act = {},
                     ),

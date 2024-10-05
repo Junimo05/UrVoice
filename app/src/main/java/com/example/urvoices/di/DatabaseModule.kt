@@ -4,8 +4,10 @@ import android.content.Context
 import com.example.urvoices.data.AudioManager
 import com.example.urvoices.data.db.AppDatabase
 import com.example.urvoices.data.db.Dao.PostDao
+import com.example.urvoices.data.repository.NotificationRepository
 import com.example.urvoices.data.repository.PostRepository
 import com.example.urvoices.data.repository.UserRepository
+import com.example.urvoices.data.service.FirebaseNotificationService
 import com.example.urvoices.data.service.FirebasePostService
 import com.example.urvoices.data.service.FirebaseUserService
 import com.example.urvoices.utils.SharedPreferencesHelper
@@ -37,9 +39,10 @@ object DatabaseModule {
     @Singleton
     fun providePostRepo(
         manager: AudioManager,
-        postDao: PostDao,
-        firebasePostService: FirebasePostService
-    ): PostRepository = PostRepository(manager, firebasePostService, postDao)
+        firestorePostService: FirebasePostService,
+        firestoreNotiService: FirebaseNotificationService,
+        postDao: PostDao
+    ): PostRepository = PostRepository(manager, firestorePostService, firestoreNotiService, postDao)
 
     @Provides
     @Singleton
@@ -47,4 +50,10 @@ object DatabaseModule {
         firebaseUserService: FirebaseUserService,
         sharedPref: SharedPreferencesHelper
     ): UserRepository = UserRepository(firebaseUserService, sharedPref)
+
+    @Provides
+    @Singleton
+    fun provideNotificationRepo(
+        notificationService: FirebaseNotificationService
+    ): NotificationRepository = NotificationRepository(notificationService)
 }

@@ -4,6 +4,8 @@ import com.example.urvoices.R
 import com.example.urvoices.ui._component.Interaction
 
 fun Post_Interactions(
+    loveCounts: Int,
+    commentCounts: Int,
     love_act: (Boolean) -> Unit,
     comment_act: () -> Unit
 ): List<Interaction> {
@@ -11,14 +13,14 @@ fun Post_Interactions(
         Interaction(
             icon = R.drawable. ic_actions_heart,
             iconAfterAct = R.drawable.ic_actions_star,
-            count = 2,
+            count = loveCounts,
             contentDescription = "Star",
             action = { /*TODO*/ }
         ),
         Interaction(
             icon = R.drawable.ic_comment,
             iconAfterAct = R.drawable.ic_comment,
-            count = 204,
+            count = commentCounts,
             contentDescription = "Comment",
             action = { /*TODO*/ }
         )

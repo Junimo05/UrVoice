@@ -73,7 +73,7 @@ object Firebase {
     @Provides
     @Singleton
     fun provideFirebaseNotificationService(
-        storage: FirebaseStorage,
+        storage: StorageReference,
         firestore: FirebaseFirestore
     ): FirebaseNotificationService {
         return FirebaseNotificationService(firestore)

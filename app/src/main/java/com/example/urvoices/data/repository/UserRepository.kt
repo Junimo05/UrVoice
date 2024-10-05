@@ -4,6 +4,7 @@ import androidx.paging.PagingSource
 import androidx.paging.PagingState
 import com.example.urvoices.data.model.Post
 import com.example.urvoices.data.model.User
+import com.example.urvoices.data.service.FirebaseNotificationService
 import com.example.urvoices.data.service.FirebaseUserService
 import com.example.urvoices.utils.SharedPreferencesHelper
 import javax.inject.Inject
@@ -25,6 +26,7 @@ class UserRepository @Inject constructor(
 
     suspend fun getPostCount(userId: String) = firebaseUserService.getPostCounts(userId)
 
+    suspend fun followUser(userId: String) = firebaseUserService.followUser(userId)
 
     //TODO: Get Paging
     fun getPagingFollowerList(userId: String): PagingSource<Int, User> {

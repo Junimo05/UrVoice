@@ -1,14 +1,11 @@
 package com.example.urvoices.viewmodel
 
 import android.net.Uri
-import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.example.urvoices.data.model.Post
 import com.example.urvoices.data.repository.PostRepository
-import com.example.urvoices.data.service.FirebasePostService
-import com.example.urvoices.utils.SharedPreferencesHelper
 import com.example.urvoices.utils.UserPreferences
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.storage.StorageReference
@@ -19,7 +16,6 @@ import javax.inject.Inject
 @HiltViewModel
 class UploadViewModel @Inject constructor(
     private val userData: UserPreferences,
-    private val sharedPreferencesHelper: SharedPreferencesHelper,
     private val firestore: FirebaseFirestore,
     private val storage: StorageReference,
     private val postRepository: PostRepository
@@ -39,8 +35,8 @@ class UploadViewModel @Inject constructor(
                 createdAt = System.currentTimeMillis(),
                 tag = tags,
                 url = null,
-                comments = null,
-                likes = null,
+                comments = 0,
+                likes = 0,
                 deleteAt = null,
                 updateAt = null
             )

@@ -13,11 +13,12 @@ class FirebaseNotificationService @Inject constructor(
 
     ){
     val TAG = "FirebaseNotificationService"
-    suspend fun followUser(userID: String, followerID: String): Boolean {
+    suspend fun followUser(targetUserID: String, actionUsername: String , followInfoID: String): Boolean {
         val noti = Notification(
             id = null,
-            userID = userID,
-            message = MessageNotification.FOLLOW_USER,
+            targetUserID = targetUserID,
+            infoID = followInfoID,
+            message = actionUsername + " " + MessageNotification.FOLLOW_USER,
             typeNotification = TypeNotification.FOLLOW_USER,
             isRead = false,
             url = "",
@@ -26,7 +27,7 @@ class FirebaseNotificationService @Inject constructor(
             deleteAt = null
         )
 
-        val result = firebaseFirestore.collection("notifications").add(noti)
+        val result = firebaseFirestore.collection("notifications").add(noti.toMap())
             .addOnCompleteListener {
                 firebaseFirestore.collection("notifications").document(it.result?.id!!).update("ID", it.result?.id!!)
             }
@@ -37,11 +38,12 @@ class FirebaseNotificationService @Inject constructor(
         return result != null
     }
 
-    suspend fun likePost(userID: String, postID: String): Boolean {
+    suspend fun likePost(targetUserID: String, actionUsername: String, likeID: String): Boolean {
         val noti = Notification(
             id = null,
-            userID = userID,
-            message = MessageNotification.LIKE_POST,
+            targetUserID = targetUserID,
+            infoID = likeID,
+            message = actionUsername + " " + MessageNotification.LIKE_POST,
             typeNotification = TypeNotification.LIKE_POST,
             isRead = false,
             url = "",
@@ -61,11 +63,12 @@ class FirebaseNotificationService @Inject constructor(
         return result != null
     }
 
-    suspend fun likeComment(userID: String, commentID: String): Boolean {
+    suspend fun likeComment(targetUserID: String, actionUsername: String, relaID: String): Boolean {
         val noti = Notification(
             id = null,
-            userID = userID,
-            message = MessageNotification.LIKE_COMMENT,
+            targetUserID = targetUserID,
+            infoID = relaID,
+            message = actionUsername + " " + MessageNotification.LIKE_COMMENT,
             typeNotification = TypeNotification.LIKE_COMMENT,
             isRead = false,
             url = "",
@@ -85,11 +88,12 @@ class FirebaseNotificationService @Inject constructor(
         return createNoti != null
     }
 
-    suspend fun replyComment(userID: String, commentID: String): Boolean {
+    suspend fun replyComment(targetUserID: String, actionUsername: String, relaID: String): Boolean {
         val noti = Notification(
             id = null,
-            userID = userID,
-            message = MessageNotification.REPLY_COMMENT,
+            targetUserID = targetUserID,
+            infoID = relaID,
+            message = actionUsername + " " + MessageNotification.REPLY_COMMENT,
             typeNotification = TypeNotification.REPLY_COMMENT,
             isRead = false,
             url = "",
@@ -109,11 +113,12 @@ class FirebaseNotificationService @Inject constructor(
         return createNoti != null
     }
 
-    suspend fun commentPost(userID: String, postID: String, commentID: String): Boolean {
+    suspend fun commentPost(targetUserID: String, actionUsername: String, relaID: String): Boolean {
         val noti = Notification(
             id = null,
-            userID = userID,
-            message = MessageNotification.COMMENT_POST,
+            targetUserID = targetUserID,
+            infoID = relaID,
+            message = actionUsername + " " + MessageNotification.COMMENT_POST,
             typeNotification = TypeNotification.COMMENT_POST,
             isRead = false,
             url = "",

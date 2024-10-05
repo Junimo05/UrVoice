@@ -49,7 +49,7 @@ import org.mockito.Mockito.`when`
 //        )
 //
 //        // Gọi hàm cần kiểm tra
-//        val result = firebasePostService.getComments_Posts("post1")
+//        val result = firebasePostService.getCommentsPosts("post1")
 //
 //        // Kiểm tra xem kết quả có đúng như mong đợi hay không
 //        // (trong trường hợp này, chúng ta mong đợi một danh sách chứa một Comments với các trường đều là "test" và 123456789L cho các trường Long)

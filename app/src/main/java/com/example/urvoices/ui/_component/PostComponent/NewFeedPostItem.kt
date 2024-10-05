@@ -145,8 +145,14 @@ fun NewFeedPostItem(
             )
             Spacer(modifier = Modifier.height(8.dp))
             InteractionRow(interactions = Post_Interactions(
-                love_act = {},
-                comment_act = {},
+                loveCounts = post.likes,
+                commentCounts = post.comments,
+                love_act = {
+
+                },
+                comment_act = {
+
+                },
                 //TODO: do act
             ))
         }

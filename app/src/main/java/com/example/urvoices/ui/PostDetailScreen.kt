@@ -50,7 +50,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.urvoices.R
-import com.example.urvoices.ui._component.CommentItem
+import com.example.urvoices.ui._component.PostComponent.CommentItem
 import com.example.urvoices.ui._component.InteractionRow
 import com.example.urvoices.ui._component.PostComponent.AudioWaveformItem
 import com.example.urvoices.ui._component.TopBarBackButton
@@ -270,6 +270,8 @@ fun ContentDetail(
 
         AudioWaveformItem(id = "", isPlaying = false, duration = 100, onPlayStart = {} ,percentPlayed = 0.5f, onPercentChange = {}, onPlayPause = {}, isStop = false, currentPlayingAudio = 0, currentPlayingPost = "", audioUrl = "", audioAmplitudes = amplitudesTest.value)
         InteractionRow(Post_Interactions(
+            loveCounts = 0,
+            commentCounts = 0,
             love_act = {},
             comment_act = {},
         ))

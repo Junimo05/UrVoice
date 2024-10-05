@@ -2,7 +2,8 @@ package com.example.urvoices.data.model
 
 data class Notification(
     val id: String?,
-    val userID: String,
+    val targetUserID: String,
+    val infoID: String,
     val message: String, // message notification
     val typeNotification: String, // type notification
     val isRead: Boolean,
@@ -13,8 +14,9 @@ data class Notification(
 ){
     fun toMap(): Map<String, Any?> {
         return mapOf(
-            "id" to id,
-            "userID" to userID,
+            "ID" to id,
+            "targetUserID" to targetUserID,
+            "infoID" to infoID,
             "message" to message,
             "typeNotification" to typeNotification,
             "isRead" to isRead,

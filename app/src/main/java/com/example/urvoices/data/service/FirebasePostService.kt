@@ -5,6 +5,7 @@ import android.util.Log
 import androidx.compose.runtime.MutableState
 import com.example.urvoices.data.AudioManager
 import com.example.urvoices.data.model.Comment
+import com.example.urvoices.data.model.Like
 import com.example.urvoices.data.model.Post
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
@@ -63,8 +64,8 @@ class FirebasePostService @Inject constructor(
                 val createdAt = document.getLong("createdAt") ?: return@mapNotNull null
                 val tag = document.get("tag") as List<*>?
                 val updateAt = document.getLong("updatedAt")
-                val likes = getCountLikes_Posts(postID)
-                val comments = getCountComments_Posts(postID)
+                val likes = getCountLikesPosts(postID)
+                val comments = getCountCommentsPosts(postID)
                 val amplitudes = audioManager.getAmplitudes(audioUrl)
 
                 Post(
@@ -141,8 +142,8 @@ class FirebasePostService @Inject constructor(
                     val tag = postRef.get("tag") as List<*>?
                     val updateAt = postRef.getLong("updatedAt")
                     val audioName = postRef.getString("audioName")
-                    val likes = getCountLikes_Posts(postID)
-                    val comments = getComments_Posts(postID).size
+                    val likes = getCountLikesPosts(postID)
+                    val comments = getCommentsPosts(postID).size
                     val amplitudes = audioManager.getAmplitudes(audioUrl)
 
                     val post = Post(
@@ -267,7 +268,7 @@ class FirebasePostService @Inject constructor(
      *   Post Interactions
     */
 
-    suspend fun getCountComments_Posts(postId: String): Int{
+    private suspend fun getCountCommentsPosts(postId: String): Int{
         var result = 0
         try {
             // get comments
@@ -279,33 +280,129 @@ class FirebasePostService @Inject constructor(
             result = commentRefs.documents.size
         }catch (e: Exception){
             e.printStackTrace()
-            Log.e(TAG, "getCountComments_Posts: ${e.message}")
+            Log.e(TAG, "getCountCommentsPosts: ${e.message}")
         }
         return result
     }
 
-    suspend fun likePost(postId: String, userID: String): Boolean{
+
+    //Post Interaction Events
+    suspend fun likePost(postId: String, userID: String): String{
         // like post
+        var relaID = ""
         try {
-            val like = mapOf(
-                "ID" to null,
-                "postID" to postId,
-                "userID" to userID,
-                "commentID" to null,
-                "createdAt" to System.currentTimeMillis()
+            val like = Like(
+                id = null,
+                commentID = null,
+                postID = postId,
+                userID = userID,
+                createdAt = System.currentTimeMillis().toString()
             )
-            firebaseFirestore.collection("likes").add(like).addOnCompleteListener {
+            firebaseFirestore.collection("likes").add(like.toMap()).addOnCompleteListener {
                 firebaseFirestore.collection("likes").document(it.result?.id!!).update("ID", it.result?.id!!)
+                relaID = it.result?.id!!
             }.await()
-            return true
+
+            return relaID
         }catch (e: Exception){
             e.printStackTrace()
 //            Log.e(TAG, "likePost: ${e.message}")
         }
-        return false
+        return relaID
     }
 
-    suspend fun getComments_Posts(postId: String): List<Comment>{
+    suspend fun likeComment(commentId: String, postID: String, userID: String): String{
+        // like comment
+        var relaID = ""
+        try {
+            val like = Like(
+                id = null,
+                commentID = commentId,
+                postID = postID,
+                userID = userID,
+                createdAt = System.currentTimeMillis().toString()
+            )
+            firebaseFirestore.collection("likes").add(like.toMap()).addOnCompleteListener {
+                firebaseFirestore.collection("likes").document(it.result?.id!!).update("ID", it.result?.id!!)
+                relaID = it.result?.id!!
+            }.await()
+            return relaID
+        }catch (e: Exception){
+            e.printStackTrace()
+//            Log.e(TAG, "likeComment: ${e.message}")
+        }
+        return relaID
+    }
+
+    suspend fun commentPost(actionUserID: String, postID: String, content: String): String {
+        // comment post
+        var relaID = ""
+        try {
+            val comment = Comment(
+                id = null,
+                userId = actionUserID,
+                postId = postID,
+                parentCommentId = null,
+                content = content,
+                createdAt = System.currentTimeMillis(),
+                updatedAt = null,
+                deletedAt = null
+            )
+            firebaseFirestore.collection("comments").add(comment.toCommentMap()).addOnCompleteListener {
+                //update ID for comment
+                cmt ->
+                firebaseFirestore.collection("comments").document(cmt.result?.id!!)
+                    .update("ID", cmt.result?.id!!)
+                //update Relation
+                firebaseFirestore.collection("comments_posts_users").add(comment.toRelationMap()).addOnCompleteListener {
+                    rela ->
+                    firebaseFirestore.collection("comments_posts_users").document(rela.result?.id!!)
+                        .update("ID", rela.result?.id!!)
+                    relaID = rela.result?.id!!
+                }
+            }.await()
+            return relaID
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+        return relaID
+    }
+
+    suspend fun replyComment(actionUserID: String, commentID: String, postID: String, content: String): String {
+        // reply comment
+        var relaID = ""
+        try {
+            val comment = Comment(
+                id = null,
+                userId = actionUserID,
+                postId = postID,
+                parentCommentId = commentID,
+                content = content,
+                createdAt = System.currentTimeMillis(),
+                updatedAt = null,
+                deletedAt = null
+            )
+            firebaseFirestore.collection("comments").add(comment.toCommentMap()).addOnCompleteListener {
+                //update ID for comment
+                cmt ->
+                firebaseFirestore.collection("comments").document(cmt.result?.id!!)
+                    .update("ID", cmt.result?.id!!)
+                //update Relation
+                firebaseFirestore.collection("comments_posts_users").add(comment.toRelationMap()).addOnCompleteListener {
+                    rela ->
+                    firebaseFirestore.collection("comments_posts_users").document(rela.result?.id!!)
+                        .update("ID", rela.result?.id!!)
+                    relaID = rela.result?.id!!
+                }
+            }.await()
+            return relaID
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+        return relaID
+    }
+
+    suspend fun getCommentsPosts(postId: String): List<Comment>{
         var result: List<Comment> = mutableListOf()
         try {
             // get comments which are belong to post
@@ -320,8 +417,8 @@ class FirebasePostService @Inject constructor(
                 val userID = document.getString("userID") ?: return@mapNotNull null
                 //get comment document
                 val commentDoc = firebaseFirestore.collection("comments").document(commentID).get().await()
-                val deleteAt = commentDoc.getLong("deleteAt")
-                if(deleteAt != null){
+                val deletedAt = commentDoc.getLong("deleteAt")
+                if(deletedAt != null){
                     return@mapNotNull null
                 }
                 val parentCommentID = document.getString("parentCommentID")
@@ -337,20 +434,20 @@ class FirebasePostService @Inject constructor(
                     content = content ?: return@mapNotNull null,
                     createdAt = createdAt ?: return@mapNotNull null,
                     updatedAt = updateAt,
-                    deletedAt = deleteAt
+                    deletedAt = deletedAt
                 )
             }
         }catch (
             e: Exception
         ) {
             e.printStackTrace()
-//            Log.e(TAG, "getComments_Posts: ${e.message}")
+//            Log.e(TAG, "getCommentsPosts: ${e.message}")
         }
 
         return result
     }
 
-    suspend fun getCountLikes_Posts(postId: String): Int{
+    private suspend fun getCountLikesPosts(postId: String): Int{
         var result = 0
         try {
             // get likes
@@ -361,12 +458,12 @@ class FirebasePostService @Inject constructor(
             result = likeRefs.documents.size
         }catch (e: Exception){
             e.printStackTrace()
-            Log.e(TAG, "getCountLikes_Posts: ${e.message}")
+            Log.e(TAG, "getCountLikesPosts: ${e.message}")
         }
         return result
     }
 
-    suspend fun getCountLikes_Comments(commentId: String): Int{
+    suspend fun getCountLikesComments(commentId: String): Int{
         var result = 0
         try {
             // get likes
@@ -377,12 +474,12 @@ class FirebasePostService @Inject constructor(
             result = likeRefs.documents.size
         }catch (e: Exception){
             e.printStackTrace()
-            Log.e(TAG, "getCountLikes_Comments: ${e.message}")
+            Log.e(TAG, "getCountLikesComments: ${e.message}")
         }
         return result
     }
 
-    suspend fun getCountReply_Comments(commentId: String): Int{
+    suspend fun getCountReplyComments(commentId: String): Int{
         var result = 0
         try {
             // get comments which are belong to post
@@ -393,12 +490,12 @@ class FirebasePostService @Inject constructor(
             result = commentRefs.documents.size
         }catch (e: Exception){
             e.printStackTrace()
-            Log.e(TAG, "getCountReply_Comments: ${e.message}")
+            Log.e(TAG, "getCountReplyComments: ${e.message}")
         }
         return result
     }
 
-    suspend fun getReplies_Comments(commentId: String): List<Comment>{
+    suspend fun getRepliesComments(commentId: String): List<Comment>{
         var result = mutableListOf<Comment>()
         try {
             // get comments which are belong to post
@@ -430,7 +527,7 @@ class FirebasePostService @Inject constructor(
             }.toMutableList()
         } catch (e: Exception) {
             e.printStackTrace()
-            Log.e(TAG, "getReplies_Comments: ${e.message}")
+            Log.e(TAG, "getRepliesComments: ${e.message}")
         }
         return result
     }

@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 2,
-    "identityHash": "729b72952eb3074aa93265fe20a6f660",
+    "identityHash": "58ef99c23514398436ee8a5d8e7aea45",
     "entities": [
       {
         "tableName": "userLogin",
@@ -38,7 +38,7 @@
       },
       {
         "tableName": "posts",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `userId` TEXT NOT NULL, `description` TEXT NOT NULL, `audioName` TEXT, `audioUrl` TEXT, `amplitudes` TEXT, `likes` INTEGER, `comments` INTEGER, `tags` TEXT, `createdAt` INTEGER NOT NULL, `updatedAt` INTEGER, `deletedAt` INTEGER, PRIMARY KEY(`id`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `userId` TEXT NOT NULL, `description` TEXT NOT NULL, `audioName` TEXT, `audioUrl` TEXT, `amplitudes` TEXT, `likes` INTEGER NOT NULL, `comments` INTEGER NOT NULL, `tags` TEXT, `createdAt` INTEGER NOT NULL, `updatedAt` INTEGER, `deletedAt` INTEGER, PRIMARY KEY(`id`))",
         "fields": [
           {
             "fieldPath": "id",
@@ -80,13 +80,13 @@
             "fieldPath": "likes",
             "columnName": "likes",
             "affinity": "INTEGER",
-            "notNull": false
+            "notNull": true
           },
           {
             "fieldPath": "comments",
             "columnName": "comments",
             "affinity": "INTEGER",
-            "notNull": false
+            "notNull": true
           },
           {
             "fieldPath": "tags",
@@ -126,7 +126,7 @@
     "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '729b72952eb3074aa93265fe20a6f660')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '58ef99c23514398436ee8a5d8e7aea45')"
     ]
   }
 }
