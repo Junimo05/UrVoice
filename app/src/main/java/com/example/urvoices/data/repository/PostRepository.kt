@@ -23,6 +23,7 @@ class PostRepository @Inject constructor(
     val TAG = "PostRepository"
     val scope = CoroutineScope(Dispatchers.Main)
     private val MAX_POSTS = 50
+
 //    suspend fun getNewFeed(): LiveData<List<Post>> = withContext(Dispatchers.IO) {
 //        val newPosts = firestorePostService.getNewFeed(1)
 //        val newPostEntities = newPosts.map { it.toEntity() }
@@ -87,6 +88,16 @@ class PostRepository @Inject constructor(
         }
     }
 
+    suspend fun getPostDetail(postID: String): Post? {
+        try {
+            val post = firestorePostService.getPostDetailByPostID(postID)
+            return post
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+        return null
+    }
+
     //Post Interaction Events
     suspend fun likePost(actionUserID: String, postID: String): String {
         val result = firestorePostService.likePost(actionUserID, postID)
@@ -146,7 +157,4 @@ class PostRepository @Inject constructor(
         val result = firestorePostService.getRepliesComments(commentID)
         return result
     }
-
-
-
 }

@@ -45,7 +45,7 @@ fun BottomBar(
             route = MainScreen.UploadScreen.route,
             selectedIcon = R.drawable.ic_actions_add,
             unselectedIcon = R.drawable.ic_actions_add,
-            contentDescription = "Record"
+            contentDescription = "Upload"
         ),
         BottomBarItem(
             route = MainScreen.ProfileScreen.route,

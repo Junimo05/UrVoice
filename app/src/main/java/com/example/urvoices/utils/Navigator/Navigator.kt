@@ -12,15 +12,19 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
 import com.example.urvoices.ui._component.BottomBar
 import com.example.urvoices.ui._component.MediaPlayer
 import com.example.urvoices.viewmodel.AuthViewModel
+import com.example.urvoices.viewmodel.HomeViewModel
+import com.example.urvoices.viewmodel.InteractionRowViewModel
 import com.example.urvoices.viewmodel.MediaPlayerViewModel
+import com.example.urvoices.viewmodel.PostDetailViewModel
+import com.example.urvoices.viewmodel.ProfileViewModel
 import com.example.urvoices.viewmodel.UIEvents
+import com.example.urvoices.viewmodel.UploadViewModel
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter", "StateFlowValueCalledInComposition")
 @Composable
@@ -29,16 +33,24 @@ fun Navigator(authViewModel: AuthViewModel) {
     val selectedPage = rememberSaveable { mutableIntStateOf(0) }
     val isVisibleBottomBar = rememberSaveable { mutableStateOf(false) }
 
-    val playerViewModel: MediaPlayerViewModel = hiltViewModel()
+    //ViewModel instance
 
-    val uiState = playerViewModel.uiState.collectAsState()
+    val playerViewModel: MediaPlayerViewModel = hiltViewModel()
+    val postDetailViewModel: PostDetailViewModel = hiltViewModel()
+    val homeViewModel: HomeViewModel = hiltViewModel()
+    val uploadViewModel: UploadViewModel = hiltViewModel()
+    val profileViewModel = hiltViewModel<ProfileViewModel>()
+    val interactionRowViewModel = hiltViewModel<InteractionRowViewModel>()
+
+
+    val playerState = playerViewModel.uiState.collectAsState()
 
     LaunchedEffect(navController) {
         navController.addOnDestinationChangedListener { _, destination, _ ->
             when (destination.parent?.route) {
                 Graph.AUTHENTICATION -> isVisibleBottomBar.value = false
                 Graph.NAV_SCREEN -> isVisibleBottomBar.value = true
-                Graph.POST -> isVisibleBottomBar.value = false
+                Graph.SPECIFY -> isVisibleBottomBar.value = false
                 Graph.NOTI_MSG -> isVisibleBottomBar.value = false
             }
         }
@@ -57,8 +69,8 @@ fun Navigator(authViewModel: AuthViewModel) {
                 )
             }
         },
-
     ) {paddingValues ->
+
         Scaffold(
             modifier = Modifier.padding(bottom = paddingValues.calculateBottomPadding()),
             bottomBar = {
@@ -109,7 +121,21 @@ fun Navigator(authViewModel: AuthViewModel) {
                 modifier = Modifier.padding(it)
             ){
                 authGraph(navController, authViewModel) //authentication nav
-                mainGraph(navController, authViewModel, playerViewModel) //home nav
+                mainGraph(
+                    navController,
+                    authViewModel,
+                    playerViewModel = playerViewModel,
+                    homeViewModel = homeViewModel,
+                    uploadViewModel = uploadViewModel,
+                    profileViewModel = profileViewModel
+                ) //home nav
+                specifyGraph(
+                    navController,
+                    authViewModel,
+                    playerViewModel = playerViewModel,
+                    postDetailViewModel = postDetailViewModel,
+                    profileViewModel = profileViewModel
+                ) //specify nav
                 notiMsgGraph(navController) //notification nav
             }
         }
@@ -120,6 +146,6 @@ object Graph {
     const val ROOT = "root_graph"
     const val AUTHENTICATION = "auth_graph"
     const val NAV_SCREEN = "nav_graph"
-    const val POST = "post_graph"
+    const val SPECIFY = "specify_graph"
     const val NOTI_MSG = "noti_msg_graph"
 }

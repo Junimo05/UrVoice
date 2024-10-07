@@ -1,5 +1,10 @@
 package com.example.urvoices.data.model
 
+import android.os.Parcelable
+import kotlinx.parcelize.Parcelize
+
+
+@Parcelize
 data class Notification(
     val id: String?,
     val targetUserID: String,
@@ -11,7 +16,7 @@ data class Notification(
     val createdAt: Long,
     val updatedAt: Long?,
     val deleteAt: Long?,
-){
+) : Parcelable {
     fun toMap(): Map<String, Any?> {
         return mapOf(
             "ID" to id,

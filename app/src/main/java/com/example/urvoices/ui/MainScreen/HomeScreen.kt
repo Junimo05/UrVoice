@@ -54,6 +54,7 @@ import com.example.urvoices.viewmodel.AuthState
 import com.example.urvoices.viewmodel.AuthViewModel
 import com.example.urvoices.viewmodel.HomeState
 import com.example.urvoices.viewmodel.HomeViewModel
+import com.example.urvoices.viewmodel.InteractionRowViewModel
 import com.example.urvoices.viewmodel.MediaPlayerViewModel
 import kotlinx.coroutines.launch
 
@@ -61,6 +62,7 @@ import kotlinx.coroutines.launch
 fun HomeScreen(
     navController: NavController,
     authViewModel: AuthViewModel,
+    homeViewModel: HomeViewModel,
     playerViewModel: MediaPlayerViewModel
 ) {
     val viewModel: HomeViewModel = hiltViewModel()
@@ -206,6 +208,7 @@ fun Home(
             ){
                 index ->
                 NewFeedPostItem(
+                    navController = navController,
                     post = postList[index]!!,
                     homeViewModel = homeViewModel,
                     playerViewModel = playerViewModel,

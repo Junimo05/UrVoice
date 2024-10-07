@@ -111,7 +111,7 @@ class FirebaseUserService @Inject constructor(
         // get following counts
         try {
             val docRef = firebaseFirestore.collection("follows")
-                .whereEqualTo("followingUserID", userId)
+                .whereEqualTo("userID", userId)
                 .get()
                 .await()
             return docRef.size()
@@ -146,7 +146,7 @@ class FirebaseUserService @Inject constructor(
     suspend fun getFollowerCounts(userId:String): Int{
          try {
             val docRef = firebaseFirestore.collection("follows")
-                .whereEqualTo("userID", userId)
+                .whereEqualTo("followingUserID", userId)
                 .get()
                 .await()
             return docRef.size()

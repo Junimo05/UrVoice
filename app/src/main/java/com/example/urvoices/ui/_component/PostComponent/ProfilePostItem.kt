@@ -24,11 +24,16 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
 import com.example.urvoices.data.model.Post
 import com.example.urvoices.presentations.theme.MyTheme
 import com.example.urvoices.ui._component.InteractionRow
+import com.example.urvoices.utils.Navigator.SpecifyScreen
 import com.example.urvoices.utils.Post_Interactions
 import com.example.urvoices.utils.getTimeElapsed
+import com.example.urvoices.utils.toPostJson
+import com.example.urvoices.viewmodel.InteractionRowViewModel
 import com.example.urvoices.viewmodel.MediaPlayerViewModel
 import com.example.urvoices.viewmodel.UIEvents
 import kotlinx.coroutines.CoroutineScope
@@ -37,13 +42,16 @@ import kotlinx.coroutines.Dispatchers
 @SuppressLint("UnrememberedMutableState", "StateFlowValueCalledInComposition")
 @Composable
 fun ProfilePostItem(
+    navController: NavController,
     post: Post,
     playerViewModel: MediaPlayerViewModel,
     modifier: Modifier = Modifier
 ){
     val TAG = "ProfilePostItem"
+    val interactionViewModel = hiltViewModel<InteractionRowViewModel>()
     val timeText = getTimeElapsed(post.createdAt)
     val scope = CoroutineScope(Dispatchers.Main)
+
 
     val isExpandedContext = mutableStateOf(false)
     Box(
@@ -53,6 +61,10 @@ fun ProfilePostItem(
             modifier = Modifier
                 .fillMaxWidth(0.8f)
                 .align(Alignment.Center)
+                .clickable {
+                    //TODO: NAVIGATE TO POST
+                    if(post.id != null) navController.navigate("post/${post.userId}/${post.id}")
+                }
                 ,
             shape = RoundedCornerShape(16.dp),
             elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
@@ -84,7 +96,8 @@ fun ProfilePostItem(
                         fontSize = 14.sp,
                         color = MaterialTheme.colorScheme.onPrimaryContainer
                     ),
-                    modifier = Modifier.padding(top = 8.dp)
+                    modifier = Modifier
+                        .padding(top = 8.dp)
                         .align(Alignment.CenterHorizontally)
                 )
                 InteractionRow(
@@ -92,8 +105,12 @@ fun ProfilePostItem(
                         //TODO: ACTION POST
                         loveCounts = post.likes,
                         commentCounts = post.comments,
-                        love_act = {},
-                        comment_act = {},
+                        love_act = {
+
+                        },
+                        comment_act = {
+                              navController.navigate("")
+                        },
                     ),
                     modifier = Modifier.align(Alignment.CenterHorizontally)
                 )
@@ -147,7 +164,8 @@ fun ProfilePostItemPreview() {
                 tag = listOf(),
                 updateAt = 0
             ),
-            playerViewModel = hiltViewModel()
+            playerViewModel = hiltViewModel(),
+            navController = rememberNavController(),
         )
     }
 }

@@ -5,6 +5,7 @@ import androidx.compose.foundation.MarqueeAnimationMode
 import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -38,14 +39,18 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.example.urvoices.R
 import com.example.urvoices.data.model.Post
 import com.example.urvoices.ui._component.InteractionRow
+import com.example.urvoices.utils.Navigator.SpecifyScreen
 import com.example.urvoices.utils.Post_Interactions
 import com.example.urvoices.utils.getTimeElapsed
 import com.example.urvoices.viewmodel.HomeViewModel
+import com.example.urvoices.viewmodel.InteractionRowViewModel
 import com.example.urvoices.viewmodel.MediaPlayerViewModel
 import com.example.urvoices.viewmodel.UIEvents
 import kotlinx.coroutines.CoroutineScope
@@ -54,6 +59,7 @@ import kotlinx.coroutines.Dispatchers
 @SuppressLint("StateFlowValueCalledInComposition")
 @Composable
 fun NewFeedPostItem(
+    navController: NavController,
     post: Post,
     homeViewModel: HomeViewModel,
     playerViewModel: MediaPlayerViewModel,
@@ -62,10 +68,15 @@ fun NewFeedPostItem(
     val TAG = "NewFeedPostItem"
     val timeText = getTimeElapsed(post.createdAt)
     val scope = CoroutineScope(Dispatchers.Main)
-
-
+    val interactionViewModel = hiltViewModel<InteractionRowViewModel>()
     Card(
         shape = RoundedCornerShape(40.dp),
+        modifier = modifier.clickable {
+            //TODO: Navigate to Post Detail
+            if(post.id != null) {
+                navController.navigate(SpecifyScreen.PostDetailScreen(post))
+            }
+        }
     ) {
         Column (
             modifier = Modifier
@@ -76,7 +87,9 @@ fun NewFeedPostItem(
         {
             Row{
                 ProfileInfo(
+                    navController = navController,
                     userId = post.userId,
+                    postId = post.id!!,
                     postDes = post.description,
                     homeViewModel = homeViewModel,
                     modifier = Modifier.weight(1f)
@@ -85,6 +98,8 @@ fun NewFeedPostItem(
                     modifier = Modifier.align(Alignment.CenterVertically),
                     onClick = {
                         /*TODO ACTION MORE
+                        TODO Access Profile
+                        TODO Access Post
                         *  */
                     }
                 ) {
@@ -114,7 +129,7 @@ fun NewFeedPostItem(
                 maxLines = 1,
                 modifier = if(playerViewModel.currentPlayingPost == post.id) Modifier.basicMarquee(
                     animationMode = MarqueeAnimationMode.Immediately,
-                    delayMillis = 10000,
+                    initialDelayMillis = 10000,
                 ) else Modifier,
                 color = if(playerViewModel.currentPlayingPost == post.id) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onPrimaryContainer
             )
@@ -144,17 +159,21 @@ fun NewFeedPostItem(
                 },
             )
             Spacer(modifier = Modifier.height(8.dp))
-            InteractionRow(interactions = Post_Interactions(
-                loveCounts = post.likes,
-                commentCounts = post.comments,
-                love_act = {
-
-                },
-                comment_act = {
-
-                },
-                //TODO: do act
-            ))
+            InteractionRow(
+                interactions = Post_Interactions(
+                    loveCounts = post.likes,
+                    commentCounts = post.comments,
+                    love_act = {
+                        interactionViewModel.loveAction(
+                            targetUserID = post.userId,
+                            postID = post.id
+                        )
+                    },
+                    comment_act = {
+                       //TODO: do act
+                    },
+                )
+            )
         }
     }
 }
@@ -162,7 +181,9 @@ fun NewFeedPostItem(
 
 @Composable
 fun ProfileInfo(
+    navController: NavController,
     userId: String,
+    postId: String,
     postDes: String,
     homeViewModel: HomeViewModel,
     modifier: Modifier = Modifier
@@ -195,6 +216,11 @@ fun ProfileInfo(
                     .size(64.dp)
                     .clip(CircleShape)
                     .border(2.dp, Color.Black, CircleShape)
+                    .clickable {
+                        //To Profile
+                        navController.navigate(SpecifyScreen.ProfileScreen(userId))
+
+                    }
             )
             Spacer(modifier = Modifier.width(4.dp))
             Column {
@@ -205,6 +231,10 @@ fun ProfileInfo(
                         fontSize = 16.sp,
                         color = MaterialTheme.colorScheme.onPrimaryContainer
                     ),
+                    modifier = Modifier.clickable {
+                        //To Profile
+                        navController.navigate(SpecifyScreen.ProfileScreen(userId))
+                    }
                 )
                 Spacer(modifier = Modifier.height(10.dp))
                 Text(

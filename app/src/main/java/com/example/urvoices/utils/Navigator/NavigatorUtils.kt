@@ -1,5 +1,8 @@
 package com.example.urvoices.utils.Navigator
 
+import com.example.urvoices.data.model.Post
+import kotlinx.serialization.Serializable
+
 sealed class AuthScreen(
     val route: String
 ) {
@@ -19,15 +22,28 @@ sealed class MainScreen(
     object SettingsScreen: MainScreen("SETTINGS_SCREEN")
 }
 
-sealed class NotiMsgicationScreen(
+sealed class NotiMsgScreen(
     val route: String
 ) {
-    object NotificationScreen: NotiMsgicationScreen("NOTIFICATION_SCREEN")
-    object MessageScreen: NotiMsgicationScreen("MESSAGE_SCREEN")
+    object NotificationScreen: NotiMsgScreen("NOTIFICATION_SCREEN")
+    object MessageScreen: NotiMsgScreen("MESSAGE_SCREEN")
 }
 
-sealed class PostDetailScreen(
-    val route: String
+sealed class SpecifyScreen(
+
 ) {
-    object PostDetail: PostDetailScreen("POST_DETAIL")
+    @Serializable data class PostDetailScreen(
+        val post: Post
+    ): SpecifyScreen(){
+        companion object{
+            const val route = "POST_DETAIL_SCREEN"
+            fun getRoute() = "POST_DETAIL_SCREEN"
+        }
+    }
+
+    @Serializable data class ProfileScreen(val userId: String): SpecifyScreen() {
+        companion object {
+            fun getRoute(postId: String) = "PROFILE_SCREEN/$postId"
+        }
+    }
 }

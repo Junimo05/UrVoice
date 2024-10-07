@@ -12,6 +12,7 @@ import com.google.firebase.firestore.Query
 import com.google.firebase.storage.StorageReference
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
@@ -57,16 +58,26 @@ class FirebasePostService @Inject constructor(
                     return@mapNotNull null
                 }
                 val postID = document.id
+                val likesDeferred = CoroutineScope(Dispatchers.IO).async { getCountLikesPosts(postID) }
+                val commentsDeferred = CoroutineScope(Dispatchers.IO).async { getCountCommentsPosts(postID) }
+
+
                 val userID = getUserIDByPostID(postID)
+
                 val audioUrl = document.getString("url") ?: return@mapNotNull null
+                val amplitudesDeferred = CoroutineScope(Dispatchers.IO).async {
+                    audioManager.getAmplitudes(audioUrl)
+                }
+
                 val audioName = document.getString("audioName")
                 val description = document.getString("description") ?: return@mapNotNull null
                 val createdAt = document.getLong("createdAt") ?: return@mapNotNull null
                 val tag = document.get("tag") as List<*>?
                 val updateAt = document.getLong("updatedAt")
-                val likes = getCountLikesPosts(postID)
-                val comments = getCountCommentsPosts(postID)
-                val amplitudes = audioManager.getAmplitudes(audioUrl)
+
+                val likes = likesDeferred.await()
+                val comments = commentsDeferred.await()
+                val amplitudes = amplitudesDeferred.await()
 
                 Post(
                     id = postID,
@@ -105,6 +116,52 @@ class FirebasePostService @Inject constructor(
         return result
     }
 
+    suspend fun getPostDetailByPostID(postID: String): Post?{
+        var post: Post? = null
+        try {
+            val postRef = firebaseFirestore.collection("posts").document(postID).get().await()
+            val deleteAt = postRef.getLong("deletedAt")
+            if(deleteAt != null){
+                return null
+            }
+
+            val likesDeferred = CoroutineScope(Dispatchers.IO).async { getCountLikesPosts(postID) }
+            val commentsDeferred = CoroutineScope(Dispatchers.IO).async { getCountCommentsPosts(postID) }
+            val audioUrl = postRef.getString("url") ?: return null
+            val amplitudesDeferred = CoroutineScope(Dispatchers.IO).async {
+                audioManager.getAmplitudes(audioUrl)
+            }
+
+            val audioName = postRef.getString("audioName")
+            val description = postRef.getString("description") ?: return null
+            val createdAt = postRef.getLong("createdAt") ?: return null
+            val tag = postRef.get("tag") as List<*>?
+            val updateAt = postRef.getLong("updatedAt")
+
+            val likes = likesDeferred.await()
+            val comments = commentsDeferred.await()
+            val amplitudes = amplitudesDeferred.await()
+
+            post = Post(
+                id = postID,
+                userId = getUserIDByPostID(postID),
+                url = audioUrl,
+                audioName = audioName ?: "No Name",
+                description = description,
+                createdAt = createdAt,
+                updateAt = updateAt,
+                deleteAt = deleteAt,
+                likes = likes,
+                comments = comments,
+                tag = tag?.map { it as String },
+                amplitudes = amplitudes
+            )
+        }catch (e: Exception){
+            e.printStackTrace()
+        }
+        return post
+    }
+
     private suspend fun getUserIDByPostID(postID: String): String{
         var result = ""
         try {
@@ -136,15 +193,21 @@ class FirebasePostService @Inject constructor(
                     if(deleteAt != null){
                         return@forEach
                     }
+                    val likesDeferred = CoroutineScope(Dispatchers.IO).async { getCountLikesPosts(postID) }
+                    val commentsDeferred = CoroutineScope(Dispatchers.IO).async { getCountCommentsPosts(postID) }
                     val audioUrl = postRef.getString("url") ?: return@forEach
+                    val amplitudesDeferred = CoroutineScope(Dispatchers.IO).async {
+                        audioManager.getAmplitudes(audioUrl)
+                    }
+                    val audioName = postRef.getString("audioName")
                     val description = postRef.getString("description") ?: return@forEach
                     val createdAt = postRef.getLong("createdAt") ?: return@forEach
                     val tag = postRef.get("tag") as List<*>?
                     val updateAt = postRef.getLong("updatedAt")
-                    val audioName = postRef.getString("audioName")
-                    val likes = getCountLikesPosts(postID)
-                    val comments = getCommentsPosts(postID).size
-                    val amplitudes = audioManager.getAmplitudes(audioUrl)
+
+                    val likes = likesDeferred.await()
+                    val comments = commentsDeferred.await()
+                    val amplitudes = amplitudesDeferred.await()
 
                     val post = Post(
                         id = postID,

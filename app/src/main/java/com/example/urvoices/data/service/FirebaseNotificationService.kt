@@ -8,6 +8,11 @@ import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 
+
+/*
+    TODO: Add Url to Notification for redirect to the specific page
+ */
+
 class FirebaseNotificationService @Inject constructor(
     private val firebaseFirestore: FirebaseFirestore,
 

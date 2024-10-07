@@ -2,21 +2,32 @@ package com.example.urvoices.utils.Navigator
 
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
+import androidx.navigation.NavType
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.navigation
+import androidx.navigation.navArgument
+import androidx.navigation.navDeepLink
+import androidx.navigation.toRoute
 import com.example.urvoices.ui.AuthScreen.LoginScreen
+import com.example.urvoices.ui.AuthScreen.RegisterScreen
+import com.example.urvoices.ui.AuthScreen.SplashScreen
 import com.example.urvoices.ui.MainScreen.HomeScreen
 import com.example.urvoices.ui.MainScreen.ProfileScreen
 import com.example.urvoices.ui.MainScreen.SearchScreen
 import com.example.urvoices.ui.MainScreen.SettingsScreen
 import com.example.urvoices.ui.MainScreen.UploadScreen
-import com.example.urvoices.ui.AuthScreen.RegisterScreen
-import com.example.urvoices.ui.AuthScreen.SplashScreen
+import com.example.urvoices.ui._component.PostComponent.PostDetail
 import com.example.urvoices.ui.noti_msg.MessageScreen
 import com.example.urvoices.ui.noti_msg.NotificationScreen
 import com.example.urvoices.viewmodel.AuthViewModel
+import com.example.urvoices.viewmodel.HomeViewModel
+import com.example.urvoices.viewmodel.InteractionRowViewModel
 import com.example.urvoices.viewmodel.MediaPlayerViewModel
-import com.google.firebase.auth.FirebaseAuth
+import com.example.urvoices.viewmodel.PostDetailViewModel
+import com.example.urvoices.viewmodel.ProfileViewModel
+import com.example.urvoices.viewmodel.UploadViewModel
+
+val BASE_URL = "https://urvoices.com"
 
 fun NavGraphBuilder.authGraph(
     navController: NavController,
@@ -41,14 +52,18 @@ fun NavGraphBuilder.authGraph(
 fun NavGraphBuilder.mainGraph(
     navController: NavController,
     authViewModel: AuthViewModel,
-    playerViewModel: MediaPlayerViewModel
+    playerViewModel: MediaPlayerViewModel,
+    homeViewModel: HomeViewModel,
+    uploadViewModel: UploadViewModel,
+    profileViewModel: ProfileViewModel
 ){
     navigation(route = Graph.NAV_SCREEN, startDestination = MainScreen.HomeScreen.route){
         composable(route = MainScreen.HomeScreen.route){
             HomeScreen(
                 navController = navController,
                 authViewModel = authViewModel,
-                playerViewModel = playerViewModel
+                playerViewModel = playerViewModel,
+                homeViewModel = homeViewModel
             )
         }
         composable(route = MainScreen.SearchScreen.route){
@@ -60,7 +75,8 @@ fun NavGraphBuilder.mainGraph(
         composable(route = MainScreen.UploadScreen.route){
             UploadScreen(
                 navController = navController,
-                playerViewModel = playerViewModel
+                playerViewModel = playerViewModel,
+                uploadViewModel = uploadViewModel
             )
         }
         composable(route = MainScreen.ProfileScreen.route){
@@ -68,6 +84,7 @@ fun NavGraphBuilder.mainGraph(
                 ProfileScreen(
                     navController = navController,
                     playerViewModel = playerViewModel,
+                    profileViewModel = profileViewModel,
                     userId = it1
                 )
             }
@@ -81,15 +98,77 @@ fun NavGraphBuilder.mainGraph(
     }
 }
 
+fun NavGraphBuilder.specifyGraph(
+    navController: NavController,
+    authViewModel: AuthViewModel,
+    playerViewModel: MediaPlayerViewModel,
+    postDetailViewModel: PostDetailViewModel,
+    profileViewModel: ProfileViewModel
+){
+    navigation(route = Graph.SPECIFY, startDestination = "post"){
+        composable(
+            route = "post/{userId}/{postId}",
+            arguments = listOf(
+                navArgument("postId") { type = NavType.StringType },
+                navArgument("userId") { type = NavType.StringType }
+            ),
+            deepLinks = listOf(navDeepLink {
+                uriPattern = "$BASE_URL/post/{userId}/{postId}"
+            })
+        ) { navBackStackEntry ->
+            val postId = navBackStackEntry.arguments?.getString("postId")
+            val userId = navBackStackEntry.arguments?.getString("userId")
+            if (postId != null && userId != null) {
+                PostDetail(
+                    navController = navController,
+                    playerViewModel = playerViewModel,
+                    postDetailViewModel = postDetailViewModel,
+                    authViewModel = authViewModel,
+                    postID = postId,
+                    userID = userId
+                )
+            } else {
+                // Handle the case where postId is null
+            }
+        }
+
+        composable<SpecifyScreen.ProfileScreen> { navBackStackEntry ->
+            val profileRoute: SpecifyScreen.ProfileScreen = navBackStackEntry.toRoute()
+            val userId = profileRoute.userId
+            ProfileScreen(
+                navController = navController,
+                playerViewModel = playerViewModel,
+                profileViewModel = profileViewModel,
+                userId = userId
+            )
+        }
+    }
+}
+
 fun NavGraphBuilder.notiMsgGraph(
     navController: NavController
 ){
-    navigation(route = Graph.NOTI_MSG, startDestination = NotiMsgicationScreen.NotificationScreen.route){
-        composable(route = NotiMsgicationScreen.NotificationScreen.route){
+    navigation(route = Graph.NOTI_MSG, startDestination = NotiMsgScreen.NotificationScreen.route){
+        composable(route = NotiMsgScreen.NotificationScreen.route){
             NotificationScreen(navController = navController)
         }
-        composable(route = NotiMsgicationScreen.MessageScreen.route){
+        composable(route = NotiMsgScreen.MessageScreen.route){
             MessageScreen(navController = navController)
         }
     }
 }
+
+
+//        composable<SpecifyScreen.PostDetailScreen>(
+//            typeMap = mapOf(
+//                typeOf<Post>() to CustomNavType.PostType
+//            )
+//        ){
+//            val arguments = it.toRoute<SpecifyScreen.PostDetailScreen>()
+//            PostDetail(
+//                navController = navController,
+//                playerViewModel = playerViewModel,
+//                authViewModel = authViewModel,
+//                post = arguments.post
+//            )
+//        }

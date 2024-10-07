@@ -30,6 +30,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
 import com.example.urvoices.R
 import com.example.urvoices.presentations.theme.MyTheme
 import com.example.urvoices.ui._component.InteractionRow
@@ -38,10 +40,10 @@ import com.example.urvoices.utils.Comment_Interactions
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter", "UnrememberedMutableState")
 @Composable
 fun CommentItem(
-
+    navController: NavController
 
     //interactions data
-) {
+){
     val isExpandedComment = mutableStateOf(false)
 
     Card(
@@ -106,6 +108,8 @@ fun CommentItem(
 @Composable
 fun CommentItemPreview() {
     MyTheme {
-        CommentItem()
+        CommentItem(
+            navController = rememberNavController()
+        )
     }
 }

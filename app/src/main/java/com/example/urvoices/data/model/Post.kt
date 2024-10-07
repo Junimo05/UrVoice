@@ -1,7 +1,13 @@
 package com.example.urvoices.data.model
 
+import android.os.Parcelable
 import com.example.urvoices.data.db.Entity.PostEntity
+import kotlinx.parcelize.Parcelize
+import kotlinx.serialization.Serializable
 
+
+@Serializable
+@Parcelize
 data class Post(
     val id: String?,
     val userId: String,
@@ -15,7 +21,7 @@ data class Post(
     val createdAt: Long,
     val updateAt: Long?,
     val deleteAt: Long?,
-) {
+) : Parcelable {
     fun toMap(): Map<String, Any?> {
         return mapOf(
             "userId" to userId,

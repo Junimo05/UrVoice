@@ -67,8 +67,8 @@ import kotlinx.coroutines.launch
 fun UploadScreen(
     navController: NavController,
     playerViewModel: MediaPlayerViewModel,
+    uploadViewModel: UploadViewModel
 ){
-    val uploadViewModel: UploadViewModel = hiltViewModel()
     val uploadState by uploadViewModel.uploadState.observeAsState()
     var snackbar by remember {
         mutableStateOf(false)

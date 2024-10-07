@@ -1,5 +1,9 @@
 package com.example.urvoices.data.model
 
+import android.os.Parcelable
+import kotlinx.parcelize.Parcelize
+
+@Parcelize
 data class User(
     val id: String,
     val username: String,
@@ -8,4 +12,4 @@ data class User(
     val bio: String,
     val country: String,
     val avatarUrl: String,
-)
+) : Parcelable

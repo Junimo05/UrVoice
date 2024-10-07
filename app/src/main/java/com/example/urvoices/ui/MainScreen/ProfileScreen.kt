@@ -45,6 +45,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
@@ -58,30 +59,37 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import androidx.paging.LoadState
 import androidx.paging.compose.collectAsLazyPagingItems
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
 import com.example.urvoices.R
 import com.example.urvoices.data.model.User
 import com.example.urvoices.presentations.theme.MyTheme
 import com.example.urvoices.ui._component.PlaylistItem
 import com.example.urvoices.ui._component.PostComponent.ProfilePostItem
 import com.example.urvoices.utils.Navigator.MainScreen
+import com.example.urvoices.utils.Navigator.SpecifyScreen
 import com.example.urvoices.viewmodel.MediaPlayerViewModel
 import com.example.urvoices.viewmodel.ProfileState
 import com.example.urvoices.viewmodel.ProfileViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 
+/*
+* TODO: Edit Profile
+ */
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 fun ProfileScreen(
     userId: String = "",
     navController: NavController,
     playerViewModel: MediaPlayerViewModel,
+    profileViewModel: ProfileViewModel,
 ) {
     val TAG = "ProfileScreen"
     val context = LocalContext.current
     val scope = CoroutineScope(Dispatchers.Main)
+
     //State & Data
-    val profileViewModel = hiltViewModel<ProfileViewModel>()
     val uiState = profileViewModel.uiState.collectAsState()
     profileViewModel.loadData(userId)
     val postList = profileViewModel.posts.collectAsLazyPagingItems()
@@ -250,6 +258,7 @@ fun ProfileScreen(
                     ) {
                         items(postList.itemCount) { index ->
                             ProfilePostItem(
+                                navController = navController,
                                 post = postList[index]!!,
                                 playerViewModel = playerViewModel,
                             )
@@ -337,15 +346,23 @@ fun UserInfo(
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Image(
-                painter = painterResource(id = R.drawable.person),
+            AsyncImage(
+                model = ImageRequest.Builder(LocalContext.current)
+                    .data(user.avatarUrl)
+                    .crossfade(true)
+                    .build(),
                 contentDescription = "Avatar",
+                placeholder = painterResource(id = R.drawable.person),
+                contentScale = ContentScale.Crop,
                 modifier = Modifier
                     .size(80.dp)
                     .clip(CircleShape)
                     .background(Color.White)
                     .border(2.dp, Color.Black, CircleShape)
                     .padding(6.dp)
+                    .clickable {
+
+                    }
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
@@ -449,11 +466,6 @@ fun UserInfo(
                             .border(1.dp, MaterialTheme.colorScheme.primary, CircleShape)
                             .clickable {
                                 /*TODO*/
-                                if(uiStates == ProfileState.Successful){
-                                    //Notification on Screen
-//                                    followAction()
-                                    Log.e("Follow", "Followed")
-                                }
                             }
                     ) {
                         Text(
@@ -474,7 +486,10 @@ fun UserInfo(
                             .padding(4.dp)
                             .border(1.dp, MaterialTheme.colorScheme.primary, CircleShape)
                             .clickable {
-                                /*TODO*/
+                                followAction()
+                                if(uiStates == ProfileState.Successful){
+                                    Log.d("Follow", "Following")
+                                }
                             }
                     ) {
                         Text(
@@ -493,7 +508,9 @@ fun UserInfo(
                             .width(100.dp)
                             .padding(4.dp)
                             .border(1.dp, MaterialTheme.colorScheme.primary, CircleShape)
-                            .clickable { /*TODO*/ }
+                            .clickable {
+                                //TODO: Message
+                            }
                     ) {
                         Text(
                             text = "Message",
@@ -538,7 +555,8 @@ fun ProfileScreenPreview() {
         ProfileScreen(
             userId = "lucasmorrison",
             navController = navController,
-            playerViewModel = hiltViewModel()
+            playerViewModel = hiltViewModel(),
+            profileViewModel = hiltViewModel()
         )
     }
 }
