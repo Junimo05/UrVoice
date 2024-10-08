@@ -26,7 +26,7 @@ import androidx.compose.ui.unit.sp
 data class Interaction(
     val icon: Int,
     val iconAfterAct: Int,
-    val count: Int,
+    val count: Int?,
     val contentDescription: String,
     val action: () -> Unit
 )
@@ -68,14 +68,16 @@ fun InteractionRow(
                     )
                 }
                 Spacer(modifier = Modifier.width(3.dp))
-                Text(
-                    text = interaction.count.toString(),
-                    style = TextStyle(
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 14.sp,
-                        color = MaterialTheme.colorScheme.onPrimaryContainer
+                if(interaction.count != null){
+                    Text(
+                        text = interaction.count.toString(),
+                        style = TextStyle(
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 14.sp,
+                            color = MaterialTheme.colorScheme.onPrimaryContainer
+                        )
                     )
-                )
+                }
             }
         }
     }

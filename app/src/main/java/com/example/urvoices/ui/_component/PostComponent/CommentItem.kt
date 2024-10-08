@@ -18,7 +18,10 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -35,16 +38,24 @@ import androidx.navigation.compose.rememberNavController
 import com.example.urvoices.R
 import com.example.urvoices.presentations.theme.MyTheme
 import com.example.urvoices.ui._component.InteractionRow
+import com.example.urvoices.ui._component.ProfileComponent.Comment
 import com.example.urvoices.utils.Comment_Interactions
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter", "UnrememberedMutableState")
 @Composable
 fun CommentItem(
-    navController: NavController
+    navController: NavController,
+    loadReply: (String) -> Unit,
+    //comment data
 
     //interactions data
 ){
     val isExpandedComment = mutableStateOf(false)
+    var isExpandedReply by remember { mutableStateOf(false) }
+    var showReplyField by remember { mutableStateOf(false) }
+    var replyText by remember { mutableStateOf("") }
+
+    var replies by remember { mutableStateOf(emptyList<Comment>()) }
 
     Card(
         modifier = Modifier.background(MaterialTheme.colorScheme.primaryContainer)
@@ -99,7 +110,30 @@ fun CommentItem(
                 maxLines = if (isExpandedComment.value) Int.MAX_VALUE else 3 // Control max lines based on expanded status
             )
             // Comment interaction
-            InteractionRow(interactions = Comment_Interactions())
+            InteractionRow(interactions = Comment_Interactions(
+                loveCounts = 0,
+                love_act = {
+
+                },
+                commentCounts = 0,
+                comment_act = {
+                    isExpandedReply = !isExpandedReply
+                    loadReply("comment_id")
+                },
+                reply_act = {
+
+                }
+            ))
+            // Replies
+            if (isExpandedComment.value && replies.isNotEmpty()) {
+                replies.forEach { reply ->
+                    CommentItem(
+                        navController = navController,
+                        loadReply = { loadReply(it) }
+                        //reply data
+                    )
+                }
+            }
         }
     }
 }
@@ -109,7 +143,8 @@ fun CommentItem(
 fun CommentItemPreview() {
     MyTheme {
         CommentItem(
-            navController = rememberNavController()
+            navController = rememberNavController(),
+            loadReply = {}
         )
     }
 }

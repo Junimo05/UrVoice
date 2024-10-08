@@ -74,7 +74,7 @@ fun NewFeedPostItem(
         modifier = modifier.clickable {
             //TODO: Navigate to Post Detail
             if(post.id != null) {
-                navController.navigate(SpecifyScreen.PostDetailScreen(post))
+                navController.navigate("/post/${post.userId}/${post.id}")
             }
         }
     ) {

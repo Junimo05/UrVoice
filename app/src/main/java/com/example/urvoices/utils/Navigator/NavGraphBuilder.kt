@@ -17,11 +17,11 @@ import com.example.urvoices.ui.MainScreen.SearchScreen
 import com.example.urvoices.ui.MainScreen.SettingsScreen
 import com.example.urvoices.ui.MainScreen.UploadScreen
 import com.example.urvoices.ui._component.PostComponent.PostDetail
+import com.example.urvoices.ui._component.ProfileComponent.ProfileEditScreen
 import com.example.urvoices.ui.noti_msg.MessageScreen
 import com.example.urvoices.ui.noti_msg.NotificationScreen
 import com.example.urvoices.viewmodel.AuthViewModel
 import com.example.urvoices.viewmodel.HomeViewModel
-import com.example.urvoices.viewmodel.InteractionRowViewModel
 import com.example.urvoices.viewmodel.MediaPlayerViewModel
 import com.example.urvoices.viewmodel.PostDetailViewModel
 import com.example.urvoices.viewmodel.ProfileViewModel
@@ -79,7 +79,7 @@ fun NavGraphBuilder.mainGraph(
                 uploadViewModel = uploadViewModel
             )
         }
-        composable(route = MainScreen.ProfileScreen.route){
+        composable(route = MainScreen.ProfileScreen.MainProfileScreen.route){
             authViewModel.getCurrentUser()?.uid?.let { it1 ->
                 ProfileScreen(
                     navController = navController,
@@ -89,6 +89,12 @@ fun NavGraphBuilder.mainGraph(
                 )
             }
         }
+        composable(route = MainScreen.ProfileScreen.EditProfileScreen.route){
+            ProfileEditScreen(
+                navController = navController,
+                profileViewModel = profileViewModel
+            )
+        }
         composable(route = MainScreen.SettingsScreen.route){
             SettingsScreen(
                 navController = navController,
@@ -97,7 +103,6 @@ fun NavGraphBuilder.mainGraph(
         }
     }
 }
-
 fun NavGraphBuilder.specifyGraph(
     navController: NavController,
     authViewModel: AuthViewModel,

@@ -6,11 +6,17 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.SavedStateHandleSaveableApi
 import androidx.lifecycle.viewmodel.compose.saveable
+import androidx.paging.Pager
+import androidx.paging.PagingConfig
+import androidx.paging.PagingData
+import androidx.paging.cachedIn
+import com.example.urvoices.data.model.Comment
 import com.example.urvoices.data.model.Post
 import com.example.urvoices.data.repository.PostRepository
 import com.example.urvoices.data.repository.UserRepository
 import com.google.firebase.auth.FirebaseAuth
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
@@ -43,14 +49,22 @@ class PostDetailViewModel @Inject constructor(
     val _uiState = MutableStateFlow<PostDetailState>(PostDetailState.Initial)
     val uiState = _uiState.asStateFlow()
 
+    private val postID: String by lazy {
+        checkNotNull(savedStateHandle["postID"])
+    }
     @OptIn(SavedStateHandleSaveableApi::class)
     var currentPost by savedStateHandle.saveable { mutableStateOf(emptyPost) }
-
     @OptIn(SavedStateHandleSaveableApi::class)
     var userPost by savedStateHandle.saveable { mutableStateOf(userTemp) }
-
     @OptIn(SavedStateHandleSaveableApi::class)
     var isFollowed by savedStateHandle.saveable { mutableStateOf(false) }
+
+    val commentLists : Flow<PagingData<Comment>> by lazy {
+        Pager(PagingConfig(pageSize = 10)){
+            postRepository.getComments_Posts(postID)
+        }.flow.cachedIn(viewModelScope)
+    }
+
     fun loadData(postID: String, userID: String) {
         try {
             _uiState.value = PostDetailState.Working

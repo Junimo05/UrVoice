@@ -1,6 +1,7 @@
 package com.example.urvoices.data.repository
 
 import android.net.Uri
+import android.util.Log
 import androidx.compose.runtime.MutableState
 import androidx.paging.PagingSource
 import androidx.paging.PagingState
@@ -120,12 +121,12 @@ class PostRepository @Inject constructor(
     }
 
     //
-    fun getAllPostFromUser(userID: String): PagingSource<Int,Post> {
+    fun getAllPostFromUser(userID: String, lastVisiblePost: MutableState<String>, lastVisiblePage: MutableState<Int>): PagingSource<Int,Post> {
         return object : PagingSource<Int, Post>() {
             override suspend fun load(params: LoadParams<Int>): LoadResult<Int, Post> {
                 return try {
                     val nextPage = params.key ?: 1
-                    val postList = firestorePostService.getAllPostFromUser(nextPage, userID)
+                    val postList = firestorePostService.getAllPostFromUser(nextPage, userID, lastVisiblePost, lastVisiblePage)
                     LoadResult.Page(
                         data = postList,
                         prevKey = if (nextPage == 1) null else nextPage - 1,
@@ -148,9 +149,26 @@ class PostRepository @Inject constructor(
     }
 
     //Get Comment's Detail
-    suspend fun getComments_Posts(postID: String): List<Comment> {
-        val result = firestorePostService.getCommentsPosts(postID)
-        return result
+     fun getComments_Posts(postID: String): PagingSource<Int, Comment> {
+        return object : PagingSource<Int, Comment>() {
+            override suspend fun load(params: LoadParams<Int>): LoadResult<Int, Comment> {
+                return try {
+                    val nextPage = params.key ?: 1
+                    val commentList = firestorePostService.getCommentsPosts(nextPage, postID)
+                    LoadResult.Page(
+                        data = commentList,
+                        prevKey = if (nextPage == 1) null else nextPage - 1,
+                        nextKey = if (commentList.isEmpty()) null else nextPage + 1
+                    )
+                } catch (e: Exception) {
+                    LoadResult.Error(e)
+                }
+            }
+
+            override fun getRefreshKey(state: PagingState<Int, Comment>): Int? {
+                return state.anchorPosition
+            }
+        }
     }
 
     suspend fun getReply_Comments(commentID: String): List<Comment>{

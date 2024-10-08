@@ -8,6 +8,7 @@ import com.example.urvoices.data.model.Comment
 import com.example.urvoices.data.model.Like
 import com.example.urvoices.data.model.Post
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.FirebaseFirestoreException
 import com.google.firebase.firestore.Query
 import com.google.firebase.storage.StorageReference
 import kotlinx.coroutines.CoroutineScope
@@ -176,14 +177,29 @@ class FirebasePostService @Inject constructor(
         return result
     }
 
-    suspend fun getAllPostFromUser(page: Int, userID: String): List<Post>{
+    suspend fun getAllPostFromUser(page: Int, userID: String, lastVisiblePost: MutableState<String>, lastvisiblePage: MutableState<Int>): List<Post>{
+        val limit = 3L
         val posts = mutableListOf<Post>()
         try {
             // get postIDs from rela_posts_users
-            val postIDRefs = firebaseFirestore.collection("rela_posts_users")
+            var postIDQuery = firebaseFirestore.collection("rela_posts_users")
                 .whereEqualTo("userID", userID)
-                .get()
-                .await()
+                .limit(limit)
+
+            if (lastVisiblePost.value != "" && page > lastvisiblePage.value) {
+                val lastVisiblePostRef = firebaseFirestore.collection("rela_posts_users").document(lastVisiblePost.value).get().await()
+                postIDQuery = postIDQuery.startAfter(lastVisiblePostRef)
+                lastvisiblePage.value = page
+            }
+
+            val postIDRefs = postIDQuery.get().await()
+            Log.e(TAG, "getAllPostFromUser: ${postIDRefs.documents}")
+            val lastVisible = postIDRefs.documents.lastOrNull()
+            if (lastVisible != null) {
+                lastVisiblePost.value = lastVisible.id
+            }else { lastVisiblePost.value = "" }
+
+
             // for each postID, get the post from posts
             postIDRefs.documents.forEach { document ->
                 val postID = document.getString("postID")
@@ -235,16 +251,13 @@ class FirebasePostService @Inject constructor(
     }
 
     suspend fun createPost(post: Post, audioUrl: Uri): Boolean {
-        // create post
-        val postToCreate = post.copy(id = null).toMap()
-        val newFileRef = storage.child("audios/${post.userId}/${post.audioName}")
-        var downloadUrl = ""
         return try {
+            val postToCreate = post.copy(id = null).toMap()
+            val newFileRef = storage.child("audios/${post.userId}/${post.audioName}")
+
             // Upload the file to the new location
-            CoroutineScope(Dispatchers.IO).launch {
-                val uploadTask = newFileRef.putFile(audioUrl).await()
-                downloadUrl = uploadTask.storage.downloadUrl.await().toString()
-            }
+            val uploadTask = newFileRef.putFile(audioUrl).await()
+            val downloadUrl = uploadTask.storage.downloadUrl.await().toString()
 
             // Add the post to Firestore and get the auto-generated ID
             val newPostRef = firebaseFirestore.collection("posts").add(postToCreate).await()
@@ -272,6 +285,7 @@ class FirebasePostService @Inject constructor(
             false
         }
     }
+
     suspend fun updatePost(post: Post): Boolean {
         // update post
         try {
@@ -465,13 +479,14 @@ class FirebasePostService @Inject constructor(
         return relaID
     }
 
-    suspend fun getCommentsPosts(postId: String): List<Comment>{
+    suspend fun getCommentsPosts(page: Int ,postId: String): List<Comment>{
         var result: List<Comment> = mutableListOf()
         try {
             // get comments which are belong to post
             val commentRefs = firebaseFirestore.collection("comments_posts_users")
                 .whereEqualTo("postID", postId)
                 .whereEqualTo("parentCommentID", null)
+                .limit(10)
                 .get()
                 .await()
             result = commentRefs.documents.mapNotNull { document ->
@@ -511,19 +526,18 @@ class FirebasePostService @Inject constructor(
     }
 
     private suspend fun getCountLikesPosts(postId: String): Int{
-        var result = 0
-        try {
+        return try {
             // get likes
             val likeRefs = firebaseFirestore.collection("likes")
                 .whereEqualTo("postID", postId)
                 .get()
                 .await()
-            result = likeRefs.documents.size
-        }catch (e: Exception){
+            likeRefs.documents.size
+        } catch (e: FirebaseFirestoreException) {
             e.printStackTrace()
             Log.e(TAG, "getCountLikesPosts: ${e.message}")
+            0
         }
-        return result
     }
 
     suspend fun getCountLikesComments(commentId: String): Int{

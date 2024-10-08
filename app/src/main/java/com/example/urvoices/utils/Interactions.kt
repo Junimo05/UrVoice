@@ -28,26 +28,39 @@ fun Post_Interactions(
 }
 
 fun Comment_Interactions(
-    //interactions data
+    loveCounts: Int,
+    commentCounts: Int,
+    love_act: (Boolean) -> Unit,
+    comment_act: () -> Unit,
+    reply_act: () -> Unit
 ) : List<Interaction> {
     return listOf(
         Interaction(
             icon = R.drawable.ic_actions_heart,
             iconAfterAct = R.drawable.ic_actions_heart,
-            count = 2, // number of likes
+            count = loveCounts, // number of likes
             contentDescription = "Like",
             action = {
-
+                love_act(true)
             }
         ),
         Interaction(
             icon = R.drawable.ic_comment,
             iconAfterAct = R.drawable.ic_comment,
-            count = 2, // number of comments
+            count = commentCounts, // number of comments
             contentDescription = "Comment",
             action = {
-
+                comment_act()
             }
         ),
+        Interaction(
+            icon = R.drawable.reply_svgrepo_com,
+            iconAfterAct = R.drawable.reply_svgrepo_com,
+            count = null,
+            contentDescription = "Reply",
+            action = {
+                reply_act()
+            }
+        )
     )
 }

@@ -72,11 +72,16 @@ class ProfileViewModel @Inject constructor(
     @OptIn(SavedStateHandleSaveableApi::class)
     var currentUsername by savedStateHandle.saveable { mutableStateOf("") }
 
-    val posts : Flow<PagingData<Post>> by lazy {
+
+    val lastVisiblePost = mutableStateOf<String>("")
+    val lastVisiblePage = mutableStateOf<Int>(1)
+
+    val posts : Flow<PagingData<Post>> =
         Pager(PagingConfig(pageSize = 3)){
-            postRepository.getAllPostFromUser(displayuserID)
+            postRepository.getAllPostFromUser(displayuserID, lastVisiblePost, lastVisiblePage)
         }.flow.cachedIn(viewModelScope)
-    }
+
+
 
 
     fun loadData(userID: String){
@@ -137,6 +142,8 @@ class ProfileViewModel @Inject constructor(
             Log.e(TAG, "followUser: Error")
         }
     }
+
+    // TODO:fun updateInfo()
 
     private suspend fun getFollowStatus(userId: String) {
         try {

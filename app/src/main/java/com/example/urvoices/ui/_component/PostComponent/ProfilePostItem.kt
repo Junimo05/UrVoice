@@ -109,7 +109,7 @@ fun ProfilePostItem(
 
                         },
                         comment_act = {
-                              navController.navigate("")
+                            if(post.id != null) navController.navigate("post/${post.userId}/${post.id}")
                         },
                     ),
                     modifier = Modifier.align(Alignment.CenterHorizontally)

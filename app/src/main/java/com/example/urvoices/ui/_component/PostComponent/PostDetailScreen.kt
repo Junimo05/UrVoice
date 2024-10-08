@@ -77,13 +77,13 @@ fun PostDetail(
     val TAG = "PostDetail"
     val interactionViewModel = hiltViewModel<InteractionRowViewModel>()
     val uiState = postDetailViewModel.uiState.collectAsState()
-    Log.e("PostDetail", "PostID: $postID")
+//    Log.e("PostDetail", "PostID: $postID")
     //
     postDetailViewModel.loadData(postID = postID, userID = userID)
     val currentPost by lazy {
         postDetailViewModel.currentPost
     }
-    Log.e("PostDetail", "CurrentPost: $currentPost")
+//    Log.e("PostDetail", "CurrentPost: $currentPost")
     val userPost by lazy {
         postDetailViewModel.userPost
     }
@@ -150,7 +150,10 @@ fun PostDetail(
             }
             items(10) {
                 CommentItem(
-                    navController = navController
+                    navController = navController,
+                    loadReply = {
+                        //TODO
+                    },
                 )
             }
         }

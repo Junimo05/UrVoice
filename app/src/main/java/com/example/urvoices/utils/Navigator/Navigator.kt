@@ -32,7 +32,7 @@ fun Navigator(authViewModel: AuthViewModel) {
     val navController = rememberNavController()
     val selectedPage = rememberSaveable { mutableIntStateOf(0) }
     val isVisibleBottomBar = rememberSaveable { mutableStateOf(false) }
-
+    val isVisibleMediaBar = rememberSaveable { mutableStateOf(false) }
     //ViewModel instance
 
     val playerViewModel: MediaPlayerViewModel = hiltViewModel()
@@ -52,6 +52,19 @@ fun Navigator(authViewModel: AuthViewModel) {
                 Graph.NAV_SCREEN -> isVisibleBottomBar.value = true
                 Graph.SPECIFY -> isVisibleBottomBar.value = false
                 Graph.NOTI_MSG -> isVisibleBottomBar.value = false
+            }
+            when (destination.route) {
+                Graph.AUTHENTICATION -> isVisibleMediaBar.value = false
+                Graph.NAV_SCREEN -> isVisibleMediaBar.value = true
+                Graph.SPECIFY -> {
+                    if(destination.route!!.startsWith("post/") == true){
+                        isVisibleMediaBar.value = false
+                    }else {
+                        isVisibleMediaBar.value = true
+                    }
+                }
+                Graph.NOTI_MSG -> isVisibleMediaBar.value = true
+
             }
         }
     }
@@ -74,7 +87,7 @@ fun Navigator(authViewModel: AuthViewModel) {
         Scaffold(
             modifier = Modifier.padding(bottom = paddingValues.calculateBottomPadding()),
             bottomBar = {
-                if(!playerViewModel.isStop.collectAsState().value){
+                if(!playerViewModel.isStop.collectAsState().value && isVisibleMediaBar.value){
                     MediaPlayer(
                         progress = playerViewModel.progress,
                         isAudioPlaying = playerViewModel.isPlaying,

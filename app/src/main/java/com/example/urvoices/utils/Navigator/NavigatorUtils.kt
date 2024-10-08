@@ -18,9 +18,16 @@ sealed class MainScreen(
     object HomeScreen: MainScreen("HOME_SCREEN")
     object SearchScreen: MainScreen("SEARCH_SCREEN")
     object UploadScreen: MainScreen("UPLOAD_SCREEN")
-    object ProfileScreen: MainScreen("PROFILE_SCREEN")
+    sealed class ProfileScreen(
+        val route: String
+    ) {
+        object MainProfileScreen: ProfileScreen("PROFILE_SCREEN")
+        object EditProfileScreen: ProfileScreen("PROFILE_SCREEN/EditProfileScreen")
+    }
     object SettingsScreen: MainScreen("SETTINGS_SCREEN")
 }
+
+
 
 sealed class NotiMsgScreen(
     val route: String
@@ -32,18 +39,10 @@ sealed class NotiMsgScreen(
 sealed class SpecifyScreen(
 
 ) {
-    @Serializable data class PostDetailScreen(
-        val post: Post
-    ): SpecifyScreen(){
-        companion object{
-            const val route = "POST_DETAIL_SCREEN"
-            fun getRoute() = "POST_DETAIL_SCREEN"
-        }
-    }
-
     @Serializable data class ProfileScreen(val userId: String): SpecifyScreen() {
         companion object {
             fun getRoute(postId: String) = "PROFILE_SCREEN/$postId"
         }
     }
+
 }

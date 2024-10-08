@@ -92,6 +92,7 @@ fun ProfileScreen(
     //State & Data
     val uiState = profileViewModel.uiState.collectAsState()
     profileViewModel.loadData(userId)
+
     val postList = profileViewModel.posts.collectAsLazyPagingItems()
 
     val isUser = profileViewModel.isCurrentUser
@@ -182,6 +183,7 @@ fun ProfileScreen(
             // User handle and name
             UserInfo(
                 context = context,
+                navController = navController,
                 uiStates = uiState.value,
                 isUser = isUser,
                 user = user,
@@ -315,6 +317,7 @@ fun ProfileScreen(
 @Composable
 fun UserInfo(
     context: Context,
+    navController: NavController,
     uiStates: ProfileState,
     isUser: Boolean,
     user: User,
@@ -465,7 +468,7 @@ fun UserInfo(
                             .padding(4.dp)
                             .border(1.dp, MaterialTheme.colorScheme.primary, CircleShape)
                             .clickable {
-                                /*TODO*/
+                                //TODO
                             }
                     ) {
                         Text(

@@ -48,7 +48,7 @@ fun BottomBar(
             contentDescription = "Upload"
         ),
         BottomBarItem(
-            route = MainScreen.ProfileScreen.route,
+            route = MainScreen.ProfileScreen.MainProfileScreen.route,
             selectedIcon = R.drawable.person,
             unselectedIcon = R.drawable.person,
             contentDescription = "Profile"
