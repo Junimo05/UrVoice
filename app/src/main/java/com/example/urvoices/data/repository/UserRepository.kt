@@ -1,5 +1,7 @@
 package com.example.urvoices.data.repository
 
+import android.net.Uri
+import android.util.Log
 import androidx.paging.PagingSource
 import androidx.paging.PagingState
 import com.example.urvoices.data.model.Post
@@ -7,6 +9,11 @@ import com.example.urvoices.data.model.User
 import com.example.urvoices.data.service.FirebaseNotificationService
 import com.example.urvoices.data.service.FirebaseUserService
 import com.example.urvoices.utils.SharedPreferencesHelper
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import javax.inject.Inject
 
 class UserRepository @Inject constructor(
@@ -15,7 +22,7 @@ class UserRepository @Inject constructor(
 
 ){
     val TAG = "UserRepository"
-
+    val scope = CoroutineScope(Dispatchers.IO)
     suspend fun getInfoUserByUserID(userId: String) = firebaseUserService.getInfoUserByUserID(userId)
 
     suspend fun getFollowStatus(userId: String) = firebaseUserService.getFollowStatus(userId)
@@ -73,4 +80,44 @@ class UserRepository @Inject constructor(
         }
     }
 
+    //Update Func
+    suspend fun updateUser(
+        username: String,
+        bio: String,
+        country: String,
+        email: String,
+        avatarUri: Uri,
+        oldUser: User
+    ): Boolean{
+        try {
+            val updateTasks = mutableListOf<Deferred<Boolean>>()
+            if(username != oldUser.username){
+                updateTasks.add(scope.async { firebaseUserService.updateUsername(username) })
+            }
+            if(bio != oldUser.bio){
+                updateTasks.add(scope.async { firebaseUserService.updateBio(bio) })
+            }
+            if(country != oldUser.country){
+                updateTasks.add(scope.async { firebaseUserService.updateCountry(country) })
+            }
+            if(email != oldUser.email){
+                updateTasks.add(scope.async { firebaseUserService.updateEmail(email) })
+            }
+            if(avatarUri != Uri.EMPTY){
+                updateTasks.add(scope.async { firebaseUserService.updateAvatar(avatarUri) })
+            }
+            val results = updateTasks.awaitAll()
+            if(results.contains(false)){
+                Log.e(TAG, "updateUser: Error")
+                //rollback Update
+                //TODO: Rollback Update
+                return false
+            }
+            return true
+        } catch (e: Exception) {
+            e.printStackTrace()
+            Log.e(TAG, "updateUser: Error")
+        }
+        return false
+    }
 }

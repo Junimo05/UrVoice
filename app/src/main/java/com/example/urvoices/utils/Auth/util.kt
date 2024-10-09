@@ -1,5 +1,7 @@
 package com.example.urvoices.utils.Auth
 
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseUser
 import java.util.regex.Pattern
 
 fun isPasswordStrong(password: String): Boolean {
@@ -10,4 +12,27 @@ fun isPasswordStrong(password: String): Boolean {
     val matcher = pattern.matcher(password)
 
     return matcher.matches()
+}
+
+fun checkProvider(authUser: FirebaseUser?): String {
+    if (authUser != null) {
+        for (userInfo in authUser.providerData) {
+            when (userInfo.providerId) {
+                "facebook.com" -> {
+                    // User is signed in using Facebook
+                    return "Facebook"
+                }
+                "google.com" -> {
+                    // User is signed in using Google
+                    return "Google"
+                }
+                "password" -> {
+                    // User is signed in using email and password
+                    return "Email"
+                }
+            }
+        }
+    }
+    // If the provider is not recognized, return "Unknown"
+    return "Unknown"
 }

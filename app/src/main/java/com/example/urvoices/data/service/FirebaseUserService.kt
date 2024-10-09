@@ -186,7 +186,7 @@ class FirebaseUserService @Inject constructor(
 
     suspend fun updateAvatar(avatarUri: Uri): Boolean {
         val user = auth.currentUser
-        val imgName = user?.uid + ".jpg"
+        val imgName = "avatar.jpg"
         try {
             val imgRef = storage.child("imgs/${user?.uid}/$imgName")
             imgRef.putFile(avatarUri).await()

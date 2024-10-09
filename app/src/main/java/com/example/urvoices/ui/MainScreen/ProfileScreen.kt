@@ -1,10 +1,8 @@
 package com.example.urvoices.ui.MainScreen
 
 import android.annotation.SuppressLint
-import android.content.Context
 import android.content.res.Configuration.UI_MODE_NIGHT_NO
 import android.util.Log
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -67,7 +65,6 @@ import com.example.urvoices.presentations.theme.MyTheme
 import com.example.urvoices.ui._component.PlaylistItem
 import com.example.urvoices.ui._component.PostComponent.ProfilePostItem
 import com.example.urvoices.utils.Navigator.MainScreen
-import com.example.urvoices.utils.Navigator.SpecifyScreen
 import com.example.urvoices.viewmodel.MediaPlayerViewModel
 import com.example.urvoices.viewmodel.ProfileState
 import com.example.urvoices.viewmodel.ProfileViewModel
@@ -182,7 +179,6 @@ fun ProfileScreen(
         ) {
             // User handle and name
             UserInfo(
-                context = context,
                 navController = navController,
                 uiStates = uiState.value,
                 isUser = isUser,
@@ -316,7 +312,6 @@ fun ProfileScreen(
 
 @Composable
 fun UserInfo(
-    context: Context,
     navController: NavController,
     uiStates: ProfileState,
     isUser: Boolean,
@@ -468,7 +463,7 @@ fun UserInfo(
                             .padding(4.dp)
                             .border(1.dp, MaterialTheme.colorScheme.primary, CircleShape)
                             .clickable {
-                                //TODO
+                                navController.navigate(MainScreen.ProfileScreen.EditProfileScreen.route)
                             }
                     ) {
                         Text(

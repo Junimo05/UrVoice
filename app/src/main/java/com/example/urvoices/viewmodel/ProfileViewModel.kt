@@ -1,5 +1,6 @@
 package com.example.urvoices.viewmodel
 
+import android.net.Uri
 import android.util.Log
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -19,7 +20,12 @@ import com.example.urvoices.data.repository.PostRepository
 import com.example.urvoices.data.repository.UserRepository
 import com.example.urvoices.utils.SharedPreferencesHelper
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.ListenerRegistration
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -40,6 +46,7 @@ val userTemp = User(
 @HiltViewModel
 class ProfileViewModel @Inject constructor(
     private val sharedPreferencesHelper: SharedPreferencesHelper,
+    private val firebaseFireStore: FirebaseFirestore,
     private val postRepository: PostRepository,
     private val notificationRepository: NotificationRepository,
     private val userRepository: UserRepository,
@@ -48,7 +55,7 @@ class ProfileViewModel @Inject constructor(
 ): ViewModel(){
     val TAG = "ProfileViewModel"
 
-    val _uiState = MutableStateFlow<ProfileState>(ProfileState.Initial)
+    private val _uiState = MutableStateFlow<ProfileState>(ProfileState.Initial)
     val uiState: StateFlow<ProfileState> = _uiState.asStateFlow()
 
     @OptIn(SavedStateHandleSaveableApi::class)
@@ -71,7 +78,9 @@ class ProfileViewModel @Inject constructor(
     var currentUserID by savedStateHandle.saveable { mutableStateOf("") }
     @OptIn(SavedStateHandleSaveableApi::class)
     var currentUsername by savedStateHandle.saveable { mutableStateOf("") }
+    var authCurrentUser = auth.currentUser
 
+    private var userListenerRegistration: ListenerRegistration? = null
 
     val lastVisiblePost = mutableStateOf<String>("")
     val lastVisiblePage = mutableStateOf<Int>(1)
@@ -85,8 +94,7 @@ class ProfileViewModel @Inject constructor(
 
 
     fun loadData(userID: String){
-        val currentUser = auth.currentUser
-        currentUserID = currentUser?.uid ?: ""
+        currentUserID = authCurrentUser?.uid ?: ""
         this.displayuserID = userID
         if (currentUserID == this.displayuserID){
             isCurrentUser = true
@@ -98,6 +106,8 @@ class ProfileViewModel @Inject constructor(
             getPostCounts(userID)
             getFollowerCount(userID)
             getFollowingCount(userID)
+            //listen Change
+            listenToUserChanges(userID)
             _uiState.value = ProfileState.Successful
         }
     }
@@ -143,7 +153,66 @@ class ProfileViewModel @Inject constructor(
         }
     }
 
-    // TODO:fun updateInfo()
+
+    //Update DATA
+    fun updateProfile(
+        username: String,
+        bio: String,
+        country: String,
+        email: String,
+        avatarUri: Uri = Uri.EMPTY,
+    ){
+        _uiState.value = ProfileState.Working
+        val oldUser = displayuser.copy()
+        try {
+            viewModelScope.launch {
+                val result = userRepository.updateUser(username, bio, country, email, avatarUri, oldUser)
+                if(result){
+                    _uiState.value = ProfileState.Successful
+                    //update user data
+                    displayuser = displayuser.copy(
+                        username = username,
+                        bio = bio,
+                        country = country,
+                        email = email,
+                    )
+                }else {
+                    _uiState.value = ProfileState.Error("Error when updating profile")
+                }
+            }
+        } catch (e: Exception) {
+            _uiState.value = ProfileState.Error("Error when updating profile")
+            Log.e(TAG, "updateProfile: Error")
+        }
+    }
+
+
+
+    //Utils
+
+    fun listenToUserChanges(userId: String) {
+        val userDocumentRef = firebaseFireStore.collection("users").document(userId)
+        userListenerRegistration = userDocumentRef.addSnapshotListener { snapshot, error ->
+            if (error != null) {
+                Log.w(TAG, "Listen failed.", error)
+                return@addSnapshotListener
+            }
+
+            if (snapshot != null && snapshot.exists()) {
+                val user = snapshot.toObject(User::class.java)
+                if (user != null) {
+                    displayuser = user
+                    // Update UI here or do something with the updated user
+                }
+            } else {
+                Log.d(TAG, "Current data: null")
+            }
+        }
+    }
+
+    fun stopListeningToUserChanges() {
+        userListenerRegistration?.remove()
+    }
 
     private suspend fun getFollowStatus(userId: String) {
         try {
@@ -181,6 +250,12 @@ class ProfileViewModel @Inject constructor(
             _uiState.value = ProfileState.Error("Error when loading following count")
             Log.e(TAG, "getFollowingCount: Error")
         }
+    }
+
+    //override onCleared
+    override fun onCleared() {
+        super.onCleared()
+        stopListeningToUserChanges()
     }
 }
 

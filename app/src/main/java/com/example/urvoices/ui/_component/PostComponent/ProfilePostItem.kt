@@ -29,10 +29,8 @@ import androidx.navigation.compose.rememberNavController
 import com.example.urvoices.data.model.Post
 import com.example.urvoices.presentations.theme.MyTheme
 import com.example.urvoices.ui._component.InteractionRow
-import com.example.urvoices.utils.Navigator.SpecifyScreen
 import com.example.urvoices.utils.Post_Interactions
 import com.example.urvoices.utils.getTimeElapsed
-import com.example.urvoices.utils.toPostJson
 import com.example.urvoices.viewmodel.InteractionRowViewModel
 import com.example.urvoices.viewmodel.MediaPlayerViewModel
 import com.example.urvoices.viewmodel.UIEvents
