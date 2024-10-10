@@ -14,8 +14,8 @@ import com.google.firebase.storage.StorageReference
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 class FirebasePostService @Inject constructor(
@@ -346,20 +346,18 @@ class FirebasePostService @Inject constructor(
     */
 
     private suspend fun getCountCommentsPosts(postId: String): Int{
-        var result = 0
-        try {
-            // get comments
-            val commentRefs = firebaseFirestore.collection("comments_posts_users")
+        return try {
+            // get comments which are belong to post
+            val commentRefs = firebaseFirestore.collection("comments")
                 .whereEqualTo("postID", postId)
-                .whereEqualTo("parentCommentID", null)
                 .get()
                 .await()
-            result = commentRefs.documents.size
-        }catch (e: Exception){
+            commentRefs.documents.size
+        } catch (e: FirebaseFirestoreException) {
             e.printStackTrace()
             Log.e(TAG, "getCountCommentsPosts: ${e.message}")
+            0
         }
-        return result
     }
 
 
@@ -419,7 +417,6 @@ class FirebasePostService @Inject constructor(
                 id = null,
                 userId = actionUserID,
                 postId = postID,
-                parentCommentId = null,
                 content = content,
                 createdAt = System.currentTimeMillis(),
                 updatedAt = null,
@@ -431,12 +428,7 @@ class FirebasePostService @Inject constructor(
                 firebaseFirestore.collection("comments").document(cmt.result?.id!!)
                     .update("ID", cmt.result?.id!!)
                 //update Relation
-                firebaseFirestore.collection("comments_posts_users").add(comment.toRelationMap()).addOnCompleteListener {
-                    rela ->
-                    firebaseFirestore.collection("comments_posts_users").document(rela.result?.id!!)
-                        .update("ID", rela.result?.id!!)
-                    relaID = rela.result?.id!!
-                }
+                relaID = cmt.result?.id!!
             }.await()
             return relaID
         } catch (e: Exception) {
@@ -453,24 +445,18 @@ class FirebasePostService @Inject constructor(
                 id = null,
                 userId = actionUserID,
                 postId = postID,
-                parentCommentId = commentID,
                 content = content,
                 createdAt = System.currentTimeMillis(),
                 updatedAt = null,
                 deletedAt = null
             )
-            firebaseFirestore.collection("comments").add(comment.toCommentMap()).addOnCompleteListener {
+            firebaseFirestore.collection("comments").document(commentID).collection("replies").add(comment.toCommentMap()).addOnCompleteListener {
                 //update ID for comment
                 cmt ->
-                firebaseFirestore.collection("comments").document(cmt.result?.id!!)
+                firebaseFirestore.collection("comments").document(commentID).collection("replies").document(cmt.result?.id!!)
                     .update("ID", cmt.result?.id!!)
                 //update Relation
-                firebaseFirestore.collection("comments_posts_users").add(comment.toRelationMap()).addOnCompleteListener {
-                    rela ->
-                    firebaseFirestore.collection("comments_posts_users").document(rela.result?.id!!)
-                        .update("ID", rela.result?.id!!)
-                    relaID = rela.result?.id!!
-                }
+                relaID = cmt.result?.id!!
             }.await()
             return relaID
         } catch (e: Exception) {
@@ -479,49 +465,54 @@ class FirebasePostService @Inject constructor(
         return relaID
     }
 
-    suspend fun getCommentsPosts(page: Int ,postId: String): List<Comment>{
+    suspend fun getCommentsPosts(page: Int ,postId: String, lastCmt: MutableState<String>, lastPage: MutableState<Int>): List<Comment>{
         var result: List<Comment> = mutableListOf()
+        val limit = 5L
         try {
             // get comments which are belong to post
-            val commentRefs = firebaseFirestore.collection("comments_posts_users")
+            var commentQuery = firebaseFirestore.collection("comments")
+                .orderBy("createdAt", Query.Direction.DESCENDING)
                 .whereEqualTo("postID", postId)
-                .whereEqualTo("parentCommentID", null)
-                .limit(10)
-                .get()
-                .await()
+                .limit(limit)
+
+            if (lastCmt.value != "" && page > lastPage.value) {
+                val lastVisibleCommentRef = firebaseFirestore.collection("comments").document(lastCmt.value).get().await()
+                commentQuery = commentQuery.startAfter(lastVisibleCommentRef)
+                lastPage.value = page
+            }
+
+            val commentRefs = commentQuery.get().await()
+            val lastVisible = commentRefs.documents.lastOrNull()
+            if (lastVisible != null) {
+                lastCmt.value = lastVisible.id
+            }else { lastCmt.value = "" }
+
             result = commentRefs.documents.mapNotNull { document ->
-                // get comment information
-                val commentID = document.getString("commentID") ?: return@mapNotNull null
+                val commentID = document.id
                 val userID = document.getString("userID") ?: return@mapNotNull null
-                //get comment document
-                val commentDoc = firebaseFirestore.collection("comments").document(commentID).get().await()
-                val deletedAt = commentDoc.getLong("deleteAt")
-                if(deletedAt != null){
-                    return@mapNotNull null
-                }
-                val parentCommentID = document.getString("parentCommentID")
-                val content = commentDoc.getString("content")
-                val createdAt = commentDoc.getLong("createdAt")
-                val updateAt = commentDoc.getLong("updateAt")
+                val content = document.getString("content") ?: return@mapNotNull null
+                val createdAt = document.getLong("createdAt") ?: return@mapNotNull null
+                val updatedAt = document.getLong("updatedAt")
+                val deletedAt = document.getLong("deletedAt")
+                val likes = withContext(Dispatchers.IO) { getCountLikesComments(commentID) }
+                val replies = withContext(Dispatchers.IO) { getCountReplyComments(commentID) }
 
                 Comment(
                     id = commentID,
                     userId = userID,
                     postId = postId,
-                    parentCommentId = parentCommentID,
-                    content = content ?: return@mapNotNull null,
-                    createdAt = createdAt ?: return@mapNotNull null,
-                    updatedAt = updateAt,
+                    content = content,
+                    likes = likes,
+                    replyComments = replies,
+                    createdAt = createdAt,
+                    updatedAt = updatedAt,
                     deletedAt = deletedAt
                 )
             }
-        }catch (
-            e: Exception
-        ) {
+        } catch (e: Exception) {
             e.printStackTrace()
-//            Log.e(TAG, "getCommentsPosts: ${e.message}")
+            Log.e(TAG, "getCommentsPosts: ${e.message}")
         }
-
         return result
     }
 
@@ -560,8 +551,9 @@ class FirebasePostService @Inject constructor(
         var result = 0
         try {
             // get comments which are belong to post
-            val commentRefs = firebaseFirestore.collection("comments_posts_users")
-                .whereEqualTo("parentCommentID", commentId)
+            val commentRefs = firebaseFirestore.collection("comments")
+                .document(commentId)
+                .collection("replies")
                 .get()
                 .await()
             result = commentRefs.documents.size
@@ -572,44 +564,65 @@ class FirebasePostService @Inject constructor(
         return result
     }
 
-    suspend fun getRepliesComments(commentId: String): List<Comment>{
-        var result = mutableListOf<Comment>()
+    suspend fun getRepliesComments(commentId: String, lastCommentReplyID: MutableState<String>, lastParentCommentID: MutableState<String>): List<Comment>{
+        var result = emptyList<Comment>()
+        val limit = 5L
         try {
             // get comments which are belong to post
-            val commentRefs = firebaseFirestore.collection("comments_posts_users")
-                .whereEqualTo("parentCommentID", commentId)
-                .get()
-                .await()
+            var commentQuery = firebaseFirestore.collection("comments")
+                .document(commentId)
+                .collection("replies")
+                .limit(limit)
+
+            if (lastCommentReplyID.value == commentId || lastParentCommentID.value != "") {
+                val lastVisibleCommentRef = firebaseFirestore.collection("comments")
+                    .document(commentId)
+                    .collection("replies")
+                    .document(lastParentCommentID.value)
+                    .get().await()
+                commentQuery = commentQuery.startAfter(lastVisibleCommentRef)
+            } else {
+                lastCommentReplyID.value = commentId
+                lastParentCommentID.value = ""
+            }
+
+            val commentRefs = commentQuery.get().await()
+            val lastVisible = commentRefs.documents.lastOrNull()
+            if (lastVisible != null) {
+                lastParentCommentID.value = lastVisible.id
+            } else {
+                lastParentCommentID.value = ""
+            }
 
             result = commentRefs.documents.mapNotNull { document ->
-                // get comment information
-                val replyId = document.getString("commentID") ?: return@mapNotNull null
-                val userId = document.getString("userID") ?: return@mapNotNull null
-                val postId = document.getString("postID") ?: return@mapNotNull null
-
-                //get comment document
-                val commentDoc =
-                    firebaseFirestore.collection("comments").document(replyId).get().await()
+                val commentID = document.getString("commentID") ?: return@mapNotNull null
+                val userID = document.getString("userID") ?: return@mapNotNull null
+                val postID = document.getString("postID") ?: return@mapNotNull null
+                val content = document.getString("content") ?: return@mapNotNull null
+                val createdAt = document.getLong("createdAt") ?: return@mapNotNull null
+                val updatedAt = document.getLong("updatedAt")
+                val deletedAt = document.getLong("deletedAt")
+                val likes = withContext(Dispatchers.IO) { getCountLikesComments(commentID) }
+                val replies = withContext(Dispatchers.IO) { getCountReplyComments(commentID) }
 
                 Comment(
-                    id = replyId,
-                    userId = userId,
-                    postId = postId,
-                    parentCommentId = commentId,
-                    content = commentDoc.getString("content") ?: return@mapNotNull null,
-                    createdAt = commentDoc.getLong("createdAt") ?: return@mapNotNull null,
-                    updatedAt = commentDoc.getLong("updatedAt"),
-                    deletedAt = commentDoc.getLong("deletedAt")
+                    id = commentID,
+                    userId = userID,
+                    postId = postID,
+                    content = content,
+                    likes = likes,
+                    replyComments = replies,
+                    createdAt = createdAt,
+                    updatedAt = updatedAt,
+                    deletedAt = deletedAt
                 )
-            }.toMutableList()
+            }
         } catch (e: Exception) {
             e.printStackTrace()
             Log.e(TAG, "getRepliesComments: ${e.message}")
         }
         return result
     }
-
-
 
 
 }

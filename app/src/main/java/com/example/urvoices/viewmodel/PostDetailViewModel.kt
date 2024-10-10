@@ -16,10 +16,13 @@ import com.example.urvoices.data.repository.PostRepository
 import com.example.urvoices.data.repository.UserRepository
 import com.google.firebase.auth.FirebaseAuth
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 val emptyPost = Post(
@@ -46,12 +49,10 @@ class PostDetailViewModel @Inject constructor(
 ): ViewModel() {
     val TAG = "PostDetailViewModel"
 
-    val _uiState = MutableStateFlow<PostDetailState>(PostDetailState.Initial)
+    private val _uiState = MutableStateFlow<PostDetailState>(PostDetailState.Initial)
     val uiState = _uiState.asStateFlow()
 
-    private val postID: String by lazy {
-        checkNotNull(savedStateHandle["postID"])
-    }
+    private var postID = ""
     @OptIn(SavedStateHandleSaveableApi::class)
     var currentPost by savedStateHandle.saveable { mutableStateOf(emptyPost) }
     @OptIn(SavedStateHandleSaveableApi::class)
@@ -59,23 +60,62 @@ class PostDetailViewModel @Inject constructor(
     @OptIn(SavedStateHandleSaveableApi::class)
     var isFollowed by savedStateHandle.saveable { mutableStateOf(false) }
 
+
+    //Comment Control
+    val lastPage = mutableStateOf(1)
+    val lastCmt = mutableStateOf("")
     val commentLists : Flow<PagingData<Comment>> by lazy {
         Pager(PagingConfig(pageSize = 10)){
-            postRepository.getComments_Posts(postID)
+            postRepository.getComments_Posts(postID, lastCmt, lastPage)
         }.flow.cachedIn(viewModelScope)
     }
 
+
+    //Reply Comment Control
+    val lastCommentReplyID = mutableStateOf("")
+    val lastParentCommentID = mutableStateOf("")
+    private val _replyLists = MutableStateFlow<List<Comment>>(emptyList())
+    val replyLists: StateFlow<List<Comment>> = _replyLists
+
     fun loadData(postID: String, userID: String) {
+        this.postID = postID
+        viewModelScope.launch {
+            try {
+                _uiState.value = PostDetailState.Working
+                //get post data and user data
+                val job1 = launch {
+                    if(userID != ""){
+                        loadUserPostData(userID)
+                    }
+                }
+                val job2 = launch {
+                    if(currentPost.id == "" || currentPost.id != postID){
+                        loadPostData(postID)
+                    }
+                }
+                job1.join()
+                job2.join()
+
+                withContext(Dispatchers.Main) {
+                    _uiState.value = PostDetailState.Success
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+                withContext(Dispatchers.Main) {
+                    _uiState.value = PostDetailState.Error
+                }
+            }
+        }
+    }
+
+    fun loadMoreReplyComments(commentID: String) {
         try {
             _uiState.value = PostDetailState.Working
-            //get post data and user data
             viewModelScope.launch {
-                if(userID != ""){
-                    loadUserPostData(userID)
-                }
-                loadPostData(postID)
+                val result = postRepository.getReply_Comments(commentID, lastCommentReplyID, lastParentCommentID)
+                _replyLists.value = result
             }
-
+            _uiState.value = PostDetailState.Success
         } catch (e: Exception) {
             e.printStackTrace()
             _uiState.value = PostDetailState.Error
@@ -84,7 +124,6 @@ class PostDetailViewModel @Inject constructor(
 
     private suspend fun loadPostData(postID: String) {
         try {
-            _uiState.value = PostDetailState.Working
             val post = postRepository.getPostDetail(postID)
             if (post != null) {
                 currentPost = post
@@ -94,7 +133,6 @@ class PostDetailViewModel @Inject constructor(
             } else {
                 _uiState.value = PostDetailState.Failed
             }
-            _uiState.value = PostDetailState.Success
         } catch (e: Exception) {
             e.printStackTrace()
             _uiState.value = PostDetailState.Error
@@ -103,7 +141,6 @@ class PostDetailViewModel @Inject constructor(
 
     private suspend fun loadUserPostData(userID: String) {
         try {
-            _uiState.value = PostDetailState.Working
             val user = userRepository.getInfoUserByUserID(userID)
             if (user != null) {
                 userPost = user
@@ -111,7 +148,6 @@ class PostDetailViewModel @Inject constructor(
             } else {
                 _uiState.value = PostDetailState.Failed
             }
-            _uiState.value = PostDetailState.Success
         } catch (e: Exception) {
             e.printStackTrace()
             _uiState.value = PostDetailState.Error
@@ -120,10 +156,8 @@ class PostDetailViewModel @Inject constructor(
 
     private suspend fun checkFollowed() {
         try {
-            _uiState.value = PostDetailState.Working
             val result = userRepository.getFollowStatus(currentPost.userId)
             isFollowed = result
-            _uiState.value = PostDetailState.Success
         } catch (e: Exception) {
             e.printStackTrace()
             _uiState.value = PostDetailState.Error

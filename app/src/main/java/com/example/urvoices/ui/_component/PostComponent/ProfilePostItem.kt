@@ -47,6 +47,7 @@ fun ProfilePostItem(
 ){
     val TAG = "ProfilePostItem"
     val interactionViewModel = hiltViewModel<InteractionRowViewModel>()
+    interactionViewModel.getLoveStatus(post.id!!)
     val timeText = getTimeElapsed(post.createdAt)
     val scope = CoroutineScope(Dispatchers.Main)
 
@@ -60,8 +61,7 @@ fun ProfilePostItem(
                 .fillMaxWidth(0.8f)
                 .align(Alignment.Center)
                 .clickable {
-                    //TODO: NAVIGATE TO POST
-                    if(post.id != null) navController.navigate("post/${post.userId}/${post.id}")
+                    navController.navigate("post/${post.userId}/${post.id}")
                 }
                 ,
             shape = RoundedCornerShape(16.dp),
@@ -100,14 +100,18 @@ fun ProfilePostItem(
                 )
                 InteractionRow(
                     interactions = Post_Interactions(
-                        //TODO: ACTION POST
+                        isLove = interactionViewModel.isLove,
                         loveCounts = post.likes,
                         commentCounts = post.comments,
                         love_act = {
-
+                            interactionViewModel.loveAction(
+                                isLove = it,
+                                postID = post.id,
+                                targetUserID = post.userId
+                            )
                         },
                         comment_act = {
-                            if(post.id != null) navController.navigate("post/${post.userId}/${post.id}")
+                            navController.navigate("post/${post.userId}/${post.id}")
                         },
                     ),
                     modifier = Modifier.align(Alignment.CenterHorizontally)
@@ -115,7 +119,7 @@ fun ProfilePostItem(
             }
         }
         AudioWaveformItem(
-            id = post.id!!,
+            id = post.id,
             audioUrl = post.url!!,
             audioAmplitudes = post.amplitudes,
             currentPlayingAudio = playerViewModel.currentPlayingAudio,

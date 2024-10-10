@@ -18,6 +18,9 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -33,29 +36,43 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.urvoices.R
+import com.example.urvoices.data.model.Comment
 import com.example.urvoices.presentations.theme.MyTheme
 import com.example.urvoices.ui._component.InteractionRow
-import com.example.urvoices.ui._component.ProfileComponent.Comment
 import com.example.urvoices.utils.Comment_Interactions
+import com.example.urvoices.viewmodel.InteractionRowViewModel
+import kotlinx.coroutines.plus
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter", "UnrememberedMutableState")
 @Composable
 fun CommentItem(
     navController: NavController,
+    comment: Comment,
+    lastParentCommentID: MutableState<String>,
+    replyPage: State<List<Comment>>,
     loadReply: (String) -> Unit,
+    depth: Int = 0
     //comment data
 
     //interactions data
 ){
+    val interactionViewModel = hiltViewModel<InteractionRowViewModel>()
     val isExpandedComment = mutableStateOf(false)
     var isExpandedReply by remember { mutableStateOf(false) }
     var showReplyField by remember { mutableStateOf(false) }
     var replyText by remember { mutableStateOf("") }
 
     var replies by remember { mutableStateOf(emptyList<Comment>()) }
+
+    LaunchedEffect(replyPage) {
+        if (comment.id == lastParentCommentID.value && replyPage.value.isNotEmpty()) {
+            replies = replyPage.value
+        }
+    }
 
     Card(
         modifier = Modifier.background(MaterialTheme.colorScheme.primaryContainer)
@@ -64,6 +81,7 @@ fun CommentItem(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(16.dp)
+                .padding(start = 16.dp * depth)
                 .background(MaterialTheme.colorScheme.primaryContainer)
         ) {
             Row(
@@ -111,17 +129,23 @@ fun CommentItem(
             )
             // Comment interaction
             InteractionRow(interactions = Comment_Interactions(
-                loveCounts = 0,
+                isLove = interactionViewModel.isLove,
+                loveCounts = comment.likes,
                 love_act = {
-
+                    interactionViewModel.loveAction(
+                        isLove = it,
+                        targetUserID = comment.userId,
+                        commentID = comment.id!!,
+                        postID = comment.postId
+                    )
                 },
-                commentCounts = 0,
+                commentCounts = comment.replyComments,
                 comment_act = {
                     isExpandedReply = !isExpandedReply
-                    loadReply("comment_id")
+                    loadReply(comment.id!!)
                 },
                 reply_act = {
-
+                    //TODO: Comment
                 }
             ))
             // Replies
@@ -129,22 +153,51 @@ fun CommentItem(
                 replies.forEach { reply ->
                     CommentItem(
                         navController = navController,
-                        loadReply = { loadReply(it) }
-                        //reply data
+                        comment = reply,
+                        lastParentCommentID = lastParentCommentID,
+                        replyPage = replyPage,
+                        depth = depth + 1,
+                        loadReply = {
+                            loadReply(it)
+                        },
                     )
                 }
+                Text(
+                    text = "Load more replies...",
+                    modifier = Modifier
+                        .padding(16.dp)
+                        .clickable { loadReply(comment.id!!) }, // Call loadReply when the text is clicked
+                    style = TextStyle(
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 16.sp,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer
+                    )
+                )
             }
         }
     }
 }
 
+@SuppressLint("UnrememberedMutableState")
 @Preview(showBackground = true)
 @Composable
 fun CommentItemPreview() {
     MyTheme {
         CommentItem(
             navController = rememberNavController(),
-            loadReply = {}
+            comment = Comment(
+                id = 0.toString(),
+                postId = 0.toString(),
+                userId = 0.toString(),
+                createdAt = 0,
+                content = "This is a comment",
+                deletedAt = 0,
+                updatedAt = 0,
+            ),
+            depth = 0,
+            loadReply = {},
+            replyPage = mutableStateOf(emptyList()),
+            lastParentCommentID = mutableStateOf("")
         )
     }
 }

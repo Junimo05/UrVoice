@@ -103,7 +103,7 @@ fun AudioWaveformItem(
                 spikePadding = 2.dp,
                 spikeRadius = 4.dp,
                 progress = if(!isStop && currentPlayingPost == id) percentPlayed else 0F,
-                amplitudes = audioAmplitudes ?: listOf(),
+                amplitudes = audioAmplitudes!!,
                 onProgressChange = {
                    if(isPlaying && currentPlayingPost == id) {
                        onPercentChange(it)

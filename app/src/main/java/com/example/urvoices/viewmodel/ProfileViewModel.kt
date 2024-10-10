@@ -82,14 +82,12 @@ class ProfileViewModel @Inject constructor(
 
     private var userListenerRegistration: ListenerRegistration? = null
 
-    val lastVisiblePost = mutableStateOf<String>("")
-    val lastVisiblePage = mutableStateOf<Int>(1)
-
+    val lastVisiblePost = mutableStateOf("")
+    val lastVisiblePage = mutableStateOf(1)
     val posts : Flow<PagingData<Post>> =
         Pager(PagingConfig(pageSize = 3)){
             postRepository.getAllPostFromUser(displayuserID, lastVisiblePost, lastVisiblePage)
         }.flow.cachedIn(viewModelScope)
-
 
 
 

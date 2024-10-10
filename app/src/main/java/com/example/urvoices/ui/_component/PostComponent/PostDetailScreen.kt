@@ -1,13 +1,13 @@
 package com.example.urvoices.ui._component.PostComponent
 
 import android.annotation.SuppressLint
-import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -25,6 +25,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -49,6 +50,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import androidx.paging.compose.collectAsLazyPagingItems
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.example.urvoices.R
@@ -60,6 +62,7 @@ import com.example.urvoices.utils.Post_Interactions
 import com.example.urvoices.viewmodel.AuthViewModel
 import com.example.urvoices.viewmodel.InteractionRowViewModel
 import com.example.urvoices.viewmodel.MediaPlayerViewModel
+import com.example.urvoices.viewmodel.PostDetailState
 import com.example.urvoices.viewmodel.PostDetailViewModel
 import com.example.urvoices.viewmodel.UIEvents
 
@@ -87,9 +90,10 @@ fun PostDetail(
     val userPost by lazy {
         postDetailViewModel.userPost
     }
+    val commentLists = postDetailViewModel.commentLists.collectAsLazyPagingItems()
 
     val listState = rememberLazyListState()
-    var scrollThroughContentDetail = remember { mutableStateOf(false) }
+    val scrollThroughContentDetail = remember { mutableStateOf(false) }
 
     LaunchedEffect(listState) {
         snapshotFlow { listState.firstVisibleItemIndex }.collect { index ->
@@ -139,20 +143,32 @@ fun PostDetail(
                 Spacer(modifier = Modifier.height(30.dp))
             }
             stickyHeader {
-                ContentDetail(
-                    post = currentPost,
-                    playerViewModel = playerViewModel,
-                    scrollThroughContentDetail = scrollThroughContentDetail
-                )
+                if(uiState.value == PostDetailState.Success){
+                    ContentDetail(
+                        scrollThroughContentDetail = scrollThroughContentDetail,
+                        playerViewModel = playerViewModel,
+                        post = currentPost
+                    )
+                } else {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.Center
+                    ) {
+                        CircularProgressIndicator()
+                    }
+                }
             }
             item {
                 Spacer(modifier = Modifier.height(30.dp))
             }
-            items(10) {
+            items(commentLists.itemCount) {
                 CommentItem(
                     navController = navController,
-                    loadReply = {
-                        //TODO
+                    comment = commentLists[it]!!,
+                    lastParentCommentID = postDetailViewModel.lastParentCommentID,
+                    replyPage = postDetailViewModel.replyLists.collectAsState(),
+                    loadReply = { commentID ->
+                        postDetailViewModel.loadMoreReplyComments(commentID)
                     },
                 )
             }
@@ -183,7 +199,7 @@ fun ProfileDetail(
                 .clip(CircleShape)
                 .border(2.dp, Color.Black, CircleShape)
                 .clickable {
-
+                    //TODO: navigate to user profile
                 }
         )
         Spacer(modifier = Modifier.height(16.dp))
@@ -226,7 +242,7 @@ fun ProfileDetail(
             }
             Spacer(modifier = Modifier.width(16.dp))
             Button(
-                onClick = { /*TODO*/ },
+                onClick = { /*TODO Message*/ },
                 modifier = Modifier.size(120.dp, 40.dp),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = MaterialTheme.colorScheme.secondaryContainer,
@@ -334,6 +350,7 @@ fun ContentDetail(
             commentCounts = 0,
             love_act = {},
             comment_act = {},
+            isLove = false
         ))
     }
 }

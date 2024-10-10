@@ -69,13 +69,12 @@ fun NewFeedPostItem(
     val timeText = getTimeElapsed(post.createdAt)
     val scope = CoroutineScope(Dispatchers.Main)
     val interactionViewModel = hiltViewModel<InteractionRowViewModel>()
+    interactionViewModel.getLoveStatus(post.id!!)
     Card(
         shape = RoundedCornerShape(40.dp),
         modifier = modifier.clickable {
             //TODO: Navigate to Post Detail
-            if(post.id != null) {
-                navController.navigate("/post/${post.userId}/${post.id}")
-            }
+            navController.navigate("post/${post.userId}/${post.id}")
         }
     ) {
         Column (
@@ -89,7 +88,7 @@ fun NewFeedPostItem(
                 ProfileInfo(
                     navController = navController,
                     userId = post.userId,
-                    postId = post.id!!,
+                    postId = post.id,
                     postDes = post.description,
                     homeViewModel = homeViewModel,
                     modifier = Modifier.weight(1f)
@@ -136,7 +135,7 @@ fun NewFeedPostItem(
 
             Spacer(modifier = Modifier.height(8.dp))
             AudioWaveformItem(
-                id = post.id!!,
+                id = post.id,
                 audioUrl = post.url!!,
                 audioAmplitudes = post.amplitudes,
                 currentPlayingAudio = playerViewModel.currentPlayingAudio,
@@ -163,8 +162,10 @@ fun NewFeedPostItem(
                 interactions = Post_Interactions(
                     loveCounts = post.likes,
                     commentCounts = post.comments,
+                    isLove = interactionViewModel.isLove,
                     love_act = {
                         interactionViewModel.loveAction(
+                            isLove = it,
                             targetUserID = post.userId,
                             postID = post.id
                         )

@@ -149,12 +149,12 @@ class PostRepository @Inject constructor(
     }
 
     //Get Comment's Detail
-     fun getComments_Posts(postID: String): PagingSource<Int, Comment> {
+     fun getComments_Posts(postID: String, lastCmt: MutableState<String>, lastPage: MutableState<Int>): PagingSource<Int, Comment> {
         return object : PagingSource<Int, Comment>() {
             override suspend fun load(params: LoadParams<Int>): LoadResult<Int, Comment> {
                 return try {
                     val nextPage = params.key ?: 1
-                    val commentList = firestorePostService.getCommentsPosts(nextPage, postID)
+                    val commentList = firestorePostService.getCommentsPosts(nextPage, postID, lastCmt, lastPage)
                     LoadResult.Page(
                         data = commentList,
                         prevKey = if (nextPage == 1) null else nextPage - 1,
@@ -171,8 +171,13 @@ class PostRepository @Inject constructor(
         }
     }
 
-    suspend fun getReply_Comments(commentID: String): List<Comment>{
-        val result = firestorePostService.getRepliesComments(commentID)
-        return result
+    suspend fun getReply_Comments(commentID: String, lastCommentReplyID: MutableState<String>, lastParentCommentID: MutableState<String>): List<Comment>{
+        try {
+            val result = firestorePostService.getRepliesComments(commentID, lastCommentReplyID, lastParentCommentID)
+            return result
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+        return emptyList()
     }
 }

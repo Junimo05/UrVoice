@@ -8,8 +8,9 @@ data class Comment(
     val id: String?,
     val userId: String,
     val postId: String,
-    val parentCommentId: String?,
     val content: String,
+    val likes: Int = 0,
+    val replyComments: Int = 0,
     val createdAt: Long,
     val updatedAt: Long?,
     val deletedAt: Long?,
@@ -21,15 +22,6 @@ data class Comment(
             "createdAt" to createdAt,
             "updateAt" to updatedAt,
             "deleteAt" to deletedAt,
-        )
-    }
-    fun toRelationMap(): Map<String, Any?> {
-        return mapOf(
-            "ID" to id,
-            "userId" to userId,
-            "postId" to postId,
-            "parentCommentId" to parentCommentId,
-            "createdAt" to createdAt,
         )
     }
 }
