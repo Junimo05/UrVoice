@@ -1,6 +1,7 @@
-package com.example.urvoices.ui._component.PostComponent
+package com.example.urvoices.ui.MainScreen
 
 import android.annotation.SuppressLint
+import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -57,6 +58,9 @@ import com.example.urvoices.R
 import com.example.urvoices.data.model.Post
 import com.example.urvoices.data.model.User
 import com.example.urvoices.ui._component.InteractionRow
+import com.example.urvoices.ui._component.PostComponent.AudioWaveformItem
+import com.example.urvoices.ui._component.PostComponent.CommentBar
+import com.example.urvoices.ui._component.PostComponent.CommentItem
 import com.example.urvoices.ui._component.TopBarBackButton
 import com.example.urvoices.utils.Post_Interactions
 import com.example.urvoices.viewmodel.AuthViewModel
@@ -79,6 +83,7 @@ fun PostDetail(
 ){
     val TAG = "PostDetail"
     val interactionViewModel = hiltViewModel<InteractionRowViewModel>()
+    interactionViewModel.getLoveStatus(postID = postID)
     val uiState = postDetailViewModel.uiState.collectAsState()
 //    Log.e("PostDetail", "PostID: $postID")
     //
@@ -87,9 +92,7 @@ fun PostDetail(
         postDetailViewModel.currentPost
     }
 //    Log.e("PostDetail", "CurrentPost: $currentPost")
-    val userPost by lazy {
-        postDetailViewModel.userPost
-    }
+    val userPost = postDetailViewModel.userPost
     val commentLists = postDetailViewModel.commentLists.collectAsLazyPagingItems()
 
     val listState = rememberLazyListState()
@@ -125,13 +128,21 @@ fun PostDetail(
                 modifier = Modifier.background(MaterialTheme.colorScheme.surfaceVariant)
             )
         },
+        bottomBar = {
+            CommentBar(
+                onSendMessage = { message ->
+
+                },
+                onAttachFile = { /*TODO*/ }
+            )
+        },
         modifier = Modifier.fillMaxSize()
     ) {it ->
         LazyColumn(
             horizontalAlignment = Alignment.CenterHorizontally,
             state = listState,
             modifier = Modifier.padding(it),
-        ){
+        ) {
             item {
                 ProfileDetail(
                     navController = navController,
@@ -143,11 +154,12 @@ fun PostDetail(
                 Spacer(modifier = Modifier.height(30.dp))
             }
             stickyHeader {
-                if(uiState.value == PostDetailState.Success){
+                if (uiState.value == PostDetailState.Success || currentPost.value.id != "") {
                     ContentDetail(
+                        interactionRowViewModel = interactionViewModel,
                         scrollThroughContentDetail = scrollThroughContentDetail,
                         playerViewModel = playerViewModel,
-                        post = currentPost
+                        post = currentPost.value
                     )
                 } else {
                     Row(
@@ -161,12 +173,14 @@ fun PostDetail(
             item {
                 Spacer(modifier = Modifier.height(30.dp))
             }
-            items(commentLists.itemCount) {
+            items(commentLists.itemCount) { index ->
                 CommentItem(
                     navController = navController,
-                    comment = commentLists[it]!!,
+                    uiState = uiState,
+                    comment = commentLists[index]!!,
+                    index = index,
                     lastParentCommentID = postDetailViewModel.lastParentCommentID,
-                    replyPage = postDetailViewModel.replyLists.collectAsState(),
+                    postDetailViewModel = postDetailViewModel,
                     loadReply = { commentID ->
                         postDetailViewModel.loadMoreReplyComments(commentID)
                     },
@@ -267,6 +281,7 @@ fun ProfileDetail(
 @SuppressLint("StateFlowValueCalledInComposition")
 @Composable
 fun ContentDetail(
+    interactionRowViewModel: InteractionRowViewModel,
     scrollThroughContentDetail: MutableState<Boolean>,
     playerViewModel: MediaPlayerViewModel,
     post: Post,
@@ -326,7 +341,7 @@ fun ContentDetail(
             audioAmplitudes = post.amplitudes,
             currentPlayingAudio = playerViewModel.currentPlayingAudio,
             currentPlayingPost = playerViewModel.currentPlayingPost,
-            duration = playerViewModel.duration, //fix Duration each Post
+            duration = playerViewModel.duration,
             isPlaying = playerViewModel.isPlaying,
             isStop = playerViewModel.isStop.value,
             onPlayStart = {
@@ -345,13 +360,22 @@ fun ContentDetail(
             },
         )
 
-        InteractionRow(Post_Interactions(
-            loveCounts = 0,
-            commentCounts = 0,
-            love_act = {},
-            comment_act = {},
-            isLove = false
-        ))
+        InteractionRow(
+            interactions = Post_Interactions(
+                isLove = interactionRowViewModel.isLove,
+                loveCounts = post.likes,
+                commentCounts = post.comments,
+                love_act = {
+                    interactionRowViewModel.loveAction(
+                        isLove = it,
+                        postID = post.id,
+                        targetUserID = post.userId
+                    )
+                },
+                comment_act = {
+                    //TODO: Open keyboard
+                })
+        )
     }
 }
 

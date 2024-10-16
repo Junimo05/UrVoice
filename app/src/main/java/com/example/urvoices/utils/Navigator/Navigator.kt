@@ -48,23 +48,24 @@ fun Navigator(authViewModel: AuthViewModel) {
     LaunchedEffect(navController) {
         navController.addOnDestinationChangedListener { _, destination, _ ->
             when (destination.parent?.route) {
-                Graph.AUTHENTICATION -> isVisibleBottomBar.value = false
+                Graph.AUTHENTICATION -> {
+                    isVisibleBottomBar.value = false
+                    isVisibleMediaBar.value = false
+                }
                 Graph.NAV_SCREEN -> isVisibleBottomBar.value = true
                 Graph.SPECIFY -> isVisibleBottomBar.value = false
                 Graph.NOTI_MSG -> isVisibleBottomBar.value = false
             }
             when (destination.route) {
-                Graph.AUTHENTICATION -> isVisibleMediaBar.value = false
                 Graph.NAV_SCREEN -> isVisibleMediaBar.value = true
                 Graph.SPECIFY -> {
-                    if(destination.route!!.startsWith("post/") == true){
+                    if(destination.route!!.startsWith("post/")){
                         isVisibleMediaBar.value = false
                     }else {
                         isVisibleMediaBar.value = true
                     }
                 }
                 Graph.NOTI_MSG -> isVisibleMediaBar.value = true
-
             }
         }
     }
@@ -119,7 +120,7 @@ fun Navigator(authViewModel: AuthViewModel) {
                             playerViewModel.onUIEvents(UIEvents.LoopModeChange)
                         }
                     )
-                }else {
+                } else {
                     Text(
                         text = "Not Playing",
                         color = Color.Black

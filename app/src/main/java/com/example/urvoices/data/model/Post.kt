@@ -15,7 +15,7 @@ data class Post(
     val amplitudes: List<Int>? = null,
     val audioName: String?,
     val description: String,
-    val likes: Int = 0,
+    var likes: Int = 0,
     val comments: Int = 0,
     val tag: List<String>?,
     val createdAt: Long,

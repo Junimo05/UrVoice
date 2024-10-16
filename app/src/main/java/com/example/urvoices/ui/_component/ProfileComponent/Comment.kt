@@ -1,179 +1,142 @@
-package com.example.urvoices.ui._component.ProfileComponent
-
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material3.Divider
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
+import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import com.example.urvoices.R
+import coil.compose.AsyncImage
 
 data class Comment(
-    val id: Int,
+    val id: String,
     val author: String,
     val content: String,
+    val avatar: String,
     val replies: List<Comment> = emptyList()
 )
 
 @Composable
-fun CommentSection(comments: List<Comment>) {
-    LazyColumn {
-        items(comments) { comment ->
-            CommentItem(comment = comment)
+fun CommentThread(comments: List<Comment>) {
+    Column(modifier = Modifier.fillMaxWidth()) {
+        comments.forEachIndexed { index, comment ->
+            CommentItem(comment, isLast = index == comments.lastIndex, depth = 0)
         }
     }
 }
 
 @Composable
-fun CommentItem(comment: Comment, depth: Int = 0) {
-    var isExpanded by remember { mutableStateOf(false) }
-    var showReplyField by remember { mutableStateOf(false) }
-    var replyText by remember { mutableStateOf("") }
-
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(start = (depth * 16).dp)
-    ) {
+fun CommentItem(comment: Comment, isLast: Boolean, depth: Int) {
+    Box(modifier = Modifier.fillMaxWidth()) {
+        if (depth > 0) {
+            ConnectionLine(isLast)
+        }
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(vertical = 8.dp),
-            verticalAlignment = Alignment.CenterVertically
+                .padding(start = (depth * 16).dp, top = 8.dp, bottom = 8.dp, end = 16.dp)
         ) {
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = comment.author,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 14.sp
-                )
-                Text(
-                    text = comment.content,
-                    fontSize = 14.sp
-                )
-            }
-            if (comment.replies.isNotEmpty()) {
-                IconButton(onClick = { isExpanded = !isExpanded }) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.home),
-                        contentDescription = if (isExpanded) "Collapse" else "Expand"
-                    )
-                }
-            }
-        }
-
-        if (isExpanded && comment.replies.isNotEmpty()) {
-            comment.replies.forEach { reply ->
-                CommentItem(comment = reply, depth = depth + 1)
-            }
-        }
-
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            TextButton(onClick = { showReplyField = !showReplyField }) {
-                Text("Reply", color = Color.Blue)
-            }
-        }
-
-        if (showReplyField) {
-            Row(
+            AsyncImage(
+                model = comment.avatar,
+                contentDescription = "Avatar of ${comment.author}",
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 8.dp)
+                    .size(40.dp)
+                    .clip(CircleShape),
+                contentScale = ContentScale.Crop
+            )
+            Spacer(modifier = Modifier.width(16.dp))
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = MaterialTheme.shapes.medium
             ) {
-                TextField(
-                    value = replyText,
-                    onValueChange = { replyText = it },
-                    modifier = Modifier.weight(1f),
-                    placeholder = { Text("Write a reply...") }
-                )
-                IconButton(
-                    onClick = {
-                        // Here you would typically add the reply to the comment
-                        // For this example, we'll just clear the field and hide it
-                        replyText = ""
-                        showReplyField = false
-                    }
-                ) {
-                    Icon(Icons.Default.Add, contentDescription = "Post Reply")
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Text(text = comment.author, style = MaterialTheme.typography.titleMedium)
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(text = comment.content, style = MaterialTheme.typography.bodyMedium)
                 }
             }
         }
-
-        HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
+    }
+    if (comment.replies.isNotEmpty()) {
+        Column(modifier = Modifier.padding(start = ((depth + 1) * 16).dp)) {
+            comment.replies.forEachIndexed { index, reply ->
+                CommentItem(reply, isLast = index == comment.replies.lastIndex, depth = depth + 1)
+            }
+        }
     }
 }
 
 @Composable
-fun InfiniteNestedCommentsScreen() {
-    val sampleComments = listOf(
-        Comment(
-            id = 1,
-            author = "User1",
-            content = "This is a top-level comment.",
-            replies = listOf(
-                Comment(
-                    id = 2,
-                    author = "User2",
-                    content = "This is a reply to the top-level comment.",
-                    replies = listOf(
-                        Comment(
-                            id = 3,
-                            author = "User3",
-                            content = "This is a nested reply.",
-                            replies = listOf(
-                                Comment(
-                                    id = 4,
-                                    author = "User4",
-                                    content = "This is a deeply nested reply."
-                                )
-                            )
-                        )
-                    )
-                )
-            )
-        ),
-        Comment(
-            id = 5,
-            author = "User5",
-            content = "This is another top-level comment."
-        )
-    )
+fun ConnectionLine(isLast: Boolean) {
+    Canvas(
+        modifier = Modifier
+            .fillMaxHeight()
+            .width(40.dp)
+            .padding(start = 20.dp)
+    ) {
+        val canvasWidth = size.width
+        val canvasHeight = size.height
 
-    Surface(color = MaterialTheme.colorScheme.background) {
-        CommentSection(comments = sampleComments)
+        // Draw vertical line
+        drawLine(
+            color = Color.Gray,
+            start = Offset(0f, 0f),
+            end = Offset(0f, canvasHeight),
+            strokeWidth = 2f
+        )
+
+        // Draw horizontal line for non-last items
+        if (!isLast) {
+            drawLine(
+                color = Color.Gray,
+                start = Offset(0f, 20.dp.toPx()),
+                end = Offset(canvasWidth, 20.dp.toPx()),
+                strokeWidth = 2f
+            )
+        }
     }
 }
 
 @Preview(showBackground = true)
 @Composable
-fun InfiniteNestedCommentsScreenPreview() {
-    InfiniteNestedCommentsScreen()
+fun CommentThreadPreview() {
+    val sampleComments = listOf(
+        Comment(
+            id = "1",
+            author = "User 1",
+            content = "This is the main comment",
+            avatar = "https://picsum.photos/200",
+            replies = listOf(
+                Comment(
+                    id = "2",
+                    author = "User 2",
+                    content = "This is a reply",
+                    avatar = "https://picsum.photos/201",
+                    replies = listOf(
+                        Comment(
+                            id = "3",
+                            author = "User 3",
+                            content = "This is a nested reply",
+                            avatar = "https://picsum.photos/202"
+                        )
+                    )
+                ),
+                Comment(
+                    id = "4",
+                    author = "User 4",
+                    content = "Another reply",
+                    avatar = "https://picsum.photos/203"
+                )
+            )
+        )
+    )
+
+    CommentThread(comments = sampleComments)
 }

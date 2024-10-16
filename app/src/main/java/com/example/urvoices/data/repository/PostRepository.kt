@@ -101,7 +101,10 @@ class PostRepository @Inject constructor(
 
     //Post Interaction Events
     suspend fun likePost(actionUserID: String, postID: String): String {
-        val result = firestorePostService.likePost(actionUserID, postID)
+        val result = firestorePostService.likePost(
+            postId = postID,
+            userID = actionUserID
+        )
         return result
     }
 
@@ -143,7 +146,7 @@ class PostRepository @Inject constructor(
         }
     }
 
-    suspend fun getUserInfoDisplayForPost(userID: String): Map<String, String> {
+    suspend fun getUserBaseInfo(userID: String): Map<String, String> {
         val result = firestorePostService.getUserInfoDisplayForPost(userID)
         return result
     }

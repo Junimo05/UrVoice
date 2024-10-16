@@ -18,14 +18,10 @@ import com.example.urvoices.data.model.User
 import com.example.urvoices.data.repository.NotificationRepository
 import com.example.urvoices.data.repository.PostRepository
 import com.example.urvoices.data.repository.UserRepository
-import com.example.urvoices.utils.SharedPreferencesHelper
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Deferred
-import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -45,7 +41,6 @@ val userTemp = User(
 
 @HiltViewModel
 class ProfileViewModel @Inject constructor(
-    private val sharedPreferencesHelper: SharedPreferencesHelper,
     private val firebaseFireStore: FirebaseFirestore,
     private val postRepository: PostRepository,
     private val notificationRepository: NotificationRepository,
@@ -84,11 +79,13 @@ class ProfileViewModel @Inject constructor(
 
     val lastVisiblePost = mutableStateOf("")
     val lastVisiblePage = mutableStateOf(1)
-    val posts : Flow<PagingData<Post>> =
-        Pager(PagingConfig(pageSize = 3)){
-            postRepository.getAllPostFromUser(displayuserID, lastVisiblePost, lastVisiblePage)
-        }.flow.cachedIn(viewModelScope)
-
+    var posts : Flow<PagingData<Post>> = Pager(PagingConfig(pageSize = 3)) {
+        if (displayuserID != currentUserID) {
+            lastVisiblePost.value = ""
+            lastVisiblePage.value = 1
+        }
+        postRepository.getAllPostFromUser(displayuserID, lastVisiblePost, lastVisiblePage)
+    }.flow.cachedIn(viewModelScope)
 
 
     fun loadData(userID: String){
@@ -100,6 +97,7 @@ class ProfileViewModel @Inject constructor(
         _uiState.value = ProfileState.Loading
         viewModelScope.launch {
             loadbaseUserData(userID)
+            reloadPost()
             getFollowStatus(userID)
             getPostCounts(userID)
             getFollowerCount(userID)
@@ -108,6 +106,14 @@ class ProfileViewModel @Inject constructor(
             listenToUserChanges(userID)
             _uiState.value = ProfileState.Successful
         }
+    }
+
+    fun reloadPost(){
+        lastVisiblePost.value = ""
+        lastVisiblePage.value = 1
+        posts = Pager(PagingConfig(pageSize = 3)) {
+            postRepository.getAllPostFromUser(displayuserID, lastVisiblePost, lastVisiblePage)
+        }.flow.cachedIn(viewModelScope)
     }
 
     private suspend fun loadbaseUserData(userID: String){

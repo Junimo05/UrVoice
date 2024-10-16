@@ -1,6 +1,9 @@
 package com.example.urvoices.viewmodel
 
+import android.util.Log
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -21,6 +24,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
@@ -53,8 +57,7 @@ class PostDetailViewModel @Inject constructor(
     val uiState = _uiState.asStateFlow()
 
     private var postID = ""
-    @OptIn(SavedStateHandleSaveableApi::class)
-    var currentPost by savedStateHandle.saveable { mutableStateOf(emptyPost) }
+    var currentPost = mutableStateOf(emptyPost)
     @OptIn(SavedStateHandleSaveableApi::class)
     var userPost by savedStateHandle.saveable { mutableStateOf(userTemp) }
     @OptIn(SavedStateHandleSaveableApi::class)
@@ -64,21 +67,26 @@ class PostDetailViewModel @Inject constructor(
     //Comment Control
     val lastPage = mutableStateOf(1)
     val lastCmt = mutableStateOf("")
-    val commentLists : Flow<PagingData<Comment>> by lazy {
-        Pager(PagingConfig(pageSize = 10)){
-            postRepository.getComments_Posts(postID, lastCmt, lastPage)
+
+    var commentLists : Flow<PagingData<Comment>> = Pager(PagingConfig(pageSize = 10)){
+            postRepository.getComments_Posts(
+                postID = postID,
+                lastPage = lastPage,
+                lastCmt = lastCmt
+            )
         }.flow.cachedIn(viewModelScope)
-    }
+
 
 
     //Reply Comment Control
     val lastCommentReplyID = mutableStateOf("")
     val lastParentCommentID = mutableStateOf("")
     private val _replyLists = MutableStateFlow<List<Comment>>(emptyList())
-    val replyLists: StateFlow<List<Comment>> = _replyLists
+    val replyLists = _replyLists.asStateFlow()
 
     fun loadData(postID: String, userID: String) {
         this.postID = postID
+        loadCommentList()
         viewModelScope.launch {
             try {
                 _uiState.value = PostDetailState.Working
@@ -89,7 +97,7 @@ class PostDetailViewModel @Inject constructor(
                     }
                 }
                 val job2 = launch {
-                    if(currentPost.id == "" || currentPost.id != postID){
+                    if(currentPost.value.id == "" || currentPost.value.id != postID){
                         loadPostData(postID)
                     }
                 }
@@ -108,14 +116,28 @@ class PostDetailViewModel @Inject constructor(
         }
     }
 
+    fun loadCommentList(){
+        commentLists = Pager(PagingConfig(pageSize = 10)){
+            postRepository.getComments_Posts(
+                postID = postID,
+                lastPage = lastPage,
+                lastCmt = lastCmt
+            )
+        }.flow.cachedIn(viewModelScope)
+    }
+
     fun loadMoreReplyComments(commentID: String) {
         try {
             _uiState.value = PostDetailState.Working
             viewModelScope.launch {
                 val result = postRepository.getReply_Comments(commentID, lastCommentReplyID, lastParentCommentID)
                 _replyLists.value = result
+                if(replyLists.value.isNotEmpty()){
+                    _uiState.value = PostDetailState.Success
+                }else {
+                    _uiState.value = PostDetailState.Failed
+                }
             }
-            _uiState.value = PostDetailState.Success
         } catch (e: Exception) {
             e.printStackTrace()
             _uiState.value = PostDetailState.Error
@@ -126,7 +148,7 @@ class PostDetailViewModel @Inject constructor(
         try {
             val post = postRepository.getPostDetail(postID)
             if (post != null) {
-                currentPost = post
+                currentPost.value = post
                 if(userPost == userTemp){
                     loadUserPostData(post.userId)
                 }
@@ -156,7 +178,7 @@ class PostDetailViewModel @Inject constructor(
 
     private suspend fun checkFollowed() {
         try {
-            val result = userRepository.getFollowStatus(currentPost.userId)
+            val result = userRepository.getFollowStatus(currentPost.value.userId)
             isFollowed = result
         } catch (e: Exception) {
             e.printStackTrace()

@@ -16,7 +16,7 @@ import com.example.urvoices.ui.MainScreen.ProfileScreen
 import com.example.urvoices.ui.MainScreen.SearchScreen
 import com.example.urvoices.ui.MainScreen.SettingsScreen
 import com.example.urvoices.ui.MainScreen.UploadScreen
-import com.example.urvoices.ui._component.PostComponent.PostDetail
+import com.example.urvoices.ui.MainScreen.PostDetail
 import com.example.urvoices.ui._component.ProfileComponent.ProfileEditScreen
 import com.example.urvoices.ui.noti_msg.MessageScreen
 import com.example.urvoices.ui.noti_msg.NotificationScreen
@@ -137,15 +137,26 @@ fun NavGraphBuilder.specifyGraph(
             }
         }
 
-        composable<SpecifyScreen.ProfileScreen> { navBackStackEntry ->
-            val profileRoute: SpecifyScreen.ProfileScreen = navBackStackEntry.toRoute()
-            val userId = profileRoute.userId
-            ProfileScreen(
-                navController = navController,
-                playerViewModel = playerViewModel,
-                profileViewModel = profileViewModel,
-                userId = userId
-            )
+        composable(
+            route = "profile/{userId}",
+            arguments = listOf(
+                navArgument("userId") { type = NavType.StringType }
+            ),
+            deepLinks = listOf(navDeepLink {
+                uriPattern = "$BASE_URL/profile/{userId}"
+            })
+        ) { navBackStackEntry ->
+            val userId = navBackStackEntry.arguments?.getString("userId")
+            if (userId != null) {
+                ProfileScreen(
+                    navController = navController,
+                    playerViewModel = playerViewModel,
+                    profileViewModel = profileViewModel,
+                    userId = userId
+                )
+            } else {
+                // Handle the case where userId is null
+            }
         }
     }
 }

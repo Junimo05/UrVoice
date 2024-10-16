@@ -15,6 +15,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.TextStyle
@@ -36,6 +37,7 @@ import com.example.urvoices.viewmodel.MediaPlayerViewModel
 import com.example.urvoices.viewmodel.UIEvents
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import javax.inject.Inject
 
 @SuppressLint("UnrememberedMutableState", "StateFlowValueCalledInComposition")
 @Composable
@@ -46,7 +48,9 @@ fun ProfilePostItem(
     modifier: Modifier = Modifier
 ){
     val TAG = "ProfilePostItem"
-    val interactionViewModel = hiltViewModel<InteractionRowViewModel>()
+    val interactionViewModel = hiltViewModel<InteractionRowViewModel>(
+        key = post.id
+    )
     interactionViewModel.getLoveStatus(post.id!!)
     val timeText = getTimeElapsed(post.createdAt)
     val scope = CoroutineScope(Dispatchers.Main)

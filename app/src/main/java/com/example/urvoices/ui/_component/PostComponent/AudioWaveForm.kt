@@ -1,5 +1,6 @@
 package com.example.urvoices.ui._component.PostComponent
 
+import android.annotation.SuppressLint
 import android.util.Log
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.tween
@@ -16,6 +17,8 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
@@ -32,6 +35,7 @@ import com.linc.audiowaveform.infiniteLinearGradient
 import com.linc.audiowaveform.model.AmplitudeType
 import com.linc.audiowaveform.model.WaveformAlignment
 
+@SuppressLint("UnrememberedMutableState")
 @Composable
 fun AudioWaveformItem(
     id: String,
@@ -49,7 +53,7 @@ fun AudioWaveformItem(
     modifier: Modifier = Modifier
 ) {
     val TAG = "AudioWaveformItem"
-
+    val loadedWaveForm = mutableStateOf(false)
     val colorBrush = SolidColor(MaterialTheme.colorScheme.onPrimary)
     val colorDone = SolidColor(MaterialTheme.colorScheme.surfaceVariant)
     val staticGradientBrush = Brush.linearGradient(colors = listOf(Color(0x500c8bde), Color(0xa10a90b8)))
@@ -77,11 +81,13 @@ fun AudioWaveformItem(
 
         IconButton(
             onClick = {
-                  if(!isPlaying && isStop) {
-                      onPlayStart()
-                  } else {
-                      onPlayPause()
-                  }
+                if(currentPlayingPost != id) {
+                    // Play new audio
+                    onPlayStart()
+                } else {
+                    // Toggle play/pause current audio
+                    onPlayPause()
+                }
             },
             modifier = Modifier.size(36.dp)
         ) {
@@ -92,6 +98,7 @@ fun AudioWaveformItem(
         }
         Box(modifier = Modifier.weight(1f)) {
             AudioWaveform(
+                loading = loadedWaveForm,
                 // Spike DrawStyle: Fill or Stroke
                 style = Fill,
                 waveformAlignment = WaveformAlignment.Center,
@@ -105,15 +112,16 @@ fun AudioWaveformItem(
                 progress = if(!isStop && currentPlayingPost == id) percentPlayed else 0F,
                 amplitudes = audioAmplitudes!!,
                 onProgressChange = {
-                   if(isPlaying && currentPlayingPost == id) {
-                       onPercentChange(it)
-                   }
+                    if(isPlaying && currentPlayingPost == id) {
+                        onPercentChange(it)
+                    }
                 },
                 onProgressChangeFinished = {
 
                 },
             )
         }
+
     }
 }
 

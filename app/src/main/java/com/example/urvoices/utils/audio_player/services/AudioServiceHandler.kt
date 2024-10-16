@@ -74,6 +74,10 @@ class AudioServiceHandler @Inject constructor(
             PlayerEvent.Backward -> exoPlayer.seekBack()
             //play or pause the audio
             PlayerEvent.StartPlaying -> {
+                if(exoPlayer.isPlaying){
+                    exoPlayer.stop()
+                    stopProgressUpdate()
+                }
                 addMediaItemFromUrl(url)
                 _audioState.value = AudioState.Playing(true)
                 isStop.value = false

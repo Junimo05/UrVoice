@@ -1,6 +1,7 @@
 package com.example.urvoices.ui._component.PostComponent
 
 import android.annotation.SuppressLint
+import android.util.Log
 import androidx.compose.foundation.MarqueeAnimationMode
 import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
@@ -23,6 +24,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
@@ -68,7 +70,10 @@ fun NewFeedPostItem(
     val TAG = "NewFeedPostItem"
     val timeText = getTimeElapsed(post.createdAt)
     val scope = CoroutineScope(Dispatchers.Main)
-    val interactionViewModel = hiltViewModel<InteractionRowViewModel>()
+    val interactionViewModel = hiltViewModel<InteractionRowViewModel>(
+        key = post.id
+    )
+
     interactionViewModel.getLoveStatus(post.id!!)
     Card(
         shape = RoundedCornerShape(40.dp),
@@ -169,6 +174,7 @@ fun NewFeedPostItem(
                             targetUserID = post.userId,
                             postID = post.id
                         )
+                        post.likes += 1
                     },
                     comment_act = {
                        //TODO: do act
@@ -219,8 +225,7 @@ fun ProfileInfo(
                     .border(2.dp, Color.Black, CircleShape)
                     .clickable {
                         //To Profile
-                        navController.navigate(SpecifyScreen.ProfileScreen(userId))
-
+                        navController.navigate("profile/$userId")
                     }
             )
             Spacer(modifier = Modifier.width(4.dp))
@@ -234,7 +239,7 @@ fun ProfileInfo(
                     ),
                     modifier = Modifier.clickable {
                         //To Profile
-                        navController.navigate(SpecifyScreen.ProfileScreen(userId))
+                        navController.navigate("profile/$userId")
                     }
                 )
                 Spacer(modifier = Modifier.height(10.dp))

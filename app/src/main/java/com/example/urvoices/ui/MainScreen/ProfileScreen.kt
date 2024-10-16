@@ -32,9 +32,12 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -71,9 +74,6 @@ import com.example.urvoices.viewmodel.ProfileViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 
-/*
-* TODO: Edit Profile
- */
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 fun ProfileScreen(
@@ -92,12 +92,22 @@ fun ProfileScreen(
 
     val postList = profileViewModel.posts.collectAsLazyPagingItems()
 
-    val isUser = profileViewModel.isCurrentUser
-    val user by lazy { profileViewModel.displayuser }
+    val isUser by lazy {
+        mutableStateOf(
+            profileViewModel.isCurrentUser
+        )
+    }
+    val user by lazy { mutableStateOf(
+        profileViewModel.displayuser
+    ) }
 
 
     var tab by rememberSaveable {
         mutableIntStateOf(0)
+    }
+
+    LaunchedEffect(userId) {
+        profileViewModel.loadData(userId)
     }
 
     Scaffold(
@@ -124,7 +134,7 @@ fun ProfileScreen(
                     modifier = Modifier.fillMaxWidth(0.85f)
                 ) {
                     Text(
-                        text = user.username,
+                        text = user.value.username,
                         style = TextStyle(
                             fontWeight = FontWeight.Bold,
                             fontSize = 24.sp,
@@ -148,7 +158,7 @@ fun ProfileScreen(
                     }
                 }
                 IconButton(onClick = {
-                     if(isUser){
+                     if(isUser.value){
                          navController.navigate(MainScreen.UploadScreen.route)
                      }else {
                          //TODO:
@@ -158,7 +168,7 @@ fun ProfileScreen(
 
                 ){
                     Icon(
-                        painter = painterResource(id = if(isUser) R.drawable.ic_actions_add else R.drawable.ic_actions_more_1),
+                        painter = painterResource(id = if(isUser.value) R.drawable.ic_actions_add else R.drawable.ic_actions_more_1),
                         contentDescription = "ActionMore",
                         modifier = Modifier
                             .size(24.dp)
@@ -314,8 +324,8 @@ fun ProfileScreen(
 fun UserInfo(
     navController: NavController,
     uiStates: ProfileState,
-    isUser: Boolean,
-    user: User,
+    isUser: MutableState<Boolean>,
+    user: MutableState<User>,
     postsCount: Int,
     followingCount: Int,
     followersCount: Int,
@@ -346,7 +356,7 @@ fun UserInfo(
         ) {
             AsyncImage(
                 model = ImageRequest.Builder(LocalContext.current)
-                    .data(user.avatarUrl)
+                    .data(user.value.avatarUrl)
                     .crossfade(true)
                     .build(),
                 contentDescription = "Avatar",
@@ -364,7 +374,7 @@ fun UserInfo(
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
-                text = user.displayname,
+                text = user.value.username,
                 style = TextStyle(
                     fontWeight = FontWeight.Bold,
                     fontSize = 14.sp
@@ -372,7 +382,7 @@ fun UserInfo(
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
-                text = "@${user.username}",
+                text = "@${user.value.username}",
                 style = TextStyle(
                     fontWeight = FontWeight.Light,
                     fontSize = 12.sp
@@ -388,7 +398,7 @@ fun UserInfo(
             ) {
                 Text(
                     //Link tag
-                    text = user.country,
+                    text = user.value.username,
                     style = TextStyle(
                         fontWeight = FontWeight.Normal,
                         fontSize = 14.sp,
@@ -443,7 +453,7 @@ fun UserInfo(
                     ,
             ){
                 Text(
-                    text = user.bio,
+                    text = user.value.bio,
                     style = TextStyle(
                         fontWeight = FontWeight.Normal,
                         fontSize = 14.sp
@@ -457,7 +467,7 @@ fun UserInfo(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceAround
             ) {
-                if(isUser) {
+                if(isUser.value) {
                     Card(
                         modifier = Modifier
                             .padding(4.dp)
@@ -485,7 +495,7 @@ fun UserInfo(
                             .border(1.dp, MaterialTheme.colorScheme.primary, CircleShape)
                             .clickable {
                                 followAction()
-                                if(uiStates == ProfileState.Successful){
+                                if (uiStates == ProfileState.Successful) {
                                     Log.d("Follow", "Following")
                                 }
                             }

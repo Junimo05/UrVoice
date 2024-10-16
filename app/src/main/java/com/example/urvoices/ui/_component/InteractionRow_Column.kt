@@ -1,10 +1,9 @@
 package com.example.urvoices.ui._component
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -48,7 +47,6 @@ fun InteractionRow(
         interactions.forEachIndexed { index, interaction ->
             Row (
                 modifier = Modifier
-                    .clickable { interaction.action() }
                     .padding(2.dp),
                 verticalAlignment = Alignment.CenterVertically
             ){
@@ -56,7 +54,7 @@ fun InteractionRow(
                     modifier = Modifier
                         .size(24.dp)
                         .padding(2.dp),
-                    onClick = { interaction.action }
+                    onClick = { interaction.action() }
                 ) {
                     Icon(
                         painter = painterResource(id = interaction.icon),
@@ -83,10 +81,91 @@ fun InteractionRow(
     }
 }
 
+
+@Composable
+fun InteractionColumn(
+    interactions: List<Interaction>,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = Modifier
+            .padding(4.dp)
+            .then(modifier)
+        ,
+        verticalArrangement = Arrangement.spacedBy(5.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        interactions.forEachIndexed { index, interaction ->
+            Column (
+                modifier = Modifier
+                    .padding(2.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ){
+                IconButton(
+                    modifier = Modifier
+                        .size(24.dp)
+                        .padding(2.dp),
+                    onClick = { interaction.action() }
+                ) {
+                    Icon(
+                        painter = painterResource(id = interaction.icon),
+                        contentDescription = null,
+                        modifier = Modifier
+                            .padding(2.dp)
+                            .size(24.dp)
+                            ,
+                    )
+                }
+                Spacer(modifier = Modifier.width(3.dp))
+                if(interaction.count != null){
+                    Text(
+                        text = interaction.count.toString(),
+                        style = TextStyle(
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 10.sp,
+                            color = MaterialTheme.colorScheme.onPrimaryContainer
+                        )
+                    )
+                }
+            }
+        }
+    }
+}
+
 @Preview(showBackground = true)
 @Composable
 fun InteractionRowPreview() {
     InteractionRow(
+        interactions = listOf(
+            Interaction(
+                icon = android.R.drawable.star_on,
+                iconAfterAct = android.R.drawable.star_off,
+                count = 10,
+                contentDescription = "Star",
+                action = { /*TODO*/ }
+            ),
+            Interaction(
+                icon = android.R.drawable.star_on,
+                iconAfterAct = android.R.drawable.star_off,
+                count = 20,
+                contentDescription = "Star",
+                action = { /*TODO*/ }
+            ),
+            Interaction(
+                icon = android.R.drawable.star_on,
+                iconAfterAct = android.R.drawable.star_off,
+                count = 30,
+                contentDescription = "Star",
+                action = { /*TODO*/ }
+            ),
+        )
+    )
+}
+
+@Preview(showBackground = true)
+@Composable
+fun InteractionColumnPreview() {
+    InteractionColumn(
         interactions = listOf(
             Interaction(
                 icon = android.R.drawable.star_on,

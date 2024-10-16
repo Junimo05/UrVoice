@@ -1,5 +1,6 @@
 package com.example.urvoices.utils
 
+import android.util.Log
 import com.example.urvoices.R
 import com.example.urvoices.ui._component.Interaction
 
@@ -17,7 +18,8 @@ fun Post_Interactions(
             count = loveCounts,
             contentDescription = "Love",
             action = {
-                love_act(isLove)
+//                Log.e("Post_Interactions", "isLove: $isLove")
+                love_act(!isLove)
             }
         ),
         Interaction(
@@ -42,21 +44,21 @@ fun Comment_Interactions(
 ) : List<Interaction> {
     return listOf(
         Interaction(
-            icon = if(isLove) R.drawable.ic_actions_heartfull else R.drawable.ic_actions_heart,
-            iconAfterAct = R.drawable.ic_actions_heart,
-            count = loveCounts, // number of likes
-            contentDescription = "Like",
-            action = {
-                love_act(true)
-            }
-        ),
-        Interaction(
             icon = R.drawable.ic_comment,
             iconAfterAct = R.drawable.ic_comment,
             count = commentCounts, // number of comments
             contentDescription = "Comment",
             action = {
                 comment_act()
+            }
+        ),
+        Interaction(
+            icon = if(isLove) R.drawable.ic_actions_heartfull else R.drawable.ic_actions_heart,
+            iconAfterAct = R.drawable.ic_actions_heart,
+            count = loveCounts, // number of likes
+            contentDescription = "Like",
+            action = {
+                love_act(!isLove)
             }
         ),
         Interaction(

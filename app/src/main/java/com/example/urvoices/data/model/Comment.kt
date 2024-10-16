@@ -7,6 +7,7 @@ import kotlinx.parcelize.Parcelize
 data class Comment(
     val id: String?,
     val userId: String,
+    val parentId : String?,
     val postId: String,
     val content: String,
     val likes: Int = 0,
@@ -22,6 +23,17 @@ data class Comment(
             "createdAt" to createdAt,
             "updateAt" to updatedAt,
             "deleteAt" to deletedAt,
+        )
+    }
+
+    fun toRelaMap(): Map<String, Any?> {
+        return mapOf(
+            "ID" to null,
+            "commentID" to id,
+            "userID" to userId,
+            "postID" to postId,
+            "parentID" to parentId,
+            "createdAt" to System.currentTimeMillis(),
         )
     }
 }

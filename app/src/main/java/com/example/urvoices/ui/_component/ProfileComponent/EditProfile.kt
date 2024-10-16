@@ -152,22 +152,6 @@ fun ProfileEditScreen(
                     horizontalArrangement = Arrangement.Center
                 ) {
                     if(downloadAvatarUrl != ""){
-//                        AsyncImage(
-//                            model = ImageRequest.Builder(LocalContext.current)
-//                                .data(downloadAvatarUrl)
-//                                .crossfade(true)
-//                                .build(),
-//                            contentDescription = "Avatar",
-//                            placeholder = painterResource(id = R.drawable.person),
-//                            contentScale = ContentScale.Crop,
-//                            modifier = Modifier
-//                                .size(64.dp)
-//                                .clip(CircleShape)
-//                                .border(2.dp, Color.Black, CircleShape)
-//                                .clickable {
-//                                    uploadImageHandle()
-//                                }
-//                        )
                         AvatarChangeComponent(
                             imgUri = imgUri,
                             currentAvatarUrl = downloadAvatarUrl,

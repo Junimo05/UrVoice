@@ -80,6 +80,8 @@ dependencies {
     implementation(libs.androidx.runtime.livedata)
     implementation(libs.play.services.auth)
     implementation(libs.googleid)
+    implementation(libs.firebase.functions)
+    implementation(libs.firebase.dataconnect)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -103,9 +105,13 @@ dependencies {
     implementation("androidx.compose.foundation:foundation-layout-android:1.6.8@aar")
 
     //DaggerHilt
-    implementation("com.google.dagger:hilt-android:2.48")
-    kapt("com.google.dagger:hilt-compiler:2.48")
-    implementation("androidx.hilt:hilt-navigation-compose:1.0.0")
+    val daggerVersion = "2.48"
+    val hiltVersion = "1.2.0"
+    implementation("com.google.dagger:hilt-android:$daggerVersion")
+    kapt("com.google.dagger:hilt-android-compiler:$daggerVersion")
+    implementation("androidx.hilt:hilt-work:$hiltVersion")
+    kapt("androidx.hilt:hilt-compiler:$hiltVersion")
+    implementation("androidx.hilt:hilt-navigation-compose:$hiltVersion")
 
     //navigation
     val nav_version = "2.8.0"
@@ -162,6 +168,9 @@ dependencies {
     implementation("io.coil-kt:coil:2.7.0")
     implementation("io.coil-kt:coil-compose:2.7.0")
 
+    //androidx.work
+    val work_version = "2.7.0-alpha02"
+    implementation("androidx.work:work-runtime-ktx:$work_version")
 }
 
 kapt {

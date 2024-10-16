@@ -9,6 +9,7 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -53,6 +54,7 @@ private const val DefaultGraphicsLayerAlpha: Float = 0.99F
 @Composable
 fun AudioWaveform(
     modifier: Modifier = Modifier,
+    loading: MutableState<Boolean>,
     style: DrawStyle = Fill,
     waveformBrush: Brush = SolidColor(Color.White),
     progressBrush: Brush = SolidColor(Color.Blue),
@@ -153,6 +155,7 @@ fun AudioWaveform(
                 cornerRadius = CornerRadius(spikeRadiusPx, spikeRadiusPx)
             )
         }
+        loading.value = true
     }
 }
 
