@@ -21,11 +21,6 @@ fun formatFileSize(size: Long): String {
     }
 }
 
-internal fun LazyListState.reachedBottom(buffer: Int = 1): Boolean {
-    val lastVisibleItem = this.layoutInfo.visibleItemsInfo.lastOrNull()
-    return lastVisibleItem?.index != 0 && lastVisibleItem?.index == this.layoutInfo.totalItemsCount - buffer
-}
-
 
 fun getTimeElapsed(createdAt: Long): String {
     val currentTime = System.currentTimeMillis()
@@ -58,6 +53,10 @@ fun timeStampToDuration(position: Long): String{
     return if(position < 0) "--.--"
     else if (remainingSec < 10) "$minutes:0$remainingSec"
     else "$minutes:$remainingSec"
+}
+
+fun processUsername(username: String): String {
+    return username.replace(" ", "").lowercase()
 }
 
 data class Time(

@@ -34,12 +34,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -55,6 +57,7 @@ import androidx.paging.compose.collectAsLazyPagingItems
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.example.urvoices.R
+import com.example.urvoices.data.model.Comment
 import com.example.urvoices.data.model.Post
 import com.example.urvoices.data.model.User
 import com.example.urvoices.ui._component.InteractionRow
@@ -69,6 +72,9 @@ import com.example.urvoices.viewmodel.MediaPlayerViewModel
 import com.example.urvoices.viewmodel.PostDetailState
 import com.example.urvoices.viewmodel.PostDetailViewModel
 import com.example.urvoices.viewmodel.UIEvents
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalFoundationApi::class)
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
@@ -82,10 +88,11 @@ fun PostDetail(
     userID: String = ""
 ){
     val TAG = "PostDetail"
+    val currentUser = authViewModel.getCurrentUser()
     val interactionViewModel = hiltViewModel<InteractionRowViewModel>()
     interactionViewModel.getLoveStatus(postID = postID)
     val uiState = postDetailViewModel.uiState.collectAsState()
-//    Log.e("PostDetail", "PostID: $postID")
+
     //
     postDetailViewModel.loadData(postID = postID, userID = userID)
     val currentPost by lazy {
@@ -97,6 +104,14 @@ fun PostDetail(
 
     val listState = rememberLazyListState()
     val scrollThroughContentDetail = remember { mutableStateOf(false) }
+
+    //Reply State
+    val focusRequester = remember { FocusRequester() }
+    val replyTo = remember {mutableStateOf<Comment?>(null)}
+    val parentUserName = remember {
+        mutableStateOf("")
+    }
+    val commentText = remember { mutableStateOf("") }
 
     LaunchedEffect(listState) {
         snapshotFlow { listState.firstVisibleItemIndex }.collect { index ->
@@ -130,10 +145,21 @@ fun PostDetail(
         },
         bottomBar = {
             CommentBar(
-                onSendMessage = { message ->
-
+                uiState = uiState.value,
+                currentUserName = currentUser?.displayName,
+                onSendMessage = { message, replyID ->
+                    CoroutineScope(Dispatchers.Main).launch {
+                        postDetailViewModel.sendComment(message, replyID)
+                        commentText.value = ""
+                        replyTo.value = null
+                    }
                 },
-                onAttachFile = { /*TODO*/ }
+                replyTo = replyTo,
+                parentUsername = parentUserName,
+                commentText = commentText,
+                onAttachFile = { /*TODO*/ },
+                focusRequester = focusRequester,
+
             )
         },
         modifier = Modifier.fillMaxSize()
@@ -173,7 +199,7 @@ fun PostDetail(
             item {
                 Spacer(modifier = Modifier.height(30.dp))
             }
-            items(commentLists.itemCount) { index ->
+            items(commentLists.itemCount, key = { index -> index }) { index ->
                 CommentItem(
                     navController = navController,
                     uiState = uiState,
@@ -184,6 +210,10 @@ fun PostDetail(
                     loadReply = { commentID ->
                         postDetailViewModel.loadMoreReplyComments(commentID)
                     },
+                    replyAct = { comment, parentCmtUsername ->
+                        replyTo.value = comment
+                        parentUserName.value = parentCmtUsername
+                    }
                 )
             }
         }

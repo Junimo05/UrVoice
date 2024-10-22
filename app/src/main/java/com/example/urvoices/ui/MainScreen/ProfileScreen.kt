@@ -68,6 +68,7 @@ import com.example.urvoices.presentations.theme.MyTheme
 import com.example.urvoices.ui._component.PlaylistItem
 import com.example.urvoices.ui._component.PostComponent.ProfilePostItem
 import com.example.urvoices.utils.Navigator.MainScreen
+import com.example.urvoices.utils.processUsername
 import com.example.urvoices.viewmodel.MediaPlayerViewModel
 import com.example.urvoices.viewmodel.ProfileState
 import com.example.urvoices.viewmodel.ProfileViewModel
@@ -382,7 +383,7 @@ fun UserInfo(
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
-                text = "@${user.value.username}",
+                text = "@${processUsername(user.value.username)}",
                 style = TextStyle(
                     fontWeight = FontWeight.Light,
                     fontSize = 12.sp

@@ -1,9 +1,6 @@
 package com.example.urvoices.viewmodel
 
-import android.util.Log
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -22,9 +19,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
@@ -63,18 +58,17 @@ class PostDetailViewModel @Inject constructor(
     @OptIn(SavedStateHandleSaveableApi::class)
     var isFollowed by savedStateHandle.saveable { mutableStateOf(false) }
 
-
     //Comment Control
     val lastPage = mutableStateOf(1)
     val lastCmt = mutableStateOf("")
 
-    var commentLists : Flow<PagingData<Comment>> = Pager(PagingConfig(pageSize = 10)){
+    var commentLists : Flow<PagingData<Comment>> = Pager(PagingConfig(pageSize = 5)){
             postRepository.getComments_Posts(
                 postID = postID,
                 lastPage = lastPage,
                 lastCmt = lastCmt
             )
-        }.flow.cachedIn(viewModelScope)
+    }.flow.cachedIn(viewModelScope)
 
 
 
@@ -85,8 +79,13 @@ class PostDetailViewModel @Inject constructor(
     val replyLists = _replyLists.asStateFlow()
 
     fun loadData(postID: String, userID: String) {
+        if(this.postID != postID){
+            currentPost.value = emptyPost
+            userPost = userTemp
+            loadCommentList()
+        }
         this.postID = postID
-        loadCommentList()
+
         viewModelScope.launch {
             try {
                 _uiState.value = PostDetailState.Working
@@ -125,6 +124,43 @@ class PostDetailViewModel @Inject constructor(
             )
         }.flow.cachedIn(viewModelScope)
     }
+
+    suspend fun sendComment(message: String, parentID: String = "") {
+        _uiState.value = PostDetailState.SendingComment
+        val currentPostID = currentPost.value.id!!
+        val currentUserID = currentPost.value.userId
+        var result = ""
+        try {
+            if (parentID == "") {
+                result = postRepository.commentPost(
+                    actionUserID = currentUserID,
+                    postID = currentPostID,
+                    content = message
+                )
+            } else {
+                result = postRepository.replyComment(
+                    actionUserID = currentUserID,
+                    commentID = parentID,
+                    postID = currentPostID,
+                    content = message
+                )
+            }
+
+            if(result != ""){
+//                lastPage.value = 1
+//                lastCmt.value = ""
+//                loadCommentList()
+                _uiState.value = PostDetailState.SendCommentSuccess
+            } else {
+                _uiState.value = PostDetailState.Failed
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            _uiState.value = PostDetailState.Error
+        }
+    }
+
+
 
     fun loadMoreReplyComments(commentID: String) {
         try {
@@ -190,6 +226,8 @@ class PostDetailViewModel @Inject constructor(
 sealed class PostDetailState{
     object Initial: PostDetailState()
     object Working: PostDetailState()
+    object SendingComment: PostDetailState()
+    object SendCommentSuccess: PostDetailState()
     object Success: PostDetailState()
     object Failed: PostDetailState()
     object Error: PostDetailState()

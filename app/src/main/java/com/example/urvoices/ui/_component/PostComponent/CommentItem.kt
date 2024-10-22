@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -47,6 +48,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
@@ -71,10 +73,12 @@ fun CommentItem(
     navController: NavController,
     uiState: State<PostDetailState>,
     comment: Comment,
+    parentCmtUsername: String = "",
     index: Int,
     lastParentCommentID: MutableState<String>,
     postDetailViewModel: PostDetailViewModel,
     loadReply: (String) -> Unit,
+    replyAct: (Comment, String) -> Unit,
     depth: Int = 0
     //comment data
 
@@ -88,12 +92,15 @@ fun CommentItem(
         key = comment.id
     )
     val (isLoadedUser, setIsLoaded) = rememberSaveable { mutableStateOf(false) }
+
     val userInfo by produceState(initialValue = mapOf(), producer = {
         value = commentViewModel.getUserInfo(comment.userId).let {
             setIsLoaded(true)
             it
         }
+
     })
+
     interactionViewModel.getLoveStatus(comment.id!!)
 
     var totalReplyByTime = 0
@@ -101,7 +108,7 @@ fun CommentItem(
     val isExpandedReply = rememberSaveable { mutableStateOf(false) }
     var showReplyField by remember { mutableStateOf(false) }
 
-    val replyListFromViewModel by postDetailViewModel.replyLists.collectAsState(initial = emptyList())
+    val replyListFromViewModel by postDetailViewModel.replyLists.collectAsStateWithLifecycle(initialValue = emptyList())
 
     var replies by remember { mutableStateOf(emptyList<Comment>()) }
 
@@ -113,15 +120,18 @@ fun CommentItem(
     Card(
         modifier = Modifier
             .background(MaterialTheme.colorScheme.primaryContainer)
-            .padding(16.dp)
+            .padding(
+                start = if (depth > 0) 32.dp else 0.dp,  // Add indent for replies
+                end = if(depth > 0) 8.dp else 0.dp, // Add indent for replies
+                top = 8.dp,
+                bottom = 8.dp
+            )
             .fillMaxWidth()
     ){
         Column(
             modifier = Modifier
-                .fillMaxWidth()
+                .fillMaxSize()
                 .background(MaterialTheme.colorScheme.primaryContainer)
-                .padding(start = 25.dp * depth)
-
         ) {
             Box (
                 modifier = Modifier.fillMaxWidth()
@@ -131,7 +141,7 @@ fun CommentItem(
                         .fillMaxWidth()
                         .align(Alignment.CenterEnd),
                 ) {
-                    if(isLoadedUser){
+                    if (isLoadedUser && userInfo.isNotEmpty()){
                         Column(
                             modifier = Modifier.padding(top = 8.dp)
                         ) {
@@ -175,9 +185,13 @@ fun CommentItem(
                                     fontWeight = FontWeight.Bold,
                                     fontSize = 20.sp
                                 ),
+                                modifier = Modifier.padding(bottom = 4.dp)
+                                    .clickable {
+                                        navController.navigate("profile/${comment.userId}")
+                                    }
                             )
                             Text(
-                                text = "This is a comment dawioudjawdoidaojiwdjawoidjawoidajwdoiawdjawoidjawodiawjdoiawdjawoidjoiawjdaowidjawoidjwaoidjawoidawjdoiwajdoiawdjaowidjawoidjawoiddjaoiwjdoiawdjawoidjdjioawjdoaiwjdwaoidawoidjwaoidjwaioddadwwdwajwaodijwaoidjwaoidjwaoidjawdoiwajdoaiwdjwaoidjawoidaj",
+                                text = comment.content,
                                 modifier = Modifier
                                     .padding(bottom = 8.dp)
                                     .clickable {
@@ -204,11 +218,13 @@ fun CommentItem(
                             },
                             commentCounts = comment.replyComments,
                             comment_act = {
-                                isExpandedReply.value = !isExpandedReply.value
-                                loadReply(comment.id)
+                                  if(comment.replyComments > 0){
+                                      isExpandedReply.value = !isExpandedReply.value
+                                      loadReply(comment.id)
+                                  }
                             },
                             reply_act = {
-                                //TODO: Comment
+                                replyAct(comment, userInfo["username"]!!)
                             }
                         ))
                     } else {
@@ -216,13 +232,13 @@ fun CommentItem(
                     }
                 }
             }
-            // Replies
             if (isExpandedReply.value && replies.isNotEmpty()) {
                 replies.forEachIndexed { index, reply ->
                     CommentItem(
                         navController = navController,
                         uiState = uiState,
                         comment = reply,
+                        parentCmtUsername = userInfo["username"]!!, //ten user cua comment cha
                         index = index,
                         lastParentCommentID = lastParentCommentID,
                         postDetailViewModel = postDetailViewModel,
@@ -230,6 +246,9 @@ fun CommentItem(
                         loadReply = {
                             loadReply(it)
                         },
+                        replyAct = {comment, parentCmtUsername ->
+                            replyAct(comment, parentCmtUsername)
+                        }
                     )
                 }
                 if(totalReplyByTime < comment.replyComments){

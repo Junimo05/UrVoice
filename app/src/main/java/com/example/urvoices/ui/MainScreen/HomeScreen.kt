@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
@@ -21,7 +20,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
@@ -49,12 +47,9 @@ import com.example.urvoices.presentations.theme.MyTheme
 import com.example.urvoices.ui._component.PostComponent.NewFeedPostItem
 import com.example.urvoices.utils.Navigator.AuthScreen
 import com.example.urvoices.utils.UserPreferences
-import com.example.urvoices.utils.reachedBottom
 import com.example.urvoices.viewmodel.AuthState
 import com.example.urvoices.viewmodel.AuthViewModel
-import com.example.urvoices.viewmodel.HomeState
 import com.example.urvoices.viewmodel.HomeViewModel
-import com.example.urvoices.viewmodel.InteractionRowViewModel
 import com.example.urvoices.viewmodel.MediaPlayerViewModel
 import kotlinx.coroutines.launch
 
