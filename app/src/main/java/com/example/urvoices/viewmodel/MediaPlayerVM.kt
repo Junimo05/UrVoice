@@ -4,7 +4,6 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import android.os.Build
-import android.util.Log
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableLongStateOf
@@ -19,6 +18,7 @@ import com.example.urvoices.utils.audio_player.services.AudioService
 import com.example.urvoices.utils.audio_player.services.AudioServiceHandler
 import com.example.urvoices.utils.audio_player.services.AudioState
 import com.example.urvoices.utils.audio_player.services.PlayerEvent
+import com.example.urvoices.viewmodel.State.AppGlobalState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -30,7 +30,7 @@ import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
 @HiltViewModel
-class MediaPlayerViewModel @Inject constructor(
+class MediaPlayerVM @Inject constructor(
     @ApplicationContext private val context: Context,
     private val audioService: AudioServiceHandler,
     saveStateHandle: SavedStateHandle
@@ -74,6 +74,9 @@ class MediaPlayerViewModel @Inject constructor(
                         _uiState.value = UIStates.Ready
                     }
                 }
+                AppGlobalState.mediaState.value = _uiState.value
+                AppGlobalState.isPlaying.value = isPlaying
+                AppGlobalState.isStop.value = isStop.value
             }
         }
     }
@@ -160,12 +163,9 @@ class MediaPlayerViewModel @Inject constructor(
     }
 
     private fun setProgressValue(currentProgress: Long){
-//        Log.e(TAG, "Current Progress: $currentProgress")
-//        Log.e(TAG, "Duration: $duration")
         progress =
             if (currentProgress > 0) ((currentProgress.toFloat() / duration.toFloat()) * 1f)
             else 0f
-//        Log.e(TAG, "Progress: $progress")
         progressString = formatDurationString(currentProgress)
     }
     @SuppressLint("DefaultLocale")
@@ -194,4 +194,5 @@ sealed class UIEvents {
 sealed class UIStates {
     object Initial: UIStates()
     object Ready: UIStates()
+    object Error: UIStates()
 }

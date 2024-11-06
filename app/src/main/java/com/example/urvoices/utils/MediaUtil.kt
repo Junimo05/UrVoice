@@ -1,6 +1,13 @@
 package com.example.urvoices.utils
 
+import android.content.Context
+import android.graphics.Bitmap
+import android.net.Uri
+import android.provider.MediaStore
+import android.util.Log
 import androidx.compose.foundation.lazy.LazyListState
+import java.io.ByteArrayOutputStream
+import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -64,3 +71,23 @@ data class Time(
     val minutes: Long,
     val seconds: Long
 )
+
+fun generateUniqueFileName(): String {
+    val timeStamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
+    return "IMG_$timeStamp.jpg"
+}
+
+fun saveBitmapToUri(context: Context, bitmap: Bitmap): Uri? {
+    val bytes = ByteArrayOutputStream()
+    bitmap.compress(Bitmap.CompressFormat.JPEG, 100, bytes)
+    val path = MediaStore.Images.Media.insertImage(context.contentResolver, bitmap, "CroppedImage", null)
+    return if (path != null) Uri.parse(path) else null
+}
+
+fun deleteOldImageFile(context: Context, uri: Uri) {
+    val file = File(uri.path!!)
+    Log.e("MediaUtil", "deleteOldImageFile: ${file.path}")
+    if (file.exists()) {
+        file.delete()
+    }
+}

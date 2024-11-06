@@ -1,16 +1,12 @@
 package com.example.urvoices.ui.MainScreen
 
 import android.annotation.SuppressLint
-import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -18,13 +14,12 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
@@ -52,7 +47,9 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
+import androidx.paging.LoadState
 import androidx.paging.compose.collectAsLazyPagingItems
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
@@ -67,68 +64,63 @@ import com.example.urvoices.ui._component.PostComponent.CommentItem
 import com.example.urvoices.ui._component.TopBarBackButton
 import com.example.urvoices.utils.Post_Interactions
 import com.example.urvoices.viewmodel.AuthViewModel
+import com.example.urvoices.viewmodel.CommentViewModel
 import com.example.urvoices.viewmodel.InteractionRowViewModel
-import com.example.urvoices.viewmodel.MediaPlayerViewModel
+import com.example.urvoices.viewmodel.MediaPlayerVM
 import com.example.urvoices.viewmodel.PostDetailState
 import com.example.urvoices.viewmodel.PostDetailViewModel
 import com.example.urvoices.viewmodel.UIEvents
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalFoundationApi::class)
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 fun PostDetail(
     navController: NavController,
-    playerViewModel: MediaPlayerViewModel,
+    playerViewModel: MediaPlayerVM,
     postDetailViewModel: PostDetailViewModel,
     authViewModel: AuthViewModel,
     postID: String = "",
     userID: String = ""
-){
-    val TAG = "PostDetail"
+) {
     val currentUser = authViewModel.getCurrentUser()
-    val interactionViewModel = hiltViewModel<InteractionRowViewModel>()
-    interactionViewModel.getLoveStatus(postID = postID)
+
     val uiState = postDetailViewModel.uiState.collectAsState()
 
-    //
-    postDetailViewModel.loadData(postID = postID, userID = userID)
-    val currentPost by lazy {
-        postDetailViewModel.currentPost
-    }
-//    Log.e("PostDetail", "CurrentPost: $currentPost")
-    val userPost = postDetailViewModel.userPost
-    val commentLists = postDetailViewModel.commentLists.collectAsLazyPagingItems()
+    val commentViewModel = hiltViewModel<CommentViewModel>()
+    val interactionViewModel = hiltViewModel<InteractionRowViewModel>()
 
+    //Post Interaction Status
+    val isLove = remember {
+        mutableStateOf(false)
+    }
+
+    LaunchedEffect(postID, userID) {
+//        Log.e("PostDetail", "PostID: $postID, UserID: $userID")
+        postDetailViewModel.loadData(postID = postID, userID = userID)
+        interactionViewModel.getLoveStatus(postID = postID){ result ->
+            isLove.value = result
+        }
+    }
+
+    val currentPost by postDetailViewModel.currentPost
+    val userPost = postDetailViewModel.userPost
+    val commentLists = postDetailViewModel.commentFlow.collectAsLazyPagingItems()
+
+    // UI States
     val listState = rememberLazyListState()
     val scrollThroughContentDetail = remember { mutableStateOf(false) }
 
     //Reply State
     val focusRequester = remember { FocusRequester() }
-    val replyTo = remember {mutableStateOf<Comment?>(null)}
-    val parentUserName = remember {
-        mutableStateOf("")
-    }
+    val replyTo = remember { mutableStateOf<Comment?>(null) }
+    val parentUserName = remember { mutableStateOf("") }
     val commentText = remember { mutableStateOf("") }
 
     LaunchedEffect(listState) {
-        snapshotFlow { listState.firstVisibleItemIndex }.collect { index ->
-            when {
-                index >= 2 -> {
-                    // scroll to content detail
-                    scrollThroughContentDetail.value = true
-                }
-                index < 2 -> {
-                    // scroll to profile detail
-                    scrollThroughContentDetail.value = false
-                }
-                else -> {
-
-                }
+        snapshotFlow { listState.firstVisibleItemIndex }
+            .collect { index ->
+                scrollThroughContentDetail.value = index >= 2
             }
-        }
     }
 
     Scaffold(
@@ -137,9 +129,7 @@ fun PostDetail(
                 navController = navController,
                 title = userPost.username,
                 endIcon = R.drawable.ic_actions_more_1,
-                endIconAction = {
-                    /*TODO*/
-                },
+                endIconAction = { /*TODO*/ },
                 modifier = Modifier.background(MaterialTheme.colorScheme.surfaceVariant)
             )
         },
@@ -148,7 +138,8 @@ fun PostDetail(
                 uiState = uiState.value,
                 currentUserName = currentUser?.displayName,
                 onSendMessage = { message, replyID ->
-                    CoroutineScope(Dispatchers.Main).launch {
+                    postDetailViewModel.viewModelScope.launch {
+//                        Log.e("CommentBar", "ReplyID: $replyID")
                         postDetailViewModel.sendComment(message, replyID)
                         commentText.value = ""
                         replyTo.value = null
@@ -159,63 +150,108 @@ fun PostDetail(
                 commentText = commentText,
                 onAttachFile = { /*TODO*/ },
                 focusRequester = focusRequester,
-
             )
-        },
-        modifier = Modifier.fillMaxSize()
-    ) {it ->
+        }
+    ) { paddingValues ->
         LazyColumn(
-            horizontalAlignment = Alignment.CenterHorizontally,
             state = listState,
-            modifier = Modifier.padding(it),
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
         ) {
+            // Profile section
             item {
                 ProfileDetail(
                     navController = navController,
                     user = userPost,
                     isFollowed = postDetailViewModel.isFollowed
                 )
-            }
-            item {
                 Spacer(modifier = Modifier.height(30.dp))
             }
-            stickyHeader {
-                if (uiState.value == PostDetailState.Success || currentPost.value.id != "") {
+
+            // Content section
+            item {
+                if (uiState.value == PostDetailState.Success || currentPost.ID?.isNotEmpty() == true) {
                     ContentDetail(
+                        navController = navController,
+                        isLove = isLove,
                         interactionRowViewModel = interactionViewModel,
                         scrollThroughContentDetail = scrollThroughContentDetail,
                         playerViewModel = playerViewModel,
-                        post = currentPost.value
+                        post = currentPost
                     )
                 } else {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.Center
-                    ) {
-                        CircularProgressIndicator()
-                    }
+                    CircularProgressIndicator(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .wrapContentSize(Alignment.Center)
+                    )
                 }
-            }
-            item {
                 Spacer(modifier = Modifier.height(30.dp))
             }
-            items(commentLists.itemCount, key = { index -> index }) { index ->
-                CommentItem(
-                    navController = navController,
-                    uiState = uiState,
-                    comment = commentLists[index]!!,
-                    index = index,
-                    lastParentCommentID = postDetailViewModel.lastParentCommentID,
-                    postDetailViewModel = postDetailViewModel,
-                    loadReply = { commentID ->
-                        postDetailViewModel.loadMoreReplyComments(commentID)
-                    },
-                    replyAct = { comment, parentCmtUsername ->
-                        replyTo.value = comment
-                        parentUserName.value = parentCmtUsername
-                    }
-                )
+
+            // Comments section
+            items(
+                count = commentLists.itemCount,
+                key = { index -> commentLists[index]?.id ?: index }
+            ) { index ->
+                commentLists[index]?.let { comment ->
+                    CommentItem(
+                        navController = navController,
+                        uiState = uiState,
+                        comment = comment,
+                        index = index,
+                        lastParentCommentID = postDetailViewModel.lastParentCommentID,
+                        postDetailViewModel = postDetailViewModel,
+                        interactionViewModel = interactionViewModel,
+                        commentViewModel = commentViewModel,
+                        loadReply = { commentID ->
+                            postDetailViewModel.loadMoreReplyComments(commentID)
+                        },
+                        replyAct = { commentItem, parentCmtUsername ->
+                            replyTo.value = commentItem
+                            parentUserName.value = parentCmtUsername
+                        }
+                    )
+                }
             }
+
+            // Loading and error states for comments
+            when {
+                commentLists.loadState.append is LoadState.Loading -> {
+                    item { LoadingItem() }
+                }
+                commentLists.loadState.append is LoadState.Error -> {
+                    item { ErrorItem { commentLists.retry() } }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun LoadingItem() {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        CircularProgressIndicator()
+    }
+}
+
+@Composable
+private fun ErrorItem(onRetry: () -> Unit) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(text = "Error loading comments")
+        Button(onClick = onRetry) {
+            Text(text = "Retry")
         }
     }
 }
@@ -227,7 +263,9 @@ fun ProfileDetail(
     navController: NavController
 ){
     Column(
-        modifier = Modifier.padding(4.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(4.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         AsyncImage(
@@ -243,7 +281,7 @@ fun ProfileDetail(
                 .clip(CircleShape)
                 .border(2.dp, Color.Black, CircleShape)
                 .clickable {
-                    //TODO: navigate to user profile
+                    navController.navigate("profile/${user.id}")
                 }
         )
         Spacer(modifier = Modifier.height(16.dp))
@@ -264,56 +302,60 @@ fun ProfileDetail(
             )
         )
         Spacer(modifier = Modifier.height(16.dp))
-        Row {
-            Button(
-                onClick = { /*TODO*/ },
-                modifier = Modifier.size(120.dp, 40.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = if (isFollowed) Color(0xFF000000) else MaterialTheme.colorScheme.secondaryContainer,
-                ),
-                border = BorderStroke(
-                    1.dp,
-                    Color(0xFF000000)
-                )
-            ) {
-                Text(
-                    text = if(isFollowed) "Following" else "Follow",
-                    color = if(isFollowed) Color(0xFFFFFFFF) else  MaterialTheme.colorScheme.onSecondaryContainer,
-                    style = TextStyle(
-                        fontWeight = FontWeight.Bold
-                    )
-                )
-            }
-            Spacer(modifier = Modifier.width(16.dp))
-            Button(
-                onClick = { /*TODO Message*/ },
-                modifier = Modifier.size(120.dp, 40.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.secondaryContainer,
-                ),
-                border = BorderStroke(
-                    1.dp,
-                    Color(0xFF000000)
-                )
-            ) {
-                Text(
-                    text = "Message",
-                    color = MaterialTheme.colorScheme.onSecondaryContainer,
-                    style = TextStyle(
-                        fontWeight = FontWeight.Bold
-                    )
-                )
-            }
-        }
+//        Row {
+//            Button(
+//                onClick = {
+//
+//                },
+//                modifier = Modifier.size(120.dp, 40.dp),
+//                colors = ButtonDefaults.buttonColors(
+//                    containerColor = if (isFollowed) Color(0xFF000000) else MaterialTheme.colorScheme.secondaryContainer,
+//                ),
+//                border = BorderStroke(
+//                    1.dp,
+//                    Color(0xFF000000)
+//                )
+//            ) {
+//                Text(
+//                    text = if(isFollowed) "Following" else "Follow",
+//                    color = if(isFollowed) Color(0xFFFFFFFF) else  MaterialTheme.colorScheme.onSecondaryContainer,
+//                    style = TextStyle(
+//                        fontWeight = FontWeight.Bold
+//                    )
+//                )
+//            }
+//            Spacer(modifier = Modifier.width(16.dp))
+//            Button(
+//                onClick = { /*TODO Message*/ },
+//                modifier = Modifier.size(120.dp, 40.dp),
+//                colors = ButtonDefaults.buttonColors(
+//                    containerColor = MaterialTheme.colorScheme.secondaryContainer,
+//                ),
+//                border = BorderStroke(
+//                    1.dp,
+//                    Color(0xFF000000)
+//                )
+//            ) {
+//                Text(
+//                    text = "Message",
+//                    color = MaterialTheme.colorScheme.onSecondaryContainer,
+//                    style = TextStyle(
+//                        fontWeight = FontWeight.Bold
+//                    )
+//                )
+//            }
+//        }
     }
 }
 
 @SuppressLint("StateFlowValueCalledInComposition")
 @Composable
 fun ContentDetail(
+    navController: NavController,
+    isLove: MutableState<Boolean>,
     interactionRowViewModel: InteractionRowViewModel,
     scrollThroughContentDetail: MutableState<Boolean>,
-    playerViewModel: MediaPlayerViewModel,
+    playerViewModel: MediaPlayerVM,
     post: Post,
 ){
     val transitionVisible = remember {
@@ -326,7 +368,6 @@ fun ContentDetail(
 
     LaunchedEffect(scrollThroughContentDetail.value) {
         transitionVisible.value = !scrollThroughContentDetail.value
-//        Log.e("scrollChange", "Scroll" + scrollThroughContentDetail.value)
     }
 
     Column(
@@ -366,7 +407,7 @@ fun ContentDetail(
         }
 
         AudioWaveformItem(
-            id = post.id!!,
+            id = post.ID!!,
             audioUrl = post.url!!,
             audioAmplitudes = post.amplitudes,
             currentPlayingAudio = playerViewModel.currentPlayingAudio,
@@ -379,7 +420,7 @@ fun ContentDetail(
                     UIEvents.PlayingAudio(
                     post.url
                 ))
-                playerViewModel.updateCurrentPlayingPost(post.id)
+                playerViewModel.updateCurrentPlayingPost(post.ID)
             },
             onPlayPause = {
                 playerViewModel.onUIEvents(UIEvents.PlayPause)
@@ -392,32 +433,23 @@ fun ContentDetail(
 
         InteractionRow(
             interactions = Post_Interactions(
-                isLove = interactionRowViewModel.isLove,
-                loveCounts = post.likes,
-                commentCounts = post.comments,
+                isLove = isLove.value,
+                loveCounts = post.likes!!,
+                commentCounts = post.comments!!,
                 love_act = {
+                    isLove.value = it
                     interactionRowViewModel.loveAction(
                         isLove = it,
-                        postID = post.id,
+                        postID = post.ID,
                         targetUserID = post.userId
-                    )
+                    ) {result ->
+                        if(result) post.likes = post.likes!! + 1
+                    }
                 },
                 comment_act = {
-                    //TODO: Open keyboard
-                })
+                    //Do nothing
+                }
+            )
         )
     }
 }
-
-//@Preview(showBackground = true)
-//@Composable
-//fun PostDetailPreview() {
-//    val navController = rememberNavController()
-//    MyTheme {
-//        PostDetail(
-//            navController,
-//            "1",
-//
-//        )
-//    }
-//}

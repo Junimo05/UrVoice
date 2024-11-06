@@ -10,6 +10,7 @@ import androidx.media3.exoplayer.trackselection.DefaultTrackSelector
 import androidx.media3.session.MediaSession
 import com.example.urvoices.utils.audio_player.notifications.Notification_Manager
 import com.example.urvoices.utils.audio_player.services.AudioServiceHandler
+import com.example.urvoices.utils.audio_record.AndroidAudioRecorder
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -72,4 +73,11 @@ object MediaModule {
     fun provideServiceHandler(
         exoPlayer: ExoPlayer
     ): AudioServiceHandler = AudioServiceHandler(exoPlayer)
+
+    @Provides
+    @Singleton
+    fun provideMediaRecorder(
+        @ApplicationContext context: Context
+    ): AndroidAudioRecorder = AndroidAudioRecorder(context)
+
 }

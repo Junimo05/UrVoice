@@ -34,13 +34,13 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.urvoices.presentations.theme.MyTheme
 import com.example.urvoices.ui.noti_msg.SearchBar
-import com.example.urvoices.viewmodel.MediaPlayerViewModel
+import com.example.urvoices.viewmodel.MediaPlayerVM
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 fun SearchScreen(
     navController: NavController,
-    playerViewModel: MediaPlayerViewModel,
+    playerViewModel: MediaPlayerVM,
 ) {
     Scaffold(
         topBar = {

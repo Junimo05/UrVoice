@@ -2,6 +2,7 @@ package com.example.urvoices.di
 
 import com.example.urvoices.data.AudioManager
 import com.example.urvoices.data.service.FirebaseAudioService
+import com.example.urvoices.data.service.FirebaseBlockService
 import com.example.urvoices.data.service.FirebaseNotificationService
 import com.example.urvoices.data.service.FirebasePostService
 import com.example.urvoices.data.service.FirebaseUserService
@@ -21,7 +22,7 @@ import javax.inject.Singleton
 object Firebase {
     @Provides
     @Singleton
-    fun proviceFireAuth(): FirebaseAuth {
+    fun provideFireAuth(): FirebaseAuth {
         return FirebaseAuth.getInstance()
     }
 
@@ -55,7 +56,7 @@ object Firebase {
         firebaseFirestore: FirebaseFirestore,
         auth: FirebaseAuth
     ): FirebaseUserService {
-        return FirebaseUserService(audioManager, storage, firebaseFirestore, auth)
+        return FirebaseUserService(storage, firebaseFirestore, auth)
     }
 
     @Provides
@@ -77,5 +78,15 @@ object Firebase {
         firestore: FirebaseFirestore
     ): FirebaseNotificationService {
         return FirebaseNotificationService(firestore)
+    }
+
+    @Provides
+    @Singleton
+    fun provideFirebaseBlockService(
+        storage: StorageReference,
+        firebaseFirestore: FirebaseFirestore,
+        auth: FirebaseAuth
+    ): FirebaseBlockService {
+        return FirebaseBlockService(storage, firebaseFirestore, auth)
     }
 }

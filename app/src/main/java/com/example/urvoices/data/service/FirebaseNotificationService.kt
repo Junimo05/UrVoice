@@ -19,6 +19,7 @@ class FirebaseNotificationService @Inject constructor(
     ){
     val TAG = "FirebaseNotificationService"
     suspend fun followUser(targetUserID: String, actionUsername: String , followInfoID: String): Boolean {
+//        Log.e(TAG, "followUser: $actionUsername")
         val noti = Notification(
             id = null,
             targetUserID = targetUserID,

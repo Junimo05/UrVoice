@@ -17,12 +17,14 @@ import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 @HiltViewModel
@@ -43,9 +45,6 @@ class InteractionRowViewModel @Inject constructor(
     var currentUserID by savedStateHandle.saveable { mutableStateOf("") }
     @OptIn(SavedStateHandleSaveableApi::class)
     var currentUsername by savedStateHandle.saveable { mutableStateOf("") }
-    @OptIn(SavedStateHandleSaveableApi::class)
-    var isLove by savedStateHandle.saveable { mutableStateOf(false) }
-
     init {
         viewModelScope.launch {
             currentUserID = auth.currentUser?.uid.toString()
@@ -53,55 +52,56 @@ class InteractionRowViewModel @Inject constructor(
         }
     }
 
-    fun getLoveStatus(postID: String = "", commentID: String = "") {
-        try {
+
+    //Callback
+    fun getLoveStatus(postID: String = "", commentID: String = "", callback: (Boolean) -> Unit){
+        viewModelScope.launch {
+            val result = getLoveStatusSuspend(postID, commentID)
+            callback(result)
+        }
+    }
+
+    fun loveAction(targetUserID: String, isLove: Boolean, postID: String = "", commentID: String = "", callback: (Boolean) -> Unit){
+        viewModelScope.launch {
+            val result = loveActionSuspend(targetUserID, isLove, postID, commentID)
+            callback(result)
+        }
+    }
+
+    //Suspend
+    private suspend fun getLoveStatusSuspend(postID: String = "", commentID: String = ""): Boolean {
+        return try {
             _uiState.value = InteractionRowState.Loading
-            viewModelScope.launch {
-                if (commentID.isEmpty()) {
+            withContext(Dispatchers.IO) {
+                val query = if (commentID.isEmpty()) {
                     firebaseFirestore.collection("likes")
                         .whereEqualTo("postID", postID)
                         .whereEqualTo("userID", currentUserID)
-                        .addSnapshotListener { snapshot, error ->
-                            if (error != null) {
-                                _uiState.value = InteractionRowState.Error
-                                return@addSnapshotListener
-                            }
-                            if (snapshot?.isEmpty == true) {
-                                isLove = false
-                            } else {
-                                isLove = true
-                            }
-                            _uiState.value = InteractionRowState.Success
-                        }
                 } else {
                     firebaseFirestore.collection("likes")
                         .whereEqualTo("postID", postID)
                         .whereEqualTo("userID", currentUserID)
                         .whereEqualTo("commentID", commentID)
-                        .addSnapshotListener { snapshot, error ->
-                            if (error != null) {
-                                _uiState.value = InteractionRowState.Error
-                                return@addSnapshotListener
-                            }
-                            if (snapshot?.isEmpty == true) {
-                                isLove = false
-                            } else {
-                                isLove = true
-                            }
-                            _uiState.value = InteractionRowState.Success
-                        }
                 }
+
+                val snapshot = query.get().await()
+                val isLove = !snapshot.isEmpty
+                _uiState.value = InteractionRowState.Success
+                isLove
             }
         } catch (e: Exception) {
             _uiState.value = InteractionRowState.Error
+            false
         }
     }
 
-    fun loveAction(targetUserID: String, isLove: Boolean, postID: String = "", commentID: String = ""){
-        var result = false
-        try {
+
+
+    suspend fun loveActionSuspend(targetUserID: String, isLove: Boolean, postID: String = "", commentID: String = ""): Boolean {
+        return try {
             _uiState.value = InteractionRowState.Working
-            viewModelScope.launch {
+            withContext(Dispatchers.IO) {
+                var result = false
                 if (postID.isNotEmpty()) {
                     if (commentID.isNotEmpty()) {
                         if (isLove) {
@@ -118,22 +118,16 @@ class InteractionRowViewModel @Inject constructor(
                                 )
                             }
                         } else {
-                            firebaseFirestore.collection("likes")
+                            val documents = firebaseFirestore.collection("likes")
                                 .whereEqualTo("postID", postID)
                                 .whereEqualTo("userID", currentUserID)
                                 .whereEqualTo("commentID", commentID)
                                 .get()
-                                .addOnSuccessListener { documents ->
-                                    for (document in documents) {
-                                        document.reference.delete()
-                                    }
-                                    result = true
-                                }
-                                .addOnFailureListener { exception ->
-                                    // Handle any errors here
-                                    result = false
-                                }
                                 .await()
+                            for (document in documents) {
+                                document.reference.delete().await()
+                            }
+                            result = true
                         }
                     } else {
                         if (isLove) {
@@ -149,62 +143,55 @@ class InteractionRowViewModel @Inject constructor(
                                 )
                             }
                         } else {
-                            Log.e(TAG, "loveAction Delete: $postID")
-                            firebaseFirestore.collection("likes")
+                            val documents = firebaseFirestore.collection("likes")
                                 .whereEqualTo("postID", postID)
                                 .whereEqualTo("userID", currentUserID)
                                 .get()
-                                .addOnSuccessListener { documents ->
-                                    for (document in documents) {
-                                        document.reference.delete()
-                                    }
-                                    result = true
-                                }
-                                .addOnFailureListener {
-                                    // Handle any errors here
-                                    result = false
-                                }
-                            Log.e(TAG, "loveAction Delete: $result")
+                                .await()
+                            for (document in documents) {
+                                document.reference.delete().await()
+                            }
+                            result = true
                         }
                     }
-
                     if (result) {
                         _uiState.value = InteractionRowState.Success
-                        this@InteractionRowViewModel.isLove = isLove
                     }
                 }
+                result
             }
-        } catch (e: Exception){
+        } catch (e: Exception) {
             _uiState.value = InteractionRowState.Error
+            false
         }
     }
 
-    fun commentAction(targetUserID: String, postID: String = "", commentID: String = "", content: String){
-        var addResult = false
-        try {
-            _uiState.value = InteractionRowState.Working
-            viewModelScope.launch {
-                if(postID.isNotEmpty()) {
-                    if(commentID.isNotEmpty()){
-                        //Reply Comment
-                        if(postRepository.replyComment(currentUserID, commentID, postID, content) != ""){
-                            addResult = notificationRepository.replyComment(targetUserID, currentUsername, commentID)
-                        }
-                    }else {
-                        //Comment Post
-                        if(postRepository.commentPost(currentUserID, postID, content) != ""){
-                            addResult = notificationRepository.commentPost(targetUserID, currentUsername, postID)
-                        }
-                    }
-                }
-                if(addResult) {
-                    _uiState.value = InteractionRowState.Success
-                }
-            }
-        }catch (e: Exception){
-            _uiState.value = InteractionRowState.Error
-        }
-    }
+//    fun commentAction(targetUserID: String, postID: String = "", commentID: String = "", content: String){
+//        var addResult = false
+//        try {
+//            _uiState.value = InteractionRowState.Working
+//            viewModelScope.launch {
+//                if(postID.isNotEmpty()) {
+//                    if(commentID.isNotEmpty()){
+//                        //Reply Comment
+//                        if(postRepository.replyComment(currentUserID, commentID, postID, content).id != null){
+//                            addResult = notificationRepository.replyComment(targetUserID, currentUsername, commentID)
+//                        }
+//                    }else {
+//                        //Comment Post
+//                        if(postRepository.commentPost(currentUserID, postID, content).id != null){
+//                            addResult = notificationRepository.commentPost(targetUserID, currentUsername, postID)
+//                        }
+//                    }
+//                }
+//                if(addResult) {
+//                    _uiState.value = InteractionRowState.Success
+//                }
+//            }
+//        }catch (e: Exception){
+//            _uiState.value = InteractionRowState.Error
+//        }
+//    }
 }
 
 sealed class InteractionRowState{

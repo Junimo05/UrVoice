@@ -1,6 +1,8 @@
 package com.example.urvoices.viewmodel
 
 import android.annotation.SuppressLint
+import android.util.Log
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
@@ -9,6 +11,7 @@ import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.cachedIn
 import com.example.urvoices.data.repository.PostRepository
+import com.example.urvoices.data.service.FirebaseBlockService
 import com.google.firebase.firestore.FirebaseFirestore
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -22,6 +25,7 @@ import javax.inject.Inject
 class HomeViewModel @Inject constructor(
     private val firestore: FirebaseFirestore,
     private val postRepository: PostRepository,
+    private val blockService: FirebaseBlockService,
     savedStateHandle: SavedStateHandle
 ): ViewModel(){
 
@@ -29,12 +33,14 @@ class HomeViewModel @Inject constructor(
     private val _homeState = MutableStateFlow<HomeState>(HomeState.Initial)
     val homeState: StateFlow<HomeState> = _homeState.asStateFlow()
 
-    val lastVisiblePost = mutableStateOf<String>("")
-    val lastVisiblePage = mutableStateOf<Int>(1)
+    private val lastVisiblePost = mutableStateOf<String>("")
+    private val lastVisiblePage = mutableIntStateOf(1)
 
     val postsPaging3 = Pager(PagingConfig(pageSize = 3)){
+//        Log.e(TAG, "PagingConfig")
         postRepository.getNewFeed(lastVisiblePage, lastVisiblePost)
     }.flow.cachedIn(viewModelScope)
+
 
     init {
        viewModelScope.launch {
@@ -42,14 +48,49 @@ class HomeViewModel @Inject constructor(
        }
     }
 
-//    suspend fun loadingData() {
-//        _homeState.value = HomeState.LoadingData
-//        val newPostList = postRepository.getNewFeed()
-//        _posts.value = newPostList.value
-////        Log.e(TAG, "loadingData: ${newPostList.value}")
-//        _homeState.value = HomeState.LoadedData
-//    }
+    fun blockUser(targetID: String): String {
+        _homeState.value = HomeState.Working
+        var resultMsg = ""
+        try {
+            viewModelScope.launch {
+                val result = blockService.blockUser(targetID)
+                if (result.isNotEmpty()) {
+                    _homeState.value = HomeState.Successful
+                    resultMsg = "User blocked successfully"
+                } else {
+                    _homeState.value = HomeState.Error("Failed to block user")
+                    resultMsg = "Something went wrong"
+                }
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            _homeState.value = HomeState.Error("Error blocking user")
+            resultMsg = "Something went wrong"
+        }
+        return resultMsg
+    }
 
+    fun unblockUser(targetID: String): String {
+        _homeState.value = HomeState.Working
+        var resultMsg = ""
+        try {
+            viewModelScope.launch {
+                val result = blockService.unblockUser(targetID)
+                if (result.isNotEmpty()) {
+                    _homeState.value = HomeState.Successful
+                    resultMsg = "User unblocked successfully"
+                } else {
+                    _homeState.value = HomeState.Error("Failed to unblock user")
+                    resultMsg = "Something went wrong"
+                }
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            _homeState.value = HomeState.Error("Error unblocking user")
+            resultMsg = "Something went wrong"
+        }
+        return resultMsg
+    }
 
     suspend fun getUserInfo(userID: String): Map<String, String> {
         val result = postRepository.getUserBaseInfo(userID)
@@ -60,7 +101,7 @@ class HomeViewModel @Inject constructor(
 
 sealed class HomeState {
     object Initial : HomeState()
-    object LoadingData : HomeState()
-    object LoadedData : HomeState()
+    object Working : HomeState()
+    object Successful : HomeState()
     data class Error(val message: String) : HomeState()
 }

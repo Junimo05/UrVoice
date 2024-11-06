@@ -1,4 +1,4 @@
-package com.example.urvoices.utils.waveform
+package com.example.urvoices.ui._component.waveform
 
 enum class WaveformAlignment {
     Top, Center, Bottom

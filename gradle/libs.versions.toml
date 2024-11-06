@@ -26,6 +26,7 @@ datastorePreferencesCoreJvm = "1.1.1"
 androidbrowserhelper = "2.5.0"
 firebaseFunctions = "21.0.0"
 firebaseDataconnect = "16.0.0-beta01"
+firebaseMessaging = "24.0.3"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -59,6 +60,7 @@ androidx-datastore-preferences-core-jvm = { group = "androidx.datastore", name =
 androidbrowserhelper = { group = "com.google.androidbrowserhelper", name = "androidbrowserhelper", version.ref = "androidbrowserhelper" }
 firebase-functions = { group = "com.google.firebase", name = "firebase-functions", version.ref = "firebaseFunctions" }
 firebase-dataconnect = { group = "com.google.firebase", name = "firebase-dataconnect", version.ref = "firebaseDataconnect" }
+firebase-messaging = { group = "com.google.firebase", name = "firebase-messaging", version.ref = "firebaseMessaging" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

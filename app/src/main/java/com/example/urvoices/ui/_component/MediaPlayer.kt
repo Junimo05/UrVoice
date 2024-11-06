@@ -1,7 +1,10 @@
 package com.example.urvoices.ui._component
 
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -13,19 +16,23 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
+import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
 import com.example.urvoices.R
 import com.example.urvoices.utils.timeStampToDuration
 import java.util.concurrent.TimeUnit
 
 @Composable
 fun MediaPlayer(
+    navController: NavController,
     modifier: Modifier = Modifier,
     progress: Float,
     isAudioPlaying: Boolean,
@@ -42,12 +49,19 @@ fun MediaPlayer(
     onLoopModeChange: () -> Unit
 ) {
     BottomAppBar (
+        modifier = Modifier
+            .border(
+            width = 3.dp,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        ),
         content = {
-            Column{
+            Box(
+                modifier = Modifier.fillMaxSize().then(modifier),
+            ){
                 Row (
                     modifier = Modifier
                         .fillMaxSize()
-                        .height(56.dp),
+                        .height(50.dp),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ){
@@ -58,9 +72,18 @@ fun MediaPlayer(
                     )
                     Slider(
                         value = progress,
-                        onValueChange = {onProgress(it)},
+                        onValueChange = {
+                            onProgress(it)
+                        },
                         valueRange = 0f..1f,
-                        modifier = Modifier.weight(1f)
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(24.dp),
+                        colors = SliderDefaults.colors(
+                            thumbColor = MaterialTheme.colorScheme.primary,
+                            activeTrackColor = MaterialTheme.colorScheme.primary,
+                            inactiveTrackColor = MaterialTheme.colorScheme.inversePrimary
+                        )
                     )
                     TimeStampMedia(
                         progress = progress,
@@ -109,6 +132,7 @@ fun PlayerButton(
         }) {
             Icon(
                 painter = painterResource(id = if(isStop) R.drawable.ic_media_pause else R.drawable.ic_media_play),
+                modifier = Modifier.size(36.dp),
                 contentDescription = "PlayPause"
             )
         }
@@ -118,6 +142,7 @@ fun PlayerButton(
         }) {
             Icon(
                 painter = painterResource(id = R.drawable.ic_media_next),
+                modifier = Modifier.size(36.dp),
                 contentDescription = "PlayPause"
             )
         }

@@ -30,7 +30,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.urvoices.R
 import com.example.urvoices.presentations.theme.MyTheme
-import com.example.urvoices.utils.waveform.AudioWaveform
+import com.example.urvoices.ui._component.waveform.AudioWaveform
 import com.linc.audiowaveform.infiniteLinearGradient
 import com.linc.audiowaveform.model.AmplitudeType
 import com.linc.audiowaveform.model.WaveformAlignment
@@ -56,7 +56,6 @@ fun AudioWaveformItem(
     val loadedWaveForm = mutableStateOf(false)
     val colorBrush = SolidColor(MaterialTheme.colorScheme.onPrimary)
     val colorDone = SolidColor(MaterialTheme.colorScheme.surfaceVariant)
-    val staticGradientBrush = Brush.linearGradient(colors = listOf(Color(0x500c8bde), Color(0xa10a90b8)))
     val animatedGradientBrush = Brush.infiniteLinearGradient(
         colors = listOf(Color(0x500c8bde), Color(0xa10a90b8)),
         animation = tween(durationMillis = 6000, easing = LinearEasing),
@@ -76,16 +75,13 @@ fun AudioWaveformItem(
         ,
         verticalAlignment = Alignment.CenterVertically
     ) {
-
-        // Todo: Button to play/pause audio
-
         IconButton(
             onClick = {
                 if(currentPlayingPost != id) {
                     // Play new audio
                     onPlayStart()
                 } else {
-                    // Toggle play/pause current audio
+                    // Toggle play/pauseRecording current audio
                     onPlayPause()
                 }
             },

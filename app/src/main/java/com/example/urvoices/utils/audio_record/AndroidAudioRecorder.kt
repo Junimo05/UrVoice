@@ -5,31 +5,38 @@ import android.content.Context
 import android.media.MediaRecorder
 import android.net.Uri
 import android.os.Build
+import android.os.ParcelFileDescriptor
 import android.provider.MediaStore
+import android.util.Log
 import androidx.compose.runtime.mutableLongStateOf
+import androidx.compose.runtime.mutableStateOf
 import com.example.urvoices.data.db.Entity.AudioDes
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.io.ByteArrayOutputStream
 import java.io.File
+import java.io.FileDescriptor
+import java.io.FileInputStream
+import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
 import javax.inject.Inject
 
 class AndroidAudioRecorder @Inject constructor(
     private val context: Context,
-    private val reloadData: () -> Unit
 ): AudioRecorder {
-
     private var recorder: MediaRecorder? = null
-    private var tempFile = File(context.cacheDir, "temp_audio.mp3")
-    private var targetUri: Uri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI
-    private val scope = CoroutineScope(Dispatchers.Main)
-    var recordingTime = mutableLongStateOf(0L)
+    private val scope = CoroutineScope(Dispatchers.Main + Job())
 
-    var isPaused: Boolean = false
-    private var isStop: Boolean = false
+    var tempFile = File(context.cacheDir, "temp_audio.mp3")
+
+    var isPaused = mutableStateOf(false)
+    private var isRecording = mutableStateOf(false)
 
     private fun createRecorder(): MediaRecorder {
         return if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
@@ -37,100 +44,86 @@ class AndroidAudioRecorder @Inject constructor(
         } else MediaRecorder()
     }
 
-    override fun start() {
-        isStop = false
+    override fun startRecording() {
         createRecorder().apply {
             setAudioSource(MediaRecorder.AudioSource.MIC)
             setOutputFormat(MediaRecorder.OutputFormat.MPEG_4)
             setAudioEncoder(MediaRecorder.AudioEncoder.AAC)
             setOutputFile(tempFile.absolutePath)
 
-            prepare()
-            start()
-
-            recorder = this
-        }
-
-        scope.launch {
-            while (recorder != null) {
-                delay(1000L)
-                if(!isPaused) {
-                    recordingTime.longValue += 1000
-                }
+            try {
+                prepare()
+                start()
+                recorder = this
+                isRecording.value = true
+            } catch (e: IOException) {
+                e.printStackTrace()
             }
         }
-
     }
 
-    override suspend fun stop(filename: String) {
-        isStop = true
-        recorder?.stop()
-        recorder?.reset()
-        recorder = null
-        scope.launch {
-            saveAudioFile(filename)
-            delay(1000L)
-            reloadData()
+    override fun stopRecording() {
+        try {
+            isRecording.value = false
+            recorder?.stop()
+            recorder?.reset()
+            recorder?.release()
+            recorder = null
+        } finally {
+            isPaused.value = false
         }
-        recordingTime.longValue = 0
     }
 
-    override fun cancel() {
-        isStop = true
-        recordingTime.longValue = 0
-        recorder?.stop()
-        recorder?.reset()
+    override fun cancelRecording() {
+        isRecording.value = false
+        isPaused.value = false
+
+        recorder?.apply {
+            stop()
+            release()
+        }
         recorder = null
         tempFile.delete()
     }
 
-    override fun pause() {
+    override fun pauseRecording() {
         recorder?.pause()
-        isPaused = true
+        isPaused.value = true
     }
 
-    override fun resume() {
-        isPaused = false
+    override fun resumeRecording() {
         recorder?.resume()
+        isPaused.value = false
+    }
 
+    // Clean up resources
+    override fun releaseRecording() {
+        scope.cancel()
+        recorder?.release()
+        recorder = null
+    }
+
+    fun getMaxAmplitude(): Int {
+        return recorder?.maxAmplitude ?: 0
+    }
+
+    //File
+    fun getAudioFilePath(): String {
+        return tempFile.absolutePath
+    }
+
+    fun getAudioFile(): File {
+        return tempFile
+    }
+
+    fun getAudioFileUri(): Uri {
+        return Uri.fromFile(tempFile)
     }
 
     override fun toItem(): AudioDes {
         TODO("Not yet implemented")
     }
 
-    override fun getAmplitude(): Int {
-        TODO("Not yet implemented")
-    }
-
-    private fun saveAudioFile(filename: String) { //Todo: Change save audio file
-        val resolver = context.contentResolver
-        val contentValues = ContentValues().apply {
-            put(MediaStore.MediaColumns.DISPLAY_NAME, filename)
-            put(MediaStore.MediaColumns.MIME_TYPE, "audio/mp3")
-        }
-
-        val uri = resolver.insert(targetUri, contentValues)
-
-        uri?.let {
-            val outputStream = resolver.openOutputStream(it)
-            val inputStream = tempFile.inputStream()
-
-            copyStream(inputStream, outputStream)
-
-            inputStream.close()
-            outputStream?.close()
-        }
-        tempFile.delete()
-    }
-
-    private fun copyStream(input: InputStream, output: OutputStream?) {
-        val buffer = ByteArray(1024)
-        var read: Int
-        while (input.read(buffer).also { read = it } != -1) {
-            output?.write(buffer, 0, read)
-        }
-    }
 }
 
 

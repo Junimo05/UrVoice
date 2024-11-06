@@ -5,7 +5,7 @@ import kotlinx.parcelize.Parcelize
 
 @Parcelize
 data class Comment(
-    val id: String?,
+    var id: String?,
     val userId: String,
     val parentId : String?,
     val postId: String,
@@ -21,8 +21,8 @@ data class Comment(
             "ID" to id,
             "content" to content,
             "createdAt" to createdAt,
-            "updateAt" to updatedAt,
-            "deleteAt" to deletedAt,
+            "updatedAt" to updatedAt,
+            "deletedAt" to deletedAt,
         )
     }
 

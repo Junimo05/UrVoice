@@ -2,18 +2,17 @@ package com.example.urvoices.ui._component.ProfileComponent
 
 import android.Manifest
 import android.annotation.SuppressLint
+import android.graphics.Bitmap
 import android.net.Uri
+import android.util.Log
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.detectTransformGestures
-import androidx.compose.foundation.gestures.rememberTransformableState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -37,13 +36,11 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -52,10 +49,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -64,21 +59,29 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.window.Dialog
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
-import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
 import com.example.urvoices.R
 import com.example.urvoices.presentations.theme.MyTheme
 import com.example.urvoices.ui._component.TopBarBackButton
 import com.example.urvoices.utils.Auth.checkProvider
 import com.example.urvoices.utils.Navigator.MainScreen
+import com.example.urvoices.utils.deleteOldImageFile
+import com.example.urvoices.utils.generateUniqueFileName
+import com.example.urvoices.utils.saveBitmapToUri
 import com.example.urvoices.viewmodel.ProfileViewModel
 import com.google.firebase.auth.GoogleAuthProvider
+import com.mr0xf00.easycrop.CropError
+import com.mr0xf00.easycrop.CropResult
+import com.mr0xf00.easycrop.crop
+import com.mr0xf00.easycrop.rememberImageCropper
+import com.mr0xf00.easycrop.rememberImagePicker
+import com.mr0xf00.easycrop.ui.ImageCropperDialog
 import kotlinx.coroutines.launch
-import org.checkerframework.checker.units.qual.Current
+import java.io.File
+import java.io.FileOutputStream
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter", "UnrememberedMutableState",
     "StateFlowValueCalledInComposition"
@@ -89,6 +92,8 @@ fun ProfileEditScreen(
     profileViewModel: ProfileViewModel? = null,
 ) {
     val TAG = "ProfileEditScreen"
+    val scope = rememberCoroutineScope()
+    val context = LocalContext.current
 
     val currentUser by remember { mutableStateOf(profileViewModel?.displayuser) }
     val authProfile by remember { mutableStateOf(profileViewModel?.authCurrentUser) }
@@ -102,25 +107,80 @@ fun ProfileEditScreen(
     var email by remember { mutableStateOf(currentUser!!.email) }
     val downloadAvatarUrl by remember { mutableStateOf(currentUser!!.avatarUrl) }
     var imgUri by remember { mutableStateOf(Uri.EMPTY) }
-    var showPreviewDialog by rememberSaveable {
-        mutableStateOf(false)
-    }
 
 
-    val imagePicker = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
-        uri?.let {
-            // Handle the returned Uri
-            imgUri = it
-            showPreviewDialog = true
+
+    //Image Handle
+    val imageCropper = rememberImageCropper()
+    val cropState = imageCropper.cropState
+
+    val imagePicker = rememberImagePicker(onImage = { uri ->
+        scope.launch {
+            deleteOldImageFile(context, imgUri)
+            val result = imageCropper.crop(uri = uri, context = context)
+            when (result) {
+                CropResult.Cancelled -> {
+                    Log.d(TAG, "Crop Cancelled")
+                }
+                is CropResult.Success -> {
+                    val croppedBitmap = result.bitmap.asAndroidBitmap()
+                    val fileName = generateUniqueFileName()
+                    val file = File(context.cacheDir, fileName)
+                    FileOutputStream(file).use { out ->
+                        croppedBitmap.compress(Bitmap.CompressFormat.JPEG, 100, out)
+                    }
+                    imgUri = Uri.fromFile(file)
+                }
+                CropError.LoadingError -> {
+                    Toast.makeText(context, "Error loading image", Toast.LENGTH_SHORT).show()
+                }
+                CropError.SavingError -> {
+                    Toast.makeText(context, "Error saving image", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+    })
+
+
+    val cameraLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.TakePicturePreview()
+    ) { bitmap: Bitmap? ->
+        bitmap?.let {
+            deleteOldImageFile(context, imgUri)
+            val uri = saveBitmapToUri(context, it)
+            uri?.let { imageUri ->
+                scope.launch {
+                    val result = imageCropper.crop(uri = imageUri, context = context)
+                    when (result) {
+                        CropResult.Cancelled -> {
+                            Log.d(TAG, "Crop Cancelled")
+                        }
+                        is CropResult.Success -> {
+                            val croppedBitmap = result.bitmap.asAndroidBitmap()
+                            val fileName = generateUniqueFileName()
+                            val file = File(context.cacheDir, fileName)
+                            FileOutputStream(file).use { out ->
+                                croppedBitmap.compress(Bitmap.CompressFormat.JPEG, 100, out)
+                            }
+                            imgUri = Uri.fromFile(file)
+                        }
+                        CropError.LoadingError -> {
+                            Toast.makeText(context, "Error loading image", Toast.LENGTH_SHORT).show()
+                        }
+                        CropError.SavingError -> {
+                            Toast.makeText(context, "Error saving image", Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                }
+            }
         }
     }
 
+
+
+    //Confirm Changed To Update Profile
     LaunchedEffect(username, bio, country, email, imgUri) {
        isChanged.value = username != currentUser!!.username || bio != currentUser!!.bio || country != currentUser!!.country || email != currentUser!!.email
-    }
-
-    fun uploadImageHandle(){
-        imagePicker.launch("image/*")
     }
 
     Scaffold(
@@ -151,53 +211,22 @@ fun ProfileEditScreen(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.Center
                 ) {
-                    if(downloadAvatarUrl != ""){
-                        AvatarChangeComponent(
-                            imgUri = imgUri,
-                            currentAvatarUrl = downloadAvatarUrl,
-                            imagePicker = {
-                                imagePicker.launch("image/*")
-                            },
-                            onAvatarSelected = {
-                                imgUri = it
-                            },
-                            onAvatarConfirmed = {
-
-                            },
-
-                        )
-                    } else {
-                        AvatarChangeComponent(
-                            imgUri = imgUri,
-                            currentAvatarUrl = downloadAvatarUrl,
-                            imagePicker = {
-                                imagePicker.launch("image/*")
-                            },
-                            onAvatarSelected = {
-                                imgUri = it
-                            },
-                            onAvatarConfirmed = {
-
-                            },
-
+                    AvatarChangeComponent(
+                        imgUri = imgUri,
+                        currentAvatarUrl = downloadAvatarUrl,
+                        imagePicker = {
+                            imagePicker.pick(
+                                "image/*",
                             )
+                        },
+                        cameraLauncher = {
+                            cameraLauncher.launch(input = null)
+                        }
+                    )
+                    if(cropState != null){
+                        ImageCropperDialog(state = cropState)
                     }
                 }
-
-                Text(
-                    text = "Change Avatar",
-                    style = TextStyle(
-                        color = MaterialTheme.colorScheme.onSurface,
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.Bold
-                    ),
-                    modifier = Modifier
-                        .padding(top = 8.dp)
-                        .align(Alignment.CenterHorizontally)
-                        .clickable {
-                            imagePicker.launch("image/*")
-                        }
-                )
 
                 Spacer(modifier = Modifier.height(24.dp))
 
@@ -287,6 +316,9 @@ fun ProfileEditScreen(
                                 email = email,
                                 avatarUri = imgUri
                             )
+                            //delete image after update deleteFile
+                            deleteOldImageFile(context, imgUri)
+                            imgUri = Uri.EMPTY
                             navController.navigate(MainScreen.ProfileScreen.MainProfileScreen.route)
                         }
                     },
@@ -319,91 +351,6 @@ fun ProfileEditScreen(
                 CircularProgressIndicator()
             }
         }
-
-        // Image Preview Dialog
-        if(showPreviewDialog){
-            ImagePreviewDialog(
-                imageUri = imgUri,
-                onDismissRequest = { showPreviewDialog = false },
-                onConfirm = { showPreviewDialog = false }
-            )
-        }
-    }
-}
-
-@SuppressLint("UnusedBoxWithConstraintsScope")
-@Composable
-fun ImagePreviewDialog(
-    imageUri: Uri,
-    onDismissRequest: () -> Unit,
-    onConfirm: () -> Unit
-) {
-    val imageBitmap = rememberAsyncImagePainter(model = imageUri)
-    var scale by remember { mutableFloatStateOf(1f) }
-    var offset by remember { mutableStateOf(Offset.Zero) }
-    val scope = rememberCoroutineScope()
-    val transformationState = rememberTransformableState { zoomChange, offsetChange, _ ->
-        scale *= zoomChange
-        offset += offsetChange
-    }
-
-    Dialog(onDismissRequest = onDismissRequest) {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(Color.Black)
-        ) {
-            BoxWithConstraints(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .pointerInput(Unit) {
-                        detectTransformGestures { _, pan, zoom, _ ->
-                            scope.launch {
-                                scale *= zoom
-                                offset += pan
-                            }
-                        }
-                    }
-                    .graphicsLayer(
-                        scaleX = scale,
-                        scaleY = scale,
-                        translationX = offset.x,
-                        translationY = offset.y
-                    )
-            ) {
-                Image(
-                    painter = imageBitmap,
-                    contentDescription = "Preview",
-                    contentScale = ContentScale.Fit,
-                    modifier = Modifier.fillMaxSize()
-                )
-            }
-
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .align(Alignment.BottomCenter)
-                    .padding(16.dp),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Button(
-                    onClick = onDismissRequest,
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Color.Transparent,
-                    )
-                ) {
-                    Text("Hủy")
-                }
-                Button(
-                    onClick = onConfirm,
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Color.Transparent,
-                    )
-                ) {
-                    Text("Xác nhận")
-                }
-            }
-        }
     }
 }
 
@@ -412,21 +359,27 @@ fun AvatarChangeComponent(
     imgUri: Uri,
     currentAvatarUrl: String?,
     imagePicker: () -> Unit,
-    onAvatarSelected: (Uri) -> Unit,
-    onAvatarConfirmed: (Uri) -> Unit
+    cameraLauncher: () -> Unit
 ) {
     var showImagePicker by remember { mutableStateOf(false) }
     var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
-    var showImagePreview by remember { mutableStateOf(false) }
 
     val context = LocalContext.current
+
     val cameraPermissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission()
     ) { isGranted: Boolean ->
         if (isGranted) {
-            // Open camera
+            Toast.makeText(context, "Permission granted", Toast.LENGTH_SHORT).show()
+            cameraLauncher()
         } else {
-            // Permission denied, handle this situation
+            Toast.makeText(context, "Permission denied", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    LaunchedEffect(imgUri) {
+        if(imgUri != Uri.EMPTY){
+            selectedImageUri = imgUri
         }
     }
 
@@ -436,9 +389,12 @@ fun AvatarChangeComponent(
             .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-
         AsyncImage(
-            model = ImageRequest.Builder(LocalContext.current)
+            model =
+            if(imgUri != Uri.EMPTY)
+                imgUri
+            else
+                ImageRequest.Builder(LocalContext.current)
                 .data(currentAvatarUrl)
                 .crossfade(true)
                 .build(),
@@ -453,9 +409,7 @@ fun AvatarChangeComponent(
                     showImagePicker = true
                 }
         )
-
         Spacer(modifier = Modifier.height(16.dp))
-
         Button(onClick = { showImagePicker = true }) {
             Text("Change Avatar")
         }
@@ -491,23 +445,6 @@ fun AvatarChangeComponent(
                     onClick = { showImagePicker = false }
                 ) {
                     Text("Cancel")
-                }
-            }
-        )
-    }
-
-    if (showImagePreview && selectedImageUri != null) {
-        //TODO: FIX THIS
-        ImagePreviewDialog(
-            imageUri = selectedImageUri!!,
-            onDismissRequest = {
-                showImagePreview = false
-                selectedImageUri = null
-            },
-            onConfirm = {
-                selectedImageUri?.let { uri ->
-                    onAvatarConfirmed(uri)
-                    showImagePreview = false
                 }
             }
         )
@@ -614,6 +551,7 @@ fun ProfileField(
                 value = value,
                 onValueChange = onValueChange,
                 colors = TextFieldDefaults.colors(
+                    focusedContainerColor = MaterialTheme.colorScheme.primaryContainer,
                     cursorColor = Color.White,
                     disabledTextColor = Color.Gray,
                     focusedIndicatorColor = Color.Transparent,

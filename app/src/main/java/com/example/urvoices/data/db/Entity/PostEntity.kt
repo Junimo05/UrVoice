@@ -21,7 +21,7 @@ data class PostEntity(
     val deletedAt: Long?,
 ){
     fun toPost() = Post(
-        id = id,
+        ID = id,
         userId = userId,
         description = description,
         audioName = audioName,
@@ -31,7 +31,7 @@ data class PostEntity(
         comments = comments,
         tag = tags,
         createdAt = createdAt,
-        updateAt = updatedAt,
-        deleteAt = deletedAt
+        updatedAt = updatedAt,
+        deletedAt = deletedAt
     )
 }

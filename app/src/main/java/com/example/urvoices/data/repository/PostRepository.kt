@@ -23,27 +23,6 @@ class PostRepository @Inject constructor(
 ){
     val TAG = "PostRepository"
     val scope = CoroutineScope(Dispatchers.Main)
-    private val MAX_POSTS = 50
-
-//    suspend fun getNewFeed(): LiveData<List<Post>> = withContext(Dispatchers.IO) {
-//        val newPosts = firestorePostService.getNewFeed(1)
-//        val newPostEntities = newPosts.map { it.toEntity() }
-//        // Insert new posts into the database
-//        postDao.insertAll(newPostEntities)
-//
-//        // Get all posts from the database
-//        val allPosts = postDao.getAllPosts()
-//
-//        // If the number of posts exceeds MAX_POSTS, delete the oldest posts
-//        if (allPosts.size > MAX_POSTS) {
-//            val postsToDelete = allPosts.subList(0, allPosts.size - MAX_POSTS)
-//            postDao.deleteAll(postsToDelete)
-//        }
-//
-//        // Get the updated list of posts from the database
-//        val updatedPosts = postDao.getAllPosts().map { it.toPost() }
-//        MutableLiveData(updatedPosts)
-//    }
 
     suspend fun createPost(post: Post, audioUri: Uri): Boolean{
         try {
@@ -113,13 +92,13 @@ class PostRepository @Inject constructor(
         return result
     }
 
-    suspend fun commentPost(actionUserID: String, postID: String, content: String): String {
+    suspend fun commentPost(actionUserID: String, postID: String, content: String): Comment {
         val result = firestorePostService.commentPost(actionUserID, postID, content)
         return result
     }
 
-    suspend fun replyComment(actionUserID: String, commentID: String, postID: String, content: String): String {
-        val result = firestorePostService.replyComment(actionUserID, commentID, postID, content)
+    suspend fun replyComment(actionUserID: String, parentID: String, postID: String, content: String): Comment {
+        val result = firestorePostService.replyComment(actionUserID, parentID, postID, content)
         return result
     }
 
@@ -152,7 +131,7 @@ class PostRepository @Inject constructor(
     }
 
     //Get Comment's Detail
-     fun getComments_Posts(postID: String, lastCmt: MutableState<String>, lastPage: MutableState<Int>): PagingSource<Int, Comment> {
+     fun getCommentsPosts(postID: String, lastCmt: MutableState<String>, lastPage: MutableState<Int>): PagingSource<Int, Comment> {
         return object : PagingSource<Int, Comment>() {
             override suspend fun load(params: LoadParams<Int>): LoadResult<Int, Comment> {
                 return try {
@@ -174,7 +153,7 @@ class PostRepository @Inject constructor(
         }
     }
 
-    suspend fun getReply_Comments(commentID: String, lastCommentReplyID: MutableState<String>, lastParentCommentID: MutableState<String>): List<Comment>{
+    suspend fun getReplyComments(commentID: String, lastCommentReplyID: MutableState<String>, lastParentCommentID: MutableState<String>): List<Comment>{
         try {
             val result = firestorePostService.getRepliesComments(commentID, lastCommentReplyID, lastParentCommentID)
             return result

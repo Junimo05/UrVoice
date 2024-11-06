@@ -20,15 +20,16 @@ class UploadViewModel @Inject constructor(
     private val storage: StorageReference,
     private val postRepository: PostRepository
 ): ViewModel(){
-    private val _uploadState = MutableLiveData<UploadState>()
+    private val _uploadState = MutableLiveData<UploadState>(UploadState.Initial)
     val uploadState: LiveData<UploadState> = _uploadState
+
 
     suspend fun createPost(audioUri: Uri, audioName:String, description: String, tags: List<String>): Boolean {
         _uploadState.value = UploadState.Loading
         try {
             val userID = userData.userIdFlow.first()
             val post = Post(
-                id = null,
+                ID = null,
                 userId = userID ?: return false,
                 audioName = audioName,
                 description = description,
@@ -37,8 +38,8 @@ class UploadViewModel @Inject constructor(
                 url = null,
                 comments = 0,
                 likes = 0,
-                deleteAt = null,
-                updateAt = null
+                deletedAt = null,
+                updatedAt = null
             )
             val result = postRepository.createPost(post, audioUri)
             if (result) {
@@ -50,10 +51,20 @@ class UploadViewModel @Inject constructor(
         }
         return false
     }
+
+    fun setFileSelected() {
+        _uploadState.value = UploadState.FileSelected
+    }
+
+    fun resetUploadState () {
+        _uploadState.value = UploadState.Initial
+    }
 }
 
 sealed class UploadState {
-    object Loading: UploadState()
-    object Success: UploadState() //confirm
+    data object Initial: UploadState()
+    data object FileSelected: UploadState()
+    data object Loading: UploadState()
+    data object Success: UploadState() //confirm
     data class Error(val message: String): UploadState()
 }

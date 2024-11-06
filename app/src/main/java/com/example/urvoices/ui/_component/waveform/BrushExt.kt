@@ -1,4 +1,4 @@
-package com.example.urvoices.utils.waveform
+package com.example.urvoices.ui._component.waveform
 
 import androidx.compose.animation.core.DurationBasedAnimationSpec
 import androidx.compose.animation.core.InfiniteTransition

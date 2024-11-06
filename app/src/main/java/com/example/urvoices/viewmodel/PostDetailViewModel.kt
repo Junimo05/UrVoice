@@ -1,5 +1,7 @@
 package com.example.urvoices.viewmodel
 
+import android.util.Log
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
@@ -10,6 +12,7 @@ import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
+import androidx.paging.insertHeaderItem
 import com.example.urvoices.data.model.Comment
 import com.example.urvoices.data.model.Post
 import com.example.urvoices.data.repository.PostRepository
@@ -17,7 +20,6 @@ import com.example.urvoices.data.repository.UserRepository
 import com.google.firebase.auth.FirebaseAuth
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
@@ -25,7 +27,7 @@ import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 val emptyPost = Post(
-    id = "",
+    ID = "",
     userId = "",
     url = "",
     amplitudes = listOf(),
@@ -35,8 +37,8 @@ val emptyPost = Post(
     comments = 0,
     tag = listOf(),
     createdAt = 0,
-    updateAt = 0,
-    deleteAt = 0
+    updatedAt = 0,
+    deletedAt = 0
 )
 
 @HiltViewModel
@@ -59,32 +61,37 @@ class PostDetailViewModel @Inject constructor(
     var isFollowed by savedStateHandle.saveable { mutableStateOf(false) }
 
     //Comment Control
-    val lastPage = mutableStateOf(1)
+    val lastPage = mutableIntStateOf(1)
     val lastCmt = mutableStateOf("")
 
-    var commentLists : Flow<PagingData<Comment>> = Pager(PagingConfig(pageSize = 5)){
-            postRepository.getComments_Posts(
-                postID = postID,
-                lastPage = lastPage,
-                lastCmt = lastCmt
-            )
-    }.flow.cachedIn(viewModelScope)
+    private val pagingConfig = PagingConfig(
+        pageSize = 10,
+        enablePlaceholders = false,
+        initialLoadSize = 20, // Load more items initially
+        prefetchDistance = 5, // prefetch distance
+        maxSize = 100 // Limit cache size
+    )
 
+    private val _commentFlow = MutableStateFlow<PagingData<Comment>>(PagingData.empty())
+    val commentFlow = _commentFlow.asStateFlow()
 
 
     //Reply Comment Control
-    val lastCommentReplyID = mutableStateOf("")
+    private val lastCommentReplyID = mutableStateOf("")
     val lastParentCommentID = mutableStateOf("")
     private val _replyLists = MutableStateFlow<List<Comment>>(emptyList())
     val replyLists = _replyLists.asStateFlow()
 
+    private val loadedCommentIds = mutableSetOf<String>()
+    private val loadedReplyIds = mutableSetOf<String>()
+
     fun loadData(postID: String, userID: String) {
-        if(this.postID != postID){
-            currentPost.value = emptyPost
-            userPost = userTemp
-            loadCommentList()
-        }
         this.postID = postID
+        currentPost.value = emptyPost
+        userPost = userTemp
+        loadedCommentIds.clear()
+        loadedReplyIds.clear()
+        initializeCommentPager(true)
 
         viewModelScope.launch {
             try {
@@ -96,7 +103,7 @@ class PostDetailViewModel @Inject constructor(
                     }
                 }
                 val job2 = launch {
-                    if(currentPost.value.id == "" || currentPost.value.id != postID){
+                    if(currentPost.value.ID == "" || currentPost.value.ID != postID){
                         loadPostData(postID)
                     }
                 }
@@ -115,47 +122,69 @@ class PostDetailViewModel @Inject constructor(
         }
     }
 
-    fun loadCommentList(){
-        commentLists = Pager(PagingConfig(pageSize = 10)){
-            postRepository.getComments_Posts(
-                postID = postID,
-                lastPage = lastPage,
-                lastCmt = lastCmt
-            )
-        }.flow.cachedIn(viewModelScope)
+    private fun initializeCommentPager(reload: Boolean = false) {
+        if(reload){
+            lastPage.intValue = 1
+            lastCmt.value = ""
+            _commentFlow.value = PagingData.empty()
+        }
+        viewModelScope.launch {
+            Pager(pagingConfig) {
+                postRepository.getCommentsPosts(
+                    postID = postID,
+                    lastPage = lastPage,
+                    lastCmt = lastCmt
+                )
+            }.flow.cachedIn(viewModelScope)
+                .collect{
+                    _commentFlow.value = it
+                }
+        }
     }
-
     suspend fun sendComment(message: String, parentID: String = "") {
+        val currentUser = auth.currentUser
+        if (message.isBlank()) return
+        var replyCheck = false
+//        Log.e(TAG, "sendComment: $parentID")
         _uiState.value = PostDetailState.SendingComment
-        val currentPostID = currentPost.value.id!!
-        val currentUserID = currentPost.value.userId
-        var result = ""
+
         try {
-            if (parentID == "") {
-                result = postRepository.commentPost(
-                    actionUserID = currentUserID,
-                    postID = currentPostID,
-                    content = message
-                )
-            } else {
-                result = postRepository.replyComment(
-                    actionUserID = currentUserID,
-                    commentID = parentID,
-                    postID = currentPostID,
-                    content = message
-                )
+            val result = withContext(Dispatchers.IO) {
+                if (parentID.isBlank()) {
+                    postRepository.commentPost(
+                        actionUserID = currentUser!!.uid,
+                        postID = currentPost.value.ID!!,
+                        content = message
+                    )
+                    
+                } else {
+                    replyCheck = true
+                    postRepository.replyComment(
+                        actionUserID = currentUser!!.uid,
+                        parentID = parentID,
+                        postID = currentPost.value.ID!!,
+                        content = message
+                    )
+                }
             }
 
-            if(result != ""){
-//                lastPage.value = 1
-//                lastCmt.value = ""
-//                loadCommentList()
+            currentPost.value = currentPost.value.copy(
+                comments = currentPost.value.comments?.plus(1)
+            )
+
+            if (result.id != null) {
                 _uiState.value = PostDetailState.SendCommentSuccess
+                if (replyCheck) {
+                    initializeCommentPager()
+                } else {
+                    _commentFlow.value = _commentFlow.value.insertHeaderItem(item = result)
+                }
             } else {
                 _uiState.value = PostDetailState.Failed
             }
         } catch (e: Exception) {
             e.printStackTrace()
+            Log.e(TAG, "sendComment: ${e.message}")
             _uiState.value = PostDetailState.Error
         }
     }
@@ -166,10 +195,11 @@ class PostDetailViewModel @Inject constructor(
         try {
             _uiState.value = PostDetailState.Working
             viewModelScope.launch {
-                val result = postRepository.getReply_Comments(commentID, lastCommentReplyID, lastParentCommentID)
+                val result = postRepository.getReplyComments(commentID, lastCommentReplyID, lastParentCommentID)
                 _replyLists.value = result
                 if(replyLists.value.isNotEmpty()){
                     _uiState.value = PostDetailState.Success
+                    Log.e(TAG, "loadMoreReplyComments: ${replyLists.value.size}")
                 }else {
                     _uiState.value = PostDetailState.Failed
                 }

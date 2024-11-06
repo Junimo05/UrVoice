@@ -2,17 +2,16 @@ package com.example.urvoices.data.service
 
 import android.net.Uri
 import android.util.Log
-import com.example.urvoices.data.AudioManager
 import com.example.urvoices.data.model.User
 import com.example.urvoices.utils.Auth.isPasswordStrong
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.AggregateSource
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.storage.StorageReference
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 
 class FirebaseUserService @Inject constructor(
-    private val audioManager: AudioManager,
     private val storage: StorageReference,
     private val firebaseFirestore: FirebaseFirestore,
     private val auth: FirebaseAuth
@@ -39,24 +38,36 @@ class FirebaseUserService @Inject constructor(
         return null
     }
 
-    suspend fun followUser(followingUserID: String): String {
-        // follow user
+    suspend fun followUser(followingUserID: String, followStatus: Boolean): String {
         val user = auth.currentUser
         var resultID = ""
         if (user != null) {
             try {
-                val follow = hashMapOf(
-                    "ID" to null,
-                    "userID" to user.uid,
-                    "followingUserID" to followingUserID,
-                    "createdAt" to System.currentTimeMillis(),
-                    "deletedAt" to null
-                )
-                firebaseFirestore.collection("follows").add(follow).
-                    addOnCompleteListener {
-                    firebaseFirestore.collection("follows").document(it.result?.id!!).update("ID", it.result?.id!!)
-                        resultID = it.result?.id!!
-                }.await()
+                if (followStatus) {
+                    // Follow user
+                    val follow = hashMapOf(
+                        "ID" to null,
+                        "userID" to user.uid,
+                        "followingUserID" to followingUserID,
+                        "createdAt" to System.currentTimeMillis()
+                    )
+                    firebaseFirestore.collection("follows").add(follow)
+                        .addOnCompleteListener {
+                            firebaseFirestore.collection("follows").document(it.result?.id!!).update("ID", it.result?.id!!)
+                            resultID = it.result?.id!!
+                        }.await()
+                } else {
+                    // Unfollow user
+                    val documents = firebaseFirestore.collection("follows")
+                        .whereEqualTo("userID", user.uid)
+                        .whereEqualTo("followingUserID", followingUserID)
+                        .get()
+                        .await()
+                    for (document in documents) {
+                        document.reference.delete().await()
+                    }
+                    resultID = ""
+                }
                 return resultID
             } catch (e: Exception) {
                 // Handle exception
@@ -72,54 +83,58 @@ class FirebaseUserService @Inject constructor(
 
     suspend fun getPostCounts(userId: String): Int {
         // get post counts
-        try {
+        return try {
             val docRef = firebaseFirestore.collection("posts")
                 .whereEqualTo("userID", userId)
-                .get()
+                .count()
+                .get(AggregateSource.SERVER)
                 .await()
-            return docRef.size()
-        }catch (e: Exception){
+            docRef.count.toInt()
+        } catch (e: Exception) {
             e.printStackTrace()
+            0
         }
-        return 0
     }
 
     suspend fun getFollowStatus(userId: String): Boolean {
-        // get follow status
         val user = auth.currentUser
         if (user != null) {
-            try {
-                val docRef = firebaseFirestore.collection("follows")
+            return try {
+                val countResult = firebaseFirestore.collection("follows")
                     .whereEqualTo("userID", user.uid)
                     .whereEqualTo("followingUserID", userId)
-                    .get()
+                    .count()
+                    .get(AggregateSource.SERVER)
                     .await()
-                return docRef.size() > 0
+                countResult.count > 0
             } catch (e: Exception) {
                 // Handle exception
                 e.printStackTrace()
                 Log.e(TAG, "getFollowStatus: ${e.message}")
+                false
             }
         } else {
             // Inform the user that they are not signed in
             println("No user is currently signed in.")
+            return false
         }
-        return false
     }
 
+
     suspend fun getFollowingCounts(userId: String): Int {
-        // get following counts
-        try {
-            val docRef = firebaseFirestore.collection("follows")
+        return try {
+            val countResult = firebaseFirestore.collection("follows")
                 .whereEqualTo("userID", userId)
-                .get()
+                .count()
+                .get(AggregateSource.SERVER)
                 .await()
-            return docRef.size()
-        }catch (e: Exception){
+            countResult.count.toInt()
+        } catch (e: Exception) {
             e.printStackTrace()
+            0
         }
-        return 0
     }
+
 
     suspend fun getFollowingDetail(userId: String): List<User> {
         // get following detail
@@ -144,16 +159,17 @@ class FirebaseUserService @Inject constructor(
     }
 
     suspend fun getFollowerCounts(userId:String): Int{
-         try {
-            val docRef = firebaseFirestore.collection("follows")
+        return try {
+            val countResult = firebaseFirestore.collection("follows")
                 .whereEqualTo("followingUserID", userId)
-                .get()
+                .count()
+                .get(AggregateSource.SERVER)
                 .await()
-            return docRef.size()
-         }catch (e: Exception){
-             e.printStackTrace()
-         }
-        return 0
+            countResult.count.toInt()
+        } catch (e: Exception) {
+            e.printStackTrace()
+            0
+        }
     }
 
     suspend fun getFollowerDetail(userId: String): List<User> {
@@ -181,7 +197,6 @@ class FirebaseUserService @Inject constructor(
     suspend fun resetPassword(email: String){
         // reset password
         auth.sendPasswordResetEmail(email).await()
-
     }
 
     suspend fun updateAvatar(avatarUri: Uri): Boolean {

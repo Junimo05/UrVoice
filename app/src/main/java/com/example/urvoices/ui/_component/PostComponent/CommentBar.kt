@@ -2,6 +2,7 @@ package com.example.urvoices.ui._component.PostComponent
 
 import android.annotation.SuppressLint
 import android.net.Uri
+import android.util.Log
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -48,7 +49,6 @@ import com.example.urvoices.presentations.theme.MyTheme
 import com.example.urvoices.utils.processUsername
 import com.example.urvoices.viewmodel.PostDetailState
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CommentBar(
     uiState: PostDetailState,
@@ -70,6 +70,11 @@ fun CommentBar(
             }
             focusRequester.requestFocus()
         }
+    }
+
+    fun isCommentTextEmpty(): Boolean {
+        val replyText = if (parentUsername.value.isNotBlank()) "@${processUsername(parentUsername.value)} " else ""
+        return commentText.value.trim() == replyText.trim()
     }
 
     Surface(
@@ -137,19 +142,20 @@ fun CommentBar(
                 IconButton(
                     onClick = {
                         if (commentText.value.isNotBlank()) {
-                            // Xử lý gửi comment
-                            if(replyTo.value != null){
+
+                            if(replyTo.value == null){
                                 onSendMessage(commentText.value, "")
                             }
                             else{
-                                onSendMessage(commentText.value, replyTo.value?.id?:"")
+//                                Log.e("CommentBar", "Reply to: ${replyTo.value?.id}")
+                                onSendMessage(commentText.value, replyTo.value?.id!!)
                             }
                             isFocused = false
                             focusManager.clearFocus()
                             commentText.value = ""
                         }
                     },
-                    enabled = commentText.value.isNotBlank()
+                    enabled = !isCommentTextEmpty()
                 ) {
                     Icon(
                         Icons.Filled.Send,

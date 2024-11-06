@@ -7,14 +7,17 @@ import com.example.urvoices.data.AudioManager
 import com.example.urvoices.data.model.Comment
 import com.example.urvoices.data.model.Like
 import com.example.urvoices.data.model.Post
+import com.google.firebase.firestore.AggregateSource
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.FirebaseFirestoreException
 import com.google.firebase.firestore.Query
+import com.google.firebase.firestore.toObject
 import com.google.firebase.storage.StorageReference
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 class FirebasePostService @Inject constructor(
@@ -50,52 +53,37 @@ class FirebasePostService @Inject constructor(
                 lastVisiblePost.value = ""
             }
 
-
             posts.addAll(postRefs.documents.mapNotNull { document ->
                 val deleteAt = document.getLong("deletedAt")
-                if(deleteAt != null){
+                if (deleteAt != null) {
                     return@mapNotNull null
                 }
-                val postID = document.id
-                val likesDeferred = CoroutineScope(Dispatchers.IO).async { getCountLikesPosts(postID) }
-                val commentsDeferred = CoroutineScope(Dispatchers.IO).async { getCountCommentsPosts(postID) }
+                val post = document.toObject<Post>()
+                if (post != null) {
+                    val likesDeferred = CoroutineScope(Dispatchers.IO).async { getCountLikesPosts(post.ID!!) }
+                    val commentsDeferred = CoroutineScope(Dispatchers.IO).async { getCountCommentsPosts(post.ID!!) }
+                    val amplitudesDeferred = CoroutineScope(Dispatchers.IO).async {
+                        audioManager.getAmplitudes(post.url!!)
+                    }
 
+                    val likes = likesDeferred.await()
+                    val comments = commentsDeferred.await()
+                    val amplitudes = amplitudesDeferred.await()
 
-                val userID = getUserIDByPostID(postID)
+                    post.likes = likes
+                    post.comments = comments
+                    post.amplitudes = amplitudes
 
-                val audioUrl = document.getString("url") ?: return@mapNotNull null
-                val amplitudesDeferred = CoroutineScope(Dispatchers.IO).async {
-                    audioManager.getAmplitudes(audioUrl)
+                    post
+                } else {
+                    null
                 }
-
-                val audioName = document.getString("audioName")
-                val description = document.getString("description") ?: return@mapNotNull null
-                val createdAt = document.getLong("createdAt") ?: return@mapNotNull null
-                val tag = document.get("tag") as List<*>?
-                val updateAt = document.getLong("updatedAt")
-
-                val likes = likesDeferred.await()
-                val comments = commentsDeferred.await()
-                val amplitudes = amplitudesDeferred.await()
-
-                Post(
-                    id = postID,
-                    userId = userID,
-                    url = audioUrl,
-                    amplitudes = amplitudes,
-                    audioName = audioName ?: "No Name",
-                    description = description,
-                    createdAt = createdAt,
-                    updateAt = updateAt,
-                    deleteAt = deleteAt,
-                    likes = likes,
-                    comments = comments,
-                    tag = tag?.map { it as String }
-                )
             })
         } catch (e: Exception) {
             e.printStackTrace()
+            Log.e(TAG, "getNewFeed: ${e.message}")
         }
+//        Log.e(TAG, "getNewFeed: $posts")
         return posts
     }
 
@@ -142,14 +130,14 @@ class FirebasePostService @Inject constructor(
             val amplitudes = amplitudesDeferred.await()
 
             post = Post(
-                id = postID,
+                ID = postID,
                 userId = getUserIDByPostID(postID),
                 url = audioUrl,
                 audioName = audioName ?: "No Name",
                 description = description,
                 createdAt = createdAt,
-                updateAt = updateAt,
-                deleteAt = deleteAt,
+                updatedAt = updateAt,
+                deletedAt = deleteAt,
                 likes = likes,
                 comments = comments,
                 tag = tag?.map { it as String },
@@ -175,83 +163,66 @@ class FirebasePostService @Inject constructor(
         return result
     }
 
-    suspend fun getAllPostFromUser(page: Int, userID: String, lastVisiblePost: MutableState<String>, lastvisiblePage: MutableState<Int>): List<Post>{
+    suspend fun getAllPostFromUser(
+        page: Int,
+        userID: String,
+        lastVisiblePost: MutableState<String>,
+        lastvisiblePage: MutableState<Int>
+    ): List<Post> {
         val limit = 3L
         val posts = mutableListOf<Post>()
         try {
-            // get postIDs from rela_posts_users
-            var postIDQuery = firebaseFirestore.collection("rela_posts_users")
-                .whereEqualTo("userID", userID)
+            // get posts from posts collection
+            var postQuery = firebaseFirestore.collection("posts")
+                .orderBy("createdAt", Query.Direction.DESCENDING)
+                .whereEqualTo("userId", userID)
                 .limit(limit)
 
             if (lastVisiblePost.value != "" && page > lastvisiblePage.value) {
-                val lastVisiblePostRef = firebaseFirestore.collection("rela_posts_users").document(lastVisiblePost.value).get().await()
-                postIDQuery = postIDQuery.startAfter(lastVisiblePostRef)
+                val lastVisiblePostRef = firebaseFirestore.collection("posts").document(lastVisiblePost.value).get().await()
+                postQuery = postQuery.startAfter(lastVisiblePostRef)
                 lastvisiblePage.value = page
             }
 
-            val postIDRefs = postIDQuery.get().await()
-//            Log.e(TAG, "getAllPostFromUser: ${postIDRefs.documents}")
-            val lastVisible = postIDRefs.documents.lastOrNull()
+            val postRefs = postQuery.get().await()
+            val lastVisible = postRefs.documents.lastOrNull()
             if (lastVisible != null) {
                 lastVisiblePost.value = lastVisible.id
             } else {
                 lastVisiblePost.value = ""
             }
 
-            // for each postID, get the post from posts
-            postIDRefs.documents.forEach { document ->
-                val postID = document.getString("postID")
-                if (postID != null) {
-                    val postRef = firebaseFirestore.collection("posts").document(postID).get().await()
-                    val deleteAt = postRef.getLong("deletedAt")
-                    if(deleteAt != null){
-                        return@forEach
-                    }
-                    val likesDeferred = CoroutineScope(Dispatchers.IO).async { getCountLikesPosts(postID) }
-                    val commentsDeferred = CoroutineScope(Dispatchers.IO).async { getCountCommentsPosts(postID) }
-                    val audioUrl = postRef.getString("url") ?: return@forEach
-                    val amplitudesDeferred = CoroutineScope(Dispatchers.IO).async {
-                        audioManager.getAmplitudes(audioUrl)
-                    }
-                    val audioName = postRef.getString("audioName")
-                    val description = postRef.getString("description") ?: return@forEach
-                    val createdAt = postRef.getLong("createdAt") ?: return@forEach
-                    val tag = postRef.get("tag") as List<*>?
-                    val updateAt = postRef.getLong("updatedAt")
+            // for each post, get the details
+            postRefs.documents.forEach { document ->
+                val deleteAt = document.getLong("deletedAt")
+                if (deleteAt != null) {
+                    return@forEach
+                }
 
-                    val likes = likesDeferred.await()
-                    val comments = commentsDeferred.await()
-                    val amplitudes = amplitudesDeferred.await()
+                val post = document.toObject(Post::class.java)
+                if (post != null) {
+                    withContext(Dispatchers.IO) {
+                        val likesDeferred = async { getCountLikesPosts(post.ID!!) }
+                        val commentsDeferred = async { getCountCommentsPosts(post.ID!!) }
+                        val amplitudesDeferred = async { audioManager.getAmplitudes(post.url ?: "") }
 
-                    val post = Post(
-                        id = postID,
-                        userId = userID,
-                        url = audioUrl,
-                        audioName = audioName,
-                        description = description,
-                        createdAt = createdAt,
-                        updateAt = updateAt,
-                        deleteAt = deleteAt,
-                        likes = likes,
-                        comments = comments,
-                        tag = tag?.map { it as String },
-                        amplitudes = amplitudes
-                    )
+                        post.likes = likesDeferred.await()
+                        post.comments = commentsDeferred.await()
+                        post.amplitudes = amplitudesDeferred.await()
+                    }
                     posts.add(post)
                 }
             }
         } catch (e: Exception) {
             e.printStackTrace()
-//            Log.e(TAG, "getAllPostFromUser: ${e.message}")
+            Log.e(TAG, "getAllPostFromUser: ${e.message}")
         }
-//        Log.e(TAG, "getAllPostFromUser: $posts")
         return posts
     }
 
     suspend fun createPost(post: Post, audioUrl: Uri): Boolean {
         return try {
-            val postToCreate = post.copy(id = null).toMap()
+            val postToCreate = post.copy(ID = null).toMap()
             val newFileRef = storage.child("audios/${post.userId}/${post.audioName}")
 
             // Upload the file to the new location
@@ -263,7 +234,7 @@ class FirebasePostService @Inject constructor(
             val newPostId = newPostRef.id
 
             // Update the 'id' field in the Firestore document
-            newPostRef.update("id", newPostId).await()
+            newPostRef.update("ID", newPostId).await()
 
             // create rela_posts_users
             val relaPostUser = mapOf(
@@ -288,7 +259,7 @@ class FirebasePostService @Inject constructor(
     suspend fun updatePost(post: Post): Boolean {
         // update post
         try {
-            post.id?.let {
+            post.ID?.let {
                 firebaseFirestore.collection("posts").document(it).update(post.toMap())
                     .await()
             }
@@ -303,7 +274,7 @@ class FirebasePostService @Inject constructor(
     suspend fun deletePost(post: Post): Boolean {
         // delete post
         try {
-            post.id?.let {
+            post.ID?.let {
                 firebaseFirestore.collection("posts").document(it).update("deletedAt", System.currentTimeMillis())
                     .await()
             }
@@ -317,9 +288,9 @@ class FirebasePostService @Inject constructor(
     suspend fun deletePermanentlyPost(post: Post): Boolean {
         // delete post
         try {
-            post.id?.let { firebaseFirestore.collection("posts").document(it).delete().await() }
+            post.ID?.let { firebaseFirestore.collection("posts").document(it).delete().await() }
             //delete rela_posts_users
-            firebaseFirestore.collection("rela_posts_users").document("${post.userId}_${post.id}").delete().await()
+            firebaseFirestore.collection("rela_posts_users").document("${post.userId}_${post.ID}").delete().await()
             return true
         } catch (e: Exception) {
             e.printStackTrace()
@@ -344,19 +315,18 @@ class FirebasePostService @Inject constructor(
      *   Post Interactions
     */
 
-    private suspend fun getCountCommentsPosts(postId: String): Int{
+    private suspend fun getCountCommentsPosts(postId: String): Int {
         return try {
-            // get comments which are belong to post
-            val commentRefs = firebaseFirestore.collection("rela_comments_users_posts")
-                .orderBy("createdAt", Query.Direction.DESCENDING)
+            // get the count of comments which belong to the post
+            val countResult = firebaseFirestore.collection("rela_comments_users_posts")
                 .whereEqualTo("postID", postId)
-                .get()
+                .count()
+                .get(AggregateSource.SERVER)
                 .await()
-            commentRefs.documents.size
+            countResult.count.toInt()
         } catch (e: FirebaseFirestoreException) {
             e.printStackTrace()
             Log.e(TAG, "getCountCommentsPosts: ${e.message}")
-            0
         }
     }
 
@@ -409,58 +379,59 @@ class FirebasePostService @Inject constructor(
         return relaID
     }
 
-    suspend fun commentPost(actionUserID: String, postID: String, content: String): String {
-        // comment post
+    suspend fun commentPost(actionUserID: String, postID: String, content: String): Comment {
         var commentResultID = ""
+        val comment = Comment(
+            id = null,
+            userId = actionUserID,
+            parentId = null,
+            postId = postID,
+            content = content,
+            createdAt = System.currentTimeMillis(),
+            updatedAt = null,
+            deletedAt = null
+        )
         try {
-            val comment = Comment(
-                id = null,
-                userId = actionUserID,
-                parentId = null,
-                postId = postID,
-                content = content,
-                createdAt = System.currentTimeMillis(),
-                updatedAt = null,
-                deletedAt = null
-            )
-            firebaseFirestore.collection("comments").add(comment.toCommentMap()).addOnCompleteListener {
-                //update ID for comment
-                cmt ->
-                firebaseFirestore.collection("comments").document(cmt.result?.id!!)
-                    .update("ID", cmt.result?.id!!)
-                //update Relation
-                commentResultID = cmt.result?.id!!
-            }.await()
+            // Add comment and get the reference
+            val commentRef = firebaseFirestore.collection("comments").add(comment.toCommentMap()).await()
+            commentResultID = commentRef.id
+            comment.id = commentRef.id
 
+            // Update ID for comment
+            firebaseFirestore.collection("comments").document(commentResultID)
+                .update("ID", commentResultID).await()
+
+            // Update ID for relation
             firebaseFirestore.collection("rela_comments_users_posts").add(comment.toRelaMap()).addOnCompleteListener {
                 //update ID for relation
                     rela ->
                 firebaseFirestore.collection("rela_comments_users_posts").document(rela.result?.id!!)
-                    .update("ID", rela.result?.id!!, "commentID", commentResultID)
-
+                    .update("ID", rela.result?.id!!)
             }.await()
-            return commentResultID
+
+            return comment
         } catch (e: Exception) {
             e.printStackTrace()
             Log.e(TAG, "commentPost: ${e.message}")
         }
-        return commentResultID
+        return comment
     }
 
-    suspend fun replyComment(actionUserID: String, commentID: String, postID: String, content: String): String {
+    suspend fun replyComment(actionUserID: String, parentID: String, postID: String, content: String): Comment {
         // reply comment
         var commentResultID = ""
+        val comment = Comment(
+            id = null,
+            userId = actionUserID,
+            parentId = parentID,
+            postId = postID,
+            content = content,
+            createdAt = System.currentTimeMillis(),
+            updatedAt = null,
+            deletedAt = null
+        )
         try {
-            val comment = Comment(
-                id = null,
-                userId = actionUserID,
-                parentId = commentID,
-                postId = postID,
-                content = content,
-                createdAt = System.currentTimeMillis(),
-                updatedAt = null,
-                deletedAt = null
-            )
+
             firebaseFirestore.collection("comments").add(comment.toCommentMap()).addOnCompleteListener {
                 //update ID for comment
                 cmt ->
@@ -477,11 +448,13 @@ class FirebasePostService @Inject constructor(
                     .update("ID", rela.result?.id!!)
             }.await()
 
-            return commentResultID
+            return comment.apply {
+                id = commentResultID
+            }
         } catch (e: Exception) {
             e.printStackTrace()
         }
-        return commentResultID
+        return comment
     }
 
     suspend fun getCommentsPosts(page: Int ,postId: String, lastCmt: MutableState<String>, lastPage: MutableState<Int>): List<Comment>{
@@ -502,14 +475,12 @@ class FirebasePostService @Inject constructor(
             }
 
             val commentRefs = commentQuery.get().await()
-            Log.e(TAG, "getCommentsPosts PreLastVisible: ${commentRefs.documents.size}")
-            val lastVisible = commentRefs.documents.lastOrNull()
-            if (lastVisible != null) {
-                lastCmt.value = lastVisible.id
-            } else {
+            if(commentRefs.documents.isEmpty()){
                 lastCmt.value = ""
+                return result
+            }else {
+                lastCmt.value = commentRefs.documents.last().id
             }
-            Log.e(TAG, "getCommentsPosts LastVisible Now: $lastVisible")
 
             commentRefs.documents.forEach { document ->
                 val commentID = document.getString("commentID")
@@ -552,14 +523,15 @@ class FirebasePostService @Inject constructor(
         return result
     }
 
-    private suspend fun getCountLikesPosts(postId: String): Int{
+    private suspend fun getCountLikesPosts(postId: String): Int {
         return try {
-            // get likes
-            val likeRefs = firebaseFirestore.collection("likes")
+            // get the count of likes which belong to the post
+            val countResult = firebaseFirestore.collection("likes")
                 .whereEqualTo("postID", postId)
-                .get()
+                .count()
+                .get(AggregateSource.SERVER)
                 .await()
-            likeRefs.documents.size
+            countResult.count.toInt()
         } catch (e: FirebaseFirestoreException) {
             e.printStackTrace()
             Log.e(TAG, "getCountLikesPosts: ${e.message}")
@@ -568,38 +540,35 @@ class FirebasePostService @Inject constructor(
     }
 
     suspend fun getCountLikesComments(commentId: String): Int{
-        var result = 0
-        try {
-            // get likes
-            val likeRefs = firebaseFirestore.collection("likes")
+        return try {
+            // get the count of likes which belong to the comment
+            val countResult = firebaseFirestore.collection("likes")
                 .whereEqualTo("commentID", commentId)
-                .get()
+                .count()
+                .get(AggregateSource.SERVER)
                 .await()
-            result = likeRefs.documents.size
-        }catch (e: Exception){
+            countResult.count.toInt()
+        }catch (e: FirebaseFirestoreException){
             e.printStackTrace()
             Log.e(TAG, "getCountLikesComments: ${e.message}")
+            0
         }
-        return result
     }
 
     suspend fun getCountReplyComments(commentId: String): Int{
-        var result = 0
-        try {
-//            Log.e(TAG, "getCountReplyComments check parentID: $commentId")
-            // get comments which are belong to post
-            val commentRefs = firebaseFirestore.collection("rela_comments_users_posts")
-                .orderBy("createdAt", Query.Direction.DESCENDING)
+        return try {
+            // get the count of reply comments which belong to the comment
+            val countResult = firebaseFirestore.collection("rela_comments_users_posts")
                 .whereEqualTo("parentID", commentId)
-                .get()
+                .count()
+                .get(AggregateSource.SERVER)
                 .await()
-//            Log.e(TAG, "getCountReplyComments check: ${commentRefs.documents.size}")
-            result = commentRefs.documents.size
-        }catch (e: Exception){
+            countResult.count.toInt()
+        }catch (e: FirebaseFirestoreException){
             e.printStackTrace()
             Log.e(TAG, "getCountReplyComments: ${e.message}")
+            0
         }
-        return result
     }
 
     suspend fun getRepliesComments(commentId: String, lastCommentReplyID: MutableState<String>, lastParentCommentID: MutableState<String>): List<Comment>{

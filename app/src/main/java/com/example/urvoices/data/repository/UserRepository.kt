@@ -33,7 +33,7 @@ class UserRepository @Inject constructor(
 
     suspend fun getPostCount(userId: String) = firebaseUserService.getPostCounts(userId)
 
-    suspend fun followUser(userId: String) = firebaseUserService.followUser(userId)
+    suspend fun followUser(userId: String, followStatus: Boolean) = firebaseUserService.followUser(userId, followStatus)
 
     //TODO: Get Paging
     fun getPagingFollowerList(userId: String): PagingSource<Int, User> {

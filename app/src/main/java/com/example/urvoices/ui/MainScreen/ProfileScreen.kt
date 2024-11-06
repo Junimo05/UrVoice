@@ -2,7 +2,6 @@ package com.example.urvoices.ui.MainScreen
 
 import android.annotation.SuppressLint
 import android.content.res.Configuration.UI_MODE_NIGHT_NO
-import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -22,9 +21,8 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.KeyboardArrowDown
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -69,7 +67,8 @@ import com.example.urvoices.ui._component.PlaylistItem
 import com.example.urvoices.ui._component.PostComponent.ProfilePostItem
 import com.example.urvoices.utils.Navigator.MainScreen
 import com.example.urvoices.utils.processUsername
-import com.example.urvoices.viewmodel.MediaPlayerViewModel
+import com.example.urvoices.viewmodel.InteractionRowViewModel
+import com.example.urvoices.viewmodel.MediaPlayerVM
 import com.example.urvoices.viewmodel.ProfileState
 import com.example.urvoices.viewmodel.ProfileViewModel
 import kotlinx.coroutines.CoroutineScope
@@ -80,17 +79,18 @@ import kotlinx.coroutines.Dispatchers
 fun ProfileScreen(
     userId: String = "",
     navController: NavController,
-    playerViewModel: MediaPlayerViewModel,
+    playerViewModel: MediaPlayerVM,
     profileViewModel: ProfileViewModel,
 ) {
     val TAG = "ProfileScreen"
     val context = LocalContext.current
     val scope = CoroutineScope(Dispatchers.Main)
 
+    //interactionVM init
+    val interactionViewModel = hiltViewModel<InteractionRowViewModel>()
+
     //State & Data
     val uiState = profileViewModel.uiState.collectAsState()
-    profileViewModel.loadData(userId)
-
     val postList = profileViewModel.posts.collectAsLazyPagingItems()
 
     val isUser by lazy {
@@ -143,20 +143,6 @@ fun ProfileScreen(
                         ),
                         modifier = Modifier.padding(start = 16.dp)
                     )
-                    IconButton(
-                        onClick = {
-                                  /*TODO*/
-                        },
-                        modifier = Modifier.size(24.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Rounded.KeyboardArrowDown,
-                            contentDescription = "Change user",
-                            modifier = Modifier
-                                .size(24.dp)
-                                .align(Alignment.CenterVertically)
-                        )
-                    }
                 }
                 IconButton(onClick = {
                      if(isUser.value){
@@ -194,6 +180,7 @@ fun ProfileScreen(
                 uiStates = uiState.value,
                 isUser = isUser,
                 user = user,
+                followStatus = profileViewModel.isFollowed,
                 postsCount = profileViewModel.postCounts,
                 followingCount = profileViewModel.followings,
                 followersCount = profileViewModel.followers,
@@ -270,6 +257,7 @@ fun ProfileScreen(
                                 navController = navController,
                                 post = postList[index]!!,
                                 playerViewModel = playerViewModel,
+                                interactionViewModel = interactionViewModel
                             )
                         }
 
@@ -328,11 +316,11 @@ fun UserInfo(
     isUser: MutableState<Boolean>,
     user: MutableState<User>,
     postsCount: Int,
+    followStatus: Boolean = false,
     followingCount: Int,
     followersCount: Int,
     followAction: () -> Unit,
     //messageAction: () -> Unit
-    //editAction: () -> Unit
 ){
     val infoList = listOf(
         "Posts" to postsCount,
@@ -369,9 +357,6 @@ fun UserInfo(
                     .background(Color.White)
                     .border(2.dp, Color.Black, CircleShape)
                     .padding(6.dp)
-                    .clickable {
-
-                    }
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
@@ -496,16 +481,18 @@ fun UserInfo(
                             .border(1.dp, MaterialTheme.colorScheme.primary, CircleShape)
                             .clickable {
                                 followAction()
-                                if (uiStates == ProfileState.Successful) {
-                                    Log.d("Follow", "Following")
-                                }
-                            }
+                            },
+                        colors = CardDefaults.cardColors(
+                            containerColor = if (followStatus) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surface
+                        )
+
                     ) {
                         Text(
-                            text = "Follow",
+                            text = if (followStatus) "Following" else "Follow",
                             style = TextStyle(
-                                fontWeight = FontWeight.Normal,
-                                fontSize = 14.sp
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 14.sp,
+                                color = if (followStatus) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface
                             ),
                             modifier = Modifier
                                 .padding(8.dp)
@@ -524,7 +511,7 @@ fun UserInfo(
                         Text(
                             text = "Message",
                             style = TextStyle(
-                                fontWeight = FontWeight.Normal,
+                                fontWeight = FontWeight.Bold,
                                 fontSize = 14.sp
                             ),
                             modifier = Modifier
@@ -535,37 +522,5 @@ fun UserInfo(
                 }
             }
         }
-    }
-}
-
-
-@Preview(
-    name = "LightMode",
-    showBackground = true,
-    uiMode = UI_MODE_NIGHT_NO
-)
-
-//@Composable
-//fun ProfileItemPreview() {
-//    MyTheme {
-//        UserInfo(postsCount = 10, followingCount = 10, followersCount = 10)
-//    }
-//}
-
-@Preview(
-    name = "LightMode",
-    showBackground = true,
-    uiMode = UI_MODE_NIGHT_NO
-)
-@Composable
-fun ProfileScreenPreview() {
-    val navController = rememberNavController()
-    MyTheme {
-        ProfileScreen(
-            userId = "lucasmorrison",
-            navController = navController,
-            playerViewModel = hiltViewModel(),
-            profileViewModel = hiltViewModel()
-        )
     }
 }

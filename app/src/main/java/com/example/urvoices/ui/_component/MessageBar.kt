@@ -70,8 +70,9 @@ fun MessageBar(
                     .padding(horizontal = 8.dp)
                     .clip(RoundedCornerShape(24.dp)),
                 placeholder = { Text("Type a message...") },
-                colors = TextFieldDefaults.textFieldColors(
-                    containerColor = MaterialTheme.colorScheme.surface,
+                colors = TextFieldDefaults.colors(
+                    focusedContainerColor = MaterialTheme.colorScheme.surface,
+                    unfocusedContainerColor = MaterialTheme.colorScheme.surface,
                     focusedIndicatorColor = Color.Transparent,
                     unfocusedIndicatorColor = Color.Transparent
                 ),

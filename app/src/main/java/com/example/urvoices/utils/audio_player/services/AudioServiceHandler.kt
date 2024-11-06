@@ -72,7 +72,7 @@ class AudioServiceHandler @Inject constructor(
             PlayerEvent.Forward -> exoPlayer.seekForward()
             //seek backward the audio
             PlayerEvent.Backward -> exoPlayer.seekBack()
-            //play or pause the audio
+            //play or pauseRecording the audio
             PlayerEvent.StartPlaying -> {
                 if(exoPlayer.isPlaying){
                     exoPlayer.stop()
@@ -168,7 +168,7 @@ class AudioServiceHandler @Inject constructor(
         }
     }
 
-    //play or pause the audio
+    //play or pauseRecording the audio
     private suspend fun playOrPause(){
         if(exoPlayer.isPlaying){
             exoPlayer.pause()
@@ -188,7 +188,7 @@ class AudioServiceHandler @Inject constructor(
         }
     }
 
-    //stop the progress update of the audio
+    //stopRecording the progress update of the audio
     private fun stopProgressUpdate(){
         job?.cancel()
         _audioState.value = AudioState.Playing(false)

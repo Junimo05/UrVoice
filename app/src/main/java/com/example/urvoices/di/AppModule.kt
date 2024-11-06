@@ -1,8 +1,10 @@
 package com.example.urvoices.di
 
 import android.content.Context
+import androidx.lifecycle.SavedStateHandle
 import com.example.urvoices.utils.SharedPreferencesHelper
 import com.example.urvoices.utils.UserPreferences
+import com.example.urvoices.viewmodel.State.AppGlobalState
 import com.facebook.appevents.UserDataStore
 import dagger.Module
 import dagger.Provides
@@ -27,4 +29,6 @@ object AppModule {
     fun provideUserDataStore(
         @ApplicationContext context: Context
     ): UserPreferences = UserPreferences(context)
+
+
 }

@@ -7,7 +7,6 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.navigation
 import androidx.navigation.navArgument
 import androidx.navigation.navDeepLink
-import androidx.navigation.toRoute
 import com.example.urvoices.ui.AuthScreen.LoginScreen
 import com.example.urvoices.ui.AuthScreen.RegisterScreen
 import com.example.urvoices.ui.AuthScreen.SplashScreen
@@ -22,7 +21,8 @@ import com.example.urvoices.ui.noti_msg.MessageScreen
 import com.example.urvoices.ui.noti_msg.NotificationScreen
 import com.example.urvoices.viewmodel.AuthViewModel
 import com.example.urvoices.viewmodel.HomeViewModel
-import com.example.urvoices.viewmodel.MediaPlayerViewModel
+import com.example.urvoices.viewmodel.MediaPlayerVM
+import com.example.urvoices.viewmodel.MediaRecorderVM
 import com.example.urvoices.viewmodel.PostDetailViewModel
 import com.example.urvoices.viewmodel.ProfileViewModel
 import com.example.urvoices.viewmodel.UploadViewModel
@@ -52,10 +52,11 @@ fun NavGraphBuilder.authGraph(
 fun NavGraphBuilder.mainGraph(
     navController: NavController,
     authViewModel: AuthViewModel,
-    playerViewModel: MediaPlayerViewModel,
+    playerViewModel: MediaPlayerVM,
     homeViewModel: HomeViewModel,
     uploadViewModel: UploadViewModel,
-    profileViewModel: ProfileViewModel
+    profileViewModel: ProfileViewModel,
+    mediaRecorderVM: MediaRecorderVM
 ){
     navigation(route = Graph.NAV_SCREEN, startDestination = MainScreen.HomeScreen.route){
         composable(route = MainScreen.HomeScreen.route){
@@ -76,7 +77,8 @@ fun NavGraphBuilder.mainGraph(
             UploadScreen(
                 navController = navController,
                 playerViewModel = playerViewModel,
-                uploadViewModel = uploadViewModel
+                uploadViewModel = uploadViewModel,
+                mediaRecorderVM = mediaRecorderVM
             )
         }
         composable(route = MainScreen.ProfileScreen.MainProfileScreen.route){
@@ -106,7 +108,7 @@ fun NavGraphBuilder.mainGraph(
 fun NavGraphBuilder.specifyGraph(
     navController: NavController,
     authViewModel: AuthViewModel,
-    playerViewModel: MediaPlayerViewModel,
+    playerViewModel: MediaPlayerVM,
     postDetailViewModel: PostDetailViewModel,
     profileViewModel: ProfileViewModel
 ){

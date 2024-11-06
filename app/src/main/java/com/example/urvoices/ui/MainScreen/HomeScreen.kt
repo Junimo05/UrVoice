@@ -50,7 +50,7 @@ import com.example.urvoices.utils.UserPreferences
 import com.example.urvoices.viewmodel.AuthState
 import com.example.urvoices.viewmodel.AuthViewModel
 import com.example.urvoices.viewmodel.HomeViewModel
-import com.example.urvoices.viewmodel.MediaPlayerViewModel
+import com.example.urvoices.viewmodel.MediaPlayerVM
 import kotlinx.coroutines.launch
 
 @Composable
@@ -58,10 +58,9 @@ fun HomeScreen(
     navController: NavController,
     authViewModel: AuthViewModel,
     homeViewModel: HomeViewModel,
-    playerViewModel: MediaPlayerViewModel
+    playerViewModel: MediaPlayerVM
 ) {
-    val viewModel: HomeViewModel = hiltViewModel()
-    Home(navController, authViewModel, viewModel, playerViewModel)
+    Home(navController, authViewModel, homeViewModel, playerViewModel)
 }
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter", "CoroutineCreationDuringComposition")
@@ -70,7 +69,7 @@ fun Home(
     navController: NavController,
     authViewModel: AuthViewModel,
     homeViewModel: HomeViewModel,
-    playerViewModel: MediaPlayerViewModel,
+    playerViewModel: MediaPlayerVM,
     modifier: Modifier = Modifier
 ) {
     val authState = authViewModel.authState.observeAsState()
@@ -204,6 +203,7 @@ fun Home(
                 index ->
                 NewFeedPostItem(
                     navController = navController,
+                    authVM = authViewModel,
                     post = postList[index]!!,
                     homeViewModel = homeViewModel,
                     playerViewModel = playerViewModel,
@@ -214,11 +214,25 @@ fun Home(
                 when {
                     loadState.refresh is LoadState.Loading -> {
                         item {
-                            CircularProgressIndicator()
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.Center,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                CircularProgressIndicator()
+                            }
                         }
                     }
                     loadState.append is LoadState.Loading -> {
-                        item { CircularProgressIndicator() }
+                        item {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.Center,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                CircularProgressIndicator()
+                            }
+                        }
                     }
                     loadState.refresh is LoadState.Error -> {
                         val e = postList.loadState.refresh as LoadState.Error

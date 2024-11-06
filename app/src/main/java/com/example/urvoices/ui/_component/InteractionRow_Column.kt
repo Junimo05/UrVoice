@@ -32,7 +32,6 @@ data class Interaction(
 
 @Composable
 fun InteractionRow(
-    //isStared: Boolean,
     interactions: List<Interaction>,
     modifier: Modifier = Modifier
 ) {
@@ -130,64 +129,4 @@ fun InteractionColumn(
             }
         }
     }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun InteractionRowPreview() {
-    InteractionRow(
-        interactions = listOf(
-            Interaction(
-                icon = android.R.drawable.star_on,
-                iconAfterAct = android.R.drawable.star_off,
-                count = 10,
-                contentDescription = "Star",
-                action = { /*TODO*/ }
-            ),
-            Interaction(
-                icon = android.R.drawable.star_on,
-                iconAfterAct = android.R.drawable.star_off,
-                count = 20,
-                contentDescription = "Star",
-                action = { /*TODO*/ }
-            ),
-            Interaction(
-                icon = android.R.drawable.star_on,
-                iconAfterAct = android.R.drawable.star_off,
-                count = 30,
-                contentDescription = "Star",
-                action = { /*TODO*/ }
-            ),
-        )
-    )
-}
-
-@Preview(showBackground = true)
-@Composable
-fun InteractionColumnPreview() {
-    InteractionColumn(
-        interactions = listOf(
-            Interaction(
-                icon = android.R.drawable.star_on,
-                iconAfterAct = android.R.drawable.star_off,
-                count = 10,
-                contentDescription = "Star",
-                action = { /*TODO*/ }
-            ),
-            Interaction(
-                icon = android.R.drawable.star_on,
-                iconAfterAct = android.R.drawable.star_off,
-                count = 20,
-                contentDescription = "Star",
-                action = { /*TODO*/ }
-            ),
-            Interaction(
-                icon = android.R.drawable.star_on,
-                iconAfterAct = android.R.drawable.star_off,
-                count = 30,
-                contentDescription = "Star",
-                action = { /*TODO*/ }
-            ),
-        )
-    )
 }

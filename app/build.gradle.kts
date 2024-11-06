@@ -15,7 +15,7 @@ android {
 
     defaultConfig {
         applicationId = "com.example.urvoices"
-        minSdk = 24
+        minSdk = 26
         targetSdk = 34
         versionCode = 1
         versionName = "1.0"
@@ -82,6 +82,7 @@ dependencies {
     implementation(libs.googleid)
     implementation(libs.firebase.functions)
     implementation(libs.firebase.dataconnect)
+    implementation(libs.firebase.messaging)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -100,7 +101,7 @@ dependencies {
 
 
     //material3
-    val material3_version = "1.2.1"
+    val material3_version = "1.3.0"
     implementation("androidx.compose.material3:material3:$material3_version")
     implementation("androidx.compose.foundation:foundation-layout-android:1.6.8@aar")
 
@@ -123,6 +124,9 @@ dependencies {
     implementation("com.jakewharton.retrofit:retrofit2-kotlinx-serialization-converter:1.0.0")
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
 
+    //Compose Gallery Picker Libs
+    implementation("io.github.mr0xf00:easycrop:0.1.1")
+
     //Gson
     implementation("com.google.code.gson:gson:2.11.0")
 
@@ -138,6 +142,7 @@ dependencies {
 
     //FireBase
     implementation(platform("com.google.firebase:firebase-bom:33.2.0"))
+    implementation("com.google.firebase:firebase-messaging")
     implementation("com.google.firebase:firebase-analytics")
     implementation(libs.firebase.auth)
     implementation(libs.firebase.firestore)

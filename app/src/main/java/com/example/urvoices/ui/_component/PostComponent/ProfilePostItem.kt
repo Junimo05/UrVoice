@@ -14,47 +14,49 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
 import com.example.urvoices.data.model.Post
-import com.example.urvoices.presentations.theme.MyTheme
 import com.example.urvoices.ui._component.InteractionRow
 import com.example.urvoices.utils.Post_Interactions
 import com.example.urvoices.utils.getTimeElapsed
 import com.example.urvoices.viewmodel.InteractionRowViewModel
-import com.example.urvoices.viewmodel.MediaPlayerViewModel
+import com.example.urvoices.viewmodel.MediaPlayerVM
 import com.example.urvoices.viewmodel.UIEvents
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import javax.inject.Inject
 
 @SuppressLint("UnrememberedMutableState", "StateFlowValueCalledInComposition")
 @Composable
 fun ProfilePostItem(
     navController: NavController,
     post: Post,
-    playerViewModel: MediaPlayerViewModel,
+    playerViewModel: MediaPlayerVM,
+    interactionViewModel: InteractionRowViewModel,
     modifier: Modifier = Modifier
 ){
     val TAG = "ProfilePostItem"
-    val interactionViewModel = hiltViewModel<InteractionRowViewModel>(
-        key = post.id
-    )
-    interactionViewModel.getLoveStatus(post.id!!)
+
     val timeText = getTimeElapsed(post.createdAt)
     val scope = CoroutineScope(Dispatchers.Main)
 
+    //State
+    val isLove = rememberSaveable { mutableStateOf(false) }
+
+    LaunchedEffect(Unit) {
+        interactionViewModel.getLoveStatus(postID = post.ID!!) {result ->
+            isLove.value = result
+        }
+    }
 
     val isExpandedContext = mutableStateOf(false)
     Box(
@@ -65,7 +67,7 @@ fun ProfilePostItem(
                 .fillMaxWidth(0.8f)
                 .align(Alignment.Center)
                 .clickable {
-                    navController.navigate("post/${post.userId}/${post.id}")
+                    navController.navigate("post/${post.userId}/${post.ID}")
                 }
                 ,
             shape = RoundedCornerShape(16.dp),
@@ -104,18 +106,21 @@ fun ProfilePostItem(
                 )
                 InteractionRow(
                     interactions = Post_Interactions(
-                        isLove = interactionViewModel.isLove,
-                        loveCounts = post.likes,
-                        commentCounts = post.comments,
+                        isLove = isLove.value,
+                        loveCounts = post.likes!!,
+                        commentCounts = post.comments!!,
                         love_act = {
+                            isLove.value = it
                             interactionViewModel.loveAction(
                                 isLove = it,
-                                postID = post.id,
+                                postID = post.ID!!,
                                 targetUserID = post.userId
-                            )
+                            ){ result ->
+                                if(result) post.likes = post.likes!! + 1
+                            }
                         },
                         comment_act = {
-                            navController.navigate("post/${post.userId}/${post.id}")
+                            navController.navigate("post/${post.userId}/${post.ID}")
                         },
                     ),
                     modifier = Modifier.align(Alignment.CenterHorizontally)
@@ -123,7 +128,7 @@ fun ProfilePostItem(
             }
         }
         AudioWaveformItem(
-            id = post.id,
+            id = post.ID!!,
             audioUrl = post.url!!,
             audioAmplitudes = post.amplitudes,
             currentPlayingAudio = playerViewModel.currentPlayingAudio,
@@ -136,7 +141,7 @@ fun ProfilePostItem(
                     UIEvents.PlayingAudio(
                     post.url
                 ))
-                playerViewModel.updateCurrentPlayingPost(post.id)
+                playerViewModel.updateCurrentPlayingPost(post.ID)
             },
             onPlayPause = {
                 playerViewModel.onUIEvents(UIEvents.PlayPause)
@@ -147,31 +152,6 @@ fun ProfilePostItem(
             },
             modifier = Modifier
                 .align(Alignment.Center)
-        )
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun ProfilePostItemPreview() {
-    MyTheme {
-        ProfilePostItem(
-            post = Post(
-                id = "1",
-                description = "This is a description",
-                url = "https://www.google.com",
-                amplitudes = listOf(),
-                audioName = "Audio Name",
-                createdAt = 0,
-                deleteAt = 0,
-                likes = 0,
-                comments = 0,
-                userId = "1",
-                tag = listOf(),
-                updateAt = 0
-            ),
-            playerViewModel = hiltViewModel(),
-            navController = rememberNavController(),
         )
     }
 }
