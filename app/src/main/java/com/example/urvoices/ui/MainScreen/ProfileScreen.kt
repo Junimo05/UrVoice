@@ -1,7 +1,7 @@
 package com.example.urvoices.ui.MainScreen
 
 import android.annotation.SuppressLint
-import android.content.res.Configuration.UI_MODE_NIGHT_NO
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -50,20 +50,17 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
 import androidx.paging.LoadState
 import androidx.paging.compose.collectAsLazyPagingItems
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.example.urvoices.R
 import com.example.urvoices.data.model.User
-import com.example.urvoices.presentations.theme.MyTheme
-import com.example.urvoices.ui._component.PlaylistItem
+import com.example.urvoices.ui._component.SavedItems
 import com.example.urvoices.ui._component.PostComponent.ProfilePostItem
 import com.example.urvoices.utils.Navigator.MainScreen
 import com.example.urvoices.utils.processUsername
@@ -259,6 +256,7 @@ fun ProfileScreen(
                                 playerViewModel = playerViewModel,
                                 interactionViewModel = interactionViewModel
                             )
+                            Log.e(TAG, "PostItem: ${postList[index]!!.ID} && ${postList[index]!!.amplitudes}")
                         }
 
                         postList.apply {
@@ -296,10 +294,10 @@ fun ProfileScreen(
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
                     ) {
                         items(10){
-                            PlaylistItem(
-                                title = "Title",
-                                number = 10
-                            )
+//                            SavedItems(
+//                                title = "Title",
+//                                duration = "3:24"
+//                            )
                         }
                     }
                 }

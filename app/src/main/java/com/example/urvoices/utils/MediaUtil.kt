@@ -8,6 +8,7 @@ import android.util.Log
 import androidx.compose.foundation.lazy.LazyListState
 import java.io.ByteArrayOutputStream
 import java.io.File
+import java.io.FileOutputStream
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -77,16 +78,17 @@ fun generateUniqueFileName(): String {
     return "IMG_$timeStamp.jpg"
 }
 
-fun saveBitmapToUri(context: Context, bitmap: Bitmap): Uri? {
-    val bytes = ByteArrayOutputStream()
-    bitmap.compress(Bitmap.CompressFormat.JPEG, 100, bytes)
-    val path = MediaStore.Images.Media.insertImage(context.contentResolver, bitmap, "CroppedImage", null)
-    return if (path != null) Uri.parse(path) else null
+fun saveBitmapToUri(context: Context, bitmap: Bitmap, fileName: String): Uri? {
+    val file = File(context.cacheDir, fileName)
+    FileOutputStream(file).use { out ->
+        bitmap.compress(Bitmap.CompressFormat.JPEG, 100, out)
+    }
+    return Uri.fromFile(file)
 }
 
 fun deleteOldImageFile(context: Context, uri: Uri) {
     val file = File(uri.path!!)
-    Log.e("MediaUtil", "deleteOldImageFile: ${file.path}")
+//    Log.e("MediaUtil", "deleteOldImageFile: ${file.path}")
     if (file.exists()) {
         file.delete()
     }

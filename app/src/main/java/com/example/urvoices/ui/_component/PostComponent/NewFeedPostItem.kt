@@ -85,6 +85,9 @@ fun NewFeedPostItem(
     val currentUser = authVM.getCurrentUser()
 
     //State
+    val loadedWaveForm = rememberSaveable{
+        mutableStateOf(false)
+    }
     val expandMenu = rememberSaveable { mutableStateOf(false) }
     val isBlock = rememberSaveable { mutableStateOf(false) } //User Block
     val isLove = rememberSaveable { mutableStateOf(false) }
@@ -97,9 +100,11 @@ fun NewFeedPostItem(
 
     Card(
         shape = RoundedCornerShape(40.dp),
-        modifier = modifier.padding(top = 4.dp).clickable {
-            navController.navigate("post/${post.userId}/${post.ID}")
-        }
+        modifier = modifier
+            .padding(top = 4.dp)
+            .clickable {
+                navController.navigate("post/${post.userId}/${post.ID}")
+            }
     ) {
         Column (
             modifier = Modifier
@@ -201,10 +206,12 @@ fun NewFeedPostItem(
                     isPlaying = playerViewModel.isPlaying,
                     isStop = playerViewModel.isStop.value,
                     onPlayStart = {
-                        playerViewModel.onUIEvents(UIEvents.PlayingAudio(
-                            post.url
-                        ))
-                        playerViewModel.updateCurrentPlayingPost(post.ID)
+                        if(post.url.isNotEmpty()){
+                            playerViewModel.onUIEvents(UIEvents.PlayingAudio(
+                                post.url
+                            ))
+                            playerViewModel.updateCurrentPlayingPost(post.ID)
+                        }
                     },
                     onPlayPause = {
                         playerViewModel.onUIEvents(UIEvents.PlayPause)
@@ -291,7 +298,7 @@ fun ProfileInfo(
         ) {
             AsyncImage(
                 model = ImageRequest.Builder(LocalContext.current)
-                    .data(userInfo["avatarUrl"])
+                    .data(userInfo["avatarUrl"].takeIf { !it.isNullOrEmpty() } ?: R.drawable.person)
                     .crossfade(true)
                     .build(),
                 contentDescription = "Avatar",

@@ -125,6 +125,28 @@ class PostRepository @Inject constructor(
         }
     }
 
+    fun getAllSavedPostFromUser(userID: String, lastVisiblePost: MutableState<String>, lastVisiblePage: MutableState<Int>): PagingSource<Int,Post> {
+        return object : PagingSource<Int, Post>() {
+            override suspend fun load(params: LoadParams<Int>): LoadResult<Int, Post> {
+                return try {
+                    val nextPage = params.key ?: 1
+                    val postList = firestorePostService.getAllSavedPostFromUser(nextPage, userID, lastVisiblePost, lastVisiblePage)
+                    LoadResult.Page(
+                        data = postList,
+                        prevKey = if (nextPage == 1) null else nextPage - 1,
+                        nextKey = if (postList.isEmpty()) null else nextPage + 1
+                    )
+                } catch (e: Exception) {
+                    LoadResult.Error(e)
+                }
+            }
+
+            override fun getRefreshKey(state: PagingState<Int, Post>): Int? {
+                return state.anchorPosition
+            }
+        }
+    }
+
     suspend fun getUserBaseInfo(userID: String): Map<String, String> {
         val result = firestorePostService.getUserInfoDisplayForPost(userID)
         return result

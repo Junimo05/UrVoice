@@ -4,6 +4,7 @@ import android.net.Uri
 import android.util.Log
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -19,16 +20,21 @@ import com.example.urvoices.data.repository.NotificationRepository
 import com.example.urvoices.data.repository.PostRepository
 import com.example.urvoices.data.repository.UserRepository
 import com.example.urvoices.utils.UserPreferences
+import com.example.urvoices.utils.deleteOldImageFile
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 val userTemp = User(
@@ -79,6 +85,7 @@ class ProfileViewModel @Inject constructor(
 
     private var userListenerRegistration: ListenerRegistration? = null
 
+    //Posts
     val lastVisiblePost = mutableStateOf("")
     val lastVisiblePage = mutableIntStateOf(1)
     var posts : Flow<PagingData<Post>> = Pager(PagingConfig(pageSize = 3)) {
@@ -89,6 +96,16 @@ class ProfileViewModel @Inject constructor(
         postRepository.getAllPostFromUser(displayuserID, lastVisiblePost, lastVisiblePage)
     }.flow.cachedIn(viewModelScope)
 
+    //SavedPosts
+    val lastVisibleSavedPost = mutableStateOf("")
+    val lastVisibleSavedPage = mutableIntStateOf(1)
+    var savedPosts : Flow<PagingData<Post>> = Pager(PagingConfig(pageSize = 3)) {
+        if (displayuserID != currentUserID) {
+            lastVisibleSavedPost.value = lastVisibleSavedPost.value
+            lastVisibleSavedPage.intValue = lastVisibleSavedPage.intValue
+        }
+        postRepository.getAllSavedPostFromUser(displayuserID, lastVisibleSavedPost, lastVisibleSavedPage)
+    }.flow.cachedIn(viewModelScope)
 
     fun loadData(userID: String){
         if(displayuserID != userID){
@@ -166,34 +183,38 @@ class ProfileViewModel @Inject constructor(
 
 
     //Update DATA
-    fun updateProfile(
+    suspend fun updateProfile(
         username: String,
         bio: String,
         country: String,
         email: String,
         avatarUri: Uri = Uri.EMPTY,
-    ){
+    ): Boolean {
         _uiState.value = ProfileState.Working
         val oldUser = displayuser.copy()
-        try {
-            viewModelScope.launch {
+
+        return withContext(Dispatchers.IO) {
+            try {
                 val result = userRepository.updateUser(username, bio, country, email, avatarUri, oldUser)
-                if(result){
+                if (result) {
                     _uiState.value = ProfileState.Successful
-                    //update user data
+                    // Update user data
                     displayuser = displayuser.copy(
                         username = username,
                         bio = bio,
                         country = country,
                         email = email,
                     )
-                }else {
+                    true
+                } else {
                     _uiState.value = ProfileState.Error("Error when updating profile")
+                    false
                 }
+            } catch (e: Exception) {
+                _uiState.value = ProfileState.Error("Error when updating profile")
+                Log.e(TAG, "updateProfile: Error", e)
+                false
             }
-        } catch (e: Exception) {
-            _uiState.value = ProfileState.Error("Error when updating profile")
-            Log.e(TAG, "updateProfile: Error")
         }
     }
 

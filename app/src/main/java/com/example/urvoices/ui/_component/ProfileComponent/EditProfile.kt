@@ -107,7 +107,7 @@ fun ProfileEditScreen(
     var email by remember { mutableStateOf(currentUser!!.email) }
     val downloadAvatarUrl by remember { mutableStateOf(currentUser!!.avatarUrl) }
     var imgUri by remember { mutableStateOf(Uri.EMPTY) }
-
+    var updating by remember {mutableStateOf(false)}
 
 
     //Image Handle
@@ -147,7 +147,8 @@ fun ProfileEditScreen(
     ) { bitmap: Bitmap? ->
         bitmap?.let {
             deleteOldImageFile(context, imgUri)
-            val uri = saveBitmapToUri(context, it)
+            val fileName = generateUniqueFileName()
+            val uri = saveBitmapToUri(context, it, fileName)
             uri?.let { imageUri ->
                 scope.launch {
                     val result = imageCropper.crop(uri = imageUri, context = context)
@@ -157,7 +158,6 @@ fun ProfileEditScreen(
                         }
                         is CropResult.Success -> {
                             val croppedBitmap = result.bitmap.asAndroidBitmap()
-                            val fileName = generateUniqueFileName()
                             val file = File(context.cacheDir, fileName)
                             FileOutputStream(file).use { out ->
                                 croppedBitmap.compress(Bitmap.CompressFormat.JPEG, 100, out)
@@ -180,7 +180,7 @@ fun ProfileEditScreen(
 
     //Confirm Changed To Update Profile
     LaunchedEffect(username, bio, country, email, imgUri) {
-       isChanged.value = username != currentUser!!.username || bio != currentUser!!.bio || country != currentUser!!.country || email != currentUser!!.email
+       isChanged.value = username != currentUser!!.username || bio != currentUser!!.bio || country != currentUser!!.country || email != currentUser!!.email || imgUri != Uri.EMPTY
     }
 
     Scaffold(
@@ -191,6 +191,11 @@ fun ProfileEditScreen(
             )
         },
     ) {
+        if (updating) {
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                CircularProgressIndicator()
+            }
+        }
         if(currentUser != null){
             Column(
                 modifier = Modifier
@@ -308,18 +313,29 @@ fun ProfileEditScreen(
 
                 Button(
                     onClick = {
-                        if(isChanged.value){
-                            profileViewModel?.updateProfile(
-                                username = username,
-                                bio = bio,
-                                country = country,
-                                email = email,
-                                avatarUri = imgUri
-                            )
-                            //delete image after update deleteFile
-                            deleteOldImageFile(context, imgUri)
-                            imgUri = Uri.EMPTY
-                            navController.navigate(MainScreen.ProfileScreen.MainProfileScreen.route)
+                        if (isChanged.value) {
+                            scope.launch {
+                                updating = true
+                                val result = profileViewModel?.updateProfile(
+                                    username = username,
+                                    bio = bio,
+                                    country = country,
+                                    email = email,
+                                    avatarUri = imgUri
+                                ) ?: false
+
+                                if (result) {
+                                    // Delete image after update
+                                    deleteOldImageFile(context, imgUri)
+                                    imgUri = Uri.EMPTY
+                                    //Reload Data
+                                    profileViewModel?.loadData(profileViewModel.currentUserID)
+                                    navController.navigate(MainScreen.ProfileScreen.MainProfileScreen.route)
+                                } else {
+                                    Toast.makeText(context, "Error when updating profile", Toast.LENGTH_SHORT).show()
+                                }
+                                updating = false
+                            }
                         }
                     },
                     modifier = Modifier

@@ -1,6 +1,7 @@
 package com.example.urvoices.ui._component.PostComponent
 
 import android.annotation.SuppressLint
+import android.util.Log
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -51,12 +52,15 @@ fun ProfilePostItem(
 
     //State
     val isLove = rememberSaveable { mutableStateOf(false) }
+    val loadedWaveForm = rememberSaveable { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
         interactionViewModel.getLoveStatus(postID = post.ID!!) {result ->
             isLove.value = result
         }
     }
+
+    Log.e(TAG, "Post in ${TAG}: ${post.ID} - ${post.amplitudes}")
 
     val isExpandedContext = mutableStateOf(false)
     Box(
@@ -137,11 +141,13 @@ fun ProfilePostItem(
             isPlaying = playerViewModel.isPlaying,
             isStop = playerViewModel.isStop.value,
             onPlayStart = {
-                playerViewModel.onUIEvents(
-                    UIEvents.PlayingAudio(
-                    post.url
-                ))
-                playerViewModel.updateCurrentPlayingPost(post.ID)
+                if(post.url.isNotEmpty()){
+                    playerViewModel.onUIEvents(
+                        UIEvents.PlayingAudio(
+                            post.url
+                        ))
+                    playerViewModel.updateCurrentPlayingPost(post.ID)
+                }
             },
             onPlayPause = {
                 playerViewModel.onUIEvents(UIEvents.PlayPause)

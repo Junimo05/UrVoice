@@ -9,6 +9,7 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
@@ -26,6 +27,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.drawscope.DrawStyle
 import androidx.compose.ui.graphics.drawscope.Fill
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.pointer.pointerInteropFilter
 import androidx.compose.ui.layout.onSizeChanged
@@ -65,10 +67,16 @@ fun AudioWaveform(
     spikePadding: Dp = 1.dp,
     progress: Float = 0F,
     amplitudes: List<Int>,
-    onProgressChange: (Float) -> Unit
+    onProgressChange: (Float) -> Unit,
+    onLoadingComplete: (() -> Unit)
 ) {
     val density = LocalDensity.current
     var size by remember { mutableStateOf(Size.Zero) }
+
+    val animatedLoading by animateFloatAsState(
+        targetValue = if (loading.value) 0.5f else 1f,
+        animationSpec = tween(500)
+    )
 
     val _progress by rememberUpdatedState(progress.coerceIn(MinProgress, MaxProgress))
     val _spikeWidth by remember { mutableStateOf(spikeWidth.coerceIn(MinSpikeWidthDp, MaxSpikeWidthDp)) }
@@ -93,6 +101,10 @@ fun AudioWaveform(
                 }
             }
         }
+    }
+
+    LaunchedEffect(amplitudes){
+        Log.e("AudioWaveform", "Amplitudes This Track: $amplitudes")
     }
 
     val spikes = with(density) {
@@ -133,6 +145,8 @@ fun AudioWaveform(
             .pointerInteropFilter { event ->
                 touchCallback.onTouchEvent(event, size)
             }
+            .graphicsLayer { this.alpha = animatedLoading }
+
     ) {
         val spikeWidthPx = with(density) { _spikeWidth.toPx() }
         val spikePaddingPx = with(density) { _spikePadding.toPx() }
@@ -153,7 +167,7 @@ fun AudioWaveform(
                 cornerRadius = CornerRadius(spikeRadiusPx, spikeRadiusPx)
             )
         }
-        loading.value = true
+        onLoadingComplete.invoke()
     }
 }
 

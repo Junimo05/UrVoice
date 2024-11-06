@@ -302,49 +302,6 @@ fun ProfileDetail(
             )
         )
         Spacer(modifier = Modifier.height(16.dp))
-//        Row {
-//            Button(
-//                onClick = {
-//
-//                },
-//                modifier = Modifier.size(120.dp, 40.dp),
-//                colors = ButtonDefaults.buttonColors(
-//                    containerColor = if (isFollowed) Color(0xFF000000) else MaterialTheme.colorScheme.secondaryContainer,
-//                ),
-//                border = BorderStroke(
-//                    1.dp,
-//                    Color(0xFF000000)
-//                )
-//            ) {
-//                Text(
-//                    text = if(isFollowed) "Following" else "Follow",
-//                    color = if(isFollowed) Color(0xFFFFFFFF) else  MaterialTheme.colorScheme.onSecondaryContainer,
-//                    style = TextStyle(
-//                        fontWeight = FontWeight.Bold
-//                    )
-//                )
-//            }
-//            Spacer(modifier = Modifier.width(16.dp))
-//            Button(
-//                onClick = { /*TODO Message*/ },
-//                modifier = Modifier.size(120.dp, 40.dp),
-//                colors = ButtonDefaults.buttonColors(
-//                    containerColor = MaterialTheme.colorScheme.secondaryContainer,
-//                ),
-//                border = BorderStroke(
-//                    1.dp,
-//                    Color(0xFF000000)
-//                )
-//            ) {
-//                Text(
-//                    text = "Message",
-//                    color = MaterialTheme.colorScheme.onSecondaryContainer,
-//                    style = TextStyle(
-//                        fontWeight = FontWeight.Bold
-//                    )
-//                )
-//            }
-//        }
     }
 }
 
@@ -416,11 +373,13 @@ fun ContentDetail(
             isPlaying = playerViewModel.isPlaying,
             isStop = playerViewModel.isStop.value,
             onPlayStart = {
-                playerViewModel.onUIEvents(
-                    UIEvents.PlayingAudio(
-                    post.url
-                ))
-                playerViewModel.updateCurrentPlayingPost(post.ID)
+                if(post.url.isNotEmpty()){
+                    playerViewModel.onUIEvents(
+                        UIEvents.PlayingAudio(
+                            post.url
+                        ))
+                    playerViewModel.updateCurrentPlayingPost(post.ID)
+                }
             },
             onPlayPause = {
                 playerViewModel.onUIEvents(UIEvents.PlayPause)

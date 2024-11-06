@@ -63,7 +63,7 @@ class FirebasePostService @Inject constructor(
                     val likesDeferred = CoroutineScope(Dispatchers.IO).async { getCountLikesPosts(post.ID!!) }
                     val commentsDeferred = CoroutineScope(Dispatchers.IO).async { getCountCommentsPosts(post.ID!!) }
                     val amplitudesDeferred = CoroutineScope(Dispatchers.IO).async {
-                        audioManager.getAmplitudes(post.url!!)
+                        audioManager.getAmplitudes(post.url!!, post.ID!!)
                     }
 
                     val likes = likesDeferred.await()
@@ -92,10 +92,10 @@ class FirebasePostService @Inject constructor(
         try {
             val userRef = firebaseFirestore.collection("users").document(userID).get().await()
             val username = userRef.getString("username") ?: ""
-            val avatar = userRef.getString("avatar") ?: ""
+            val avatar = userRef.getString("avatarUrl") ?: ""
             result = mapOf(
                 "username" to username,
-                "avatar" to avatar
+                "avatarUrl" to avatar
             )
         }catch (e: Exception){
             e.printStackTrace()
@@ -116,7 +116,7 @@ class FirebasePostService @Inject constructor(
             val commentsDeferred = CoroutineScope(Dispatchers.IO).async { getCountCommentsPosts(postID) }
             val audioUrl = postRef.getString("url") ?: return null
             val amplitudesDeferred = CoroutineScope(Dispatchers.IO).async {
-                audioManager.getAmplitudes(audioUrl)
+                audioManager.getAmplitudes(audioUrl, postID)
             }
 
             val audioName = postRef.getString("audioName")
@@ -201,22 +201,37 @@ class FirebasePostService @Inject constructor(
 
                 val post = document.toObject(Post::class.java)
                 if (post != null) {
-                    withContext(Dispatchers.IO) {
-                        val likesDeferred = async { getCountLikesPosts(post.ID!!) }
-                        val commentsDeferred = async { getCountCommentsPosts(post.ID!!) }
-                        val amplitudesDeferred = async { audioManager.getAmplitudes(post.url ?: "") }
+                    val amplitudes = audioManager.getAmplitudes(post.url!!, post.ID!!)
+                    val processedPost = withContext(Dispatchers.IO) {
+                        val likesDeferred = async { getCountLikesPosts(post.ID) }
+                        val commentsDeferred = async { getCountCommentsPosts(post.ID) }
 
-                        post.likes = likesDeferred.await()
-                        post.comments = commentsDeferred.await()
-                        post.amplitudes = amplitudesDeferred.await()
+                        // Đợi tất cả các deferred hoàn thành
+                        post.apply {
+                            likes = likesDeferred.await()
+                            comments = commentsDeferred.await()
+                            this.amplitudes = amplitudes
+                        }
                     }
-                    posts.add(post)
+                    posts.add(processedPost)
                 }
             }
         } catch (e: Exception) {
             e.printStackTrace()
             Log.e(TAG, "getAllPostFromUser: ${e.message}")
         }
+        return posts
+    }
+
+    suspend fun getAllSavedPostFromUser(
+        page: Int,
+        userID: String,
+        lastVisiblePost: MutableState<String>,
+        lastvisiblePage: MutableState<Int>
+    ): List<Post> {
+        val limit = 3L
+        val posts = mutableListOf<Post>()
+
         return posts
     }
 

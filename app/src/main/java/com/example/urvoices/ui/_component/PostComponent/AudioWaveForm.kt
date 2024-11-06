@@ -13,14 +13,18 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
@@ -53,7 +57,6 @@ fun AudioWaveformItem(
     modifier: Modifier = Modifier
 ) {
     val TAG = "AudioWaveformItem"
-    val loadedWaveForm = mutableStateOf(false)
     val colorBrush = SolidColor(MaterialTheme.colorScheme.onPrimary)
     val colorDone = SolidColor(MaterialTheme.colorScheme.surfaceVariant)
     val animatedGradientBrush = Brush.infiniteLinearGradient(
@@ -61,6 +64,10 @@ fun AudioWaveformItem(
         animation = tween(durationMillis = 6000, easing = LinearEasing),
         width = 128F
     )
+
+    val loadedWaveForm = remember {
+        mutableStateOf(false)
+    }
 
     Row(
         modifier = Modifier
@@ -71,6 +78,10 @@ fun AudioWaveformItem(
             .background(MaterialTheme.colorScheme.inversePrimary)
             .border(1.dp, MaterialTheme.colorScheme.onBackground, MaterialTheme.shapes.small)
             .padding(8.dp)
+            .alpha(
+                if(loadedWaveForm.value) 1F
+                else 0F
+            )
             .then(modifier)
         ,
         verticalAlignment = Alignment.CenterVertically
@@ -93,8 +104,8 @@ fun AudioWaveformItem(
             )
         }
         Box(modifier = Modifier.weight(1f)) {
+//            Log.e(TAG, "AudioWaveformItem of PostID : $id and AudioUrl: $audioUrl")
             AudioWaveform(
-                loading = loadedWaveForm,
                 // Spike DrawStyle: Fill or Stroke
                 style = Fill,
                 waveformAlignment = WaveformAlignment.Center,
@@ -115,35 +126,11 @@ fun AudioWaveformItem(
                 onProgressChangeFinished = {
 
                 },
+                loading = loadedWaveForm,
+                onLoadingComplete = {
+                    loadedWaveForm.value = true
+                }
             )
         }
-
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun AudioWaveformPreview() {
-    MyTheme {
-        AudioWaveformItem(
-            id = "Post",
-            isPlaying = true,
-            duration = 100,
-            percentPlayed = 0.5f,
-            onPercentChange = {
-
-            },
-            onPlayStart = {
-
-            },
-            onPlayPause = {
-
-            },
-            isStop = false,
-            currentPlayingAudio = 0,
-            currentPlayingPost = "Post",
-            audioUrl = "",
-            audioAmplitudes = listOf(),
-        )
     }
 }

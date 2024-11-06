@@ -33,10 +33,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.core.net.toUri
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.urvoices.ui._component.BottomBar
 import com.example.urvoices.ui._component.MediaPlayer
@@ -90,9 +88,10 @@ fun Navigator(authViewModel: AuthViewModel) {
                     isVisibleMediaBar.value = true
                 }
                 Graph.SPECIFY -> {
-                    isVisibleBottomBar.value = false
+                    isVisibleBottomBar.value = true
                     if(destination.route?.startsWith("post/") == true){
                         isVisibleMediaBar.value = false
+                        isVisibleBottomBar.value = false
                     }
                 }
                 Graph.NOTI_MSG -> {
@@ -101,10 +100,6 @@ fun Navigator(authViewModel: AuthViewModel) {
                 }
             }
         }
-    }
-
-    LaunchedEffect(authViewModel.authState.value) {
-
     }
     
     Scaffold(
