@@ -1,6 +1,6 @@
 *.iml
 .gradle
-/serviceAccountKey/serviceAccountKey.json
+/serviceAccountKey
 /local.properties
 /.idea/caches
 /.idea/libraries
