@@ -6,6 +6,8 @@ import android.net.Uri
 import android.provider.MediaStore
 import android.util.Log
 import androidx.compose.foundation.lazy.LazyListState
+import com.google.firebase.storage.FirebaseStorage
+import kotlinx.coroutines.tasks.await
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.FileOutputStream

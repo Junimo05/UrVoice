@@ -61,6 +61,7 @@ fun PostAction(
     goToPost: () -> Unit,
     goToUser: () -> Unit,
     copyLink: () -> Unit,
+    savePost: () -> Unit,
     isBlock: MutableState<Boolean>,
     blockUser: () -> Unit,
 ): List<DropDownAction> {
@@ -96,6 +97,13 @@ fun PostAction(
                 title = "Go to User",
                 action = {
                     goToUser()
+                }
+            ),
+            DropDownAction(
+                icon = R.drawable.ic_actions_add_ribbon,
+                title = "Save Post",
+                action = {
+                     savePost()
                 }
             ),
             DropDownAction(

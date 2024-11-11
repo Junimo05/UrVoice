@@ -1,3 +1,5 @@
+import org.jetbrains.kotlin.konan.properties.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.jetbrains.kotlin.android)
@@ -24,6 +26,12 @@ android {
         vectorDrawables {
             useSupportLibrary = true
         }
+
+        var algoliaProperties = Properties()
+        file("../local.properties").inputStream().use { algoliaProperties.load(it) }
+        buildConfigField("String", "ALGOLIA_APPLICATION_ID", "\"${algoliaProperties.getProperty("ALGOLIA_APPLICATION_ID")}\"")
+        buildConfigField("String", "ALGOLIA_SEARCH_API_KEY", "\"${algoliaProperties.getProperty("ALGOLIA_SEARCH_API_KEY")}\"")
+        buildConfigField("String", "ALGOLIA_INDEX_NAME", "\"${algoliaProperties.getProperty("ALGOLIA_INDEX_NAME")}\"")
     }
 
     kapt {
@@ -50,6 +58,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
     composeOptions {
         kotlinCompilerExtensionVersion = "1.5.14"
@@ -142,12 +151,18 @@ dependencies {
 
     //FireBase
     implementation(platform("com.google.firebase:firebase-bom:33.2.0"))
+    implementation("com.google.firebase:firebase-functions")
     implementation("com.google.firebase:firebase-messaging")
     implementation("com.google.firebase:firebase-analytics")
     implementation(libs.firebase.auth)
     implementation(libs.firebase.firestore)
     implementation("com.facebook.android:facebook-login:latest.release")
     implementation(libs.firebase.storage)
+
+    //Aglolia
+    implementation("com.algolia:instantsearch-android:3.+")
+    implementation("com.algolia:instantsearch-compose:3.+")
+    implementation("com.algolia:instantsearch-android-paging3:3.+")
 
     //LoadItem Paging3 Lib
     val paging_version = "3.3.2"

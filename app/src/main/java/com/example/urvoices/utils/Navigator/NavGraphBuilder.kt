@@ -25,6 +25,7 @@ import com.example.urvoices.viewmodel.MediaPlayerVM
 import com.example.urvoices.viewmodel.MediaRecorderVM
 import com.example.urvoices.viewmodel.PostDetailViewModel
 import com.example.urvoices.viewmodel.ProfileViewModel
+import com.example.urvoices.viewmodel.SearchViewModel
 import com.example.urvoices.viewmodel.UploadViewModel
 
 val BASE_URL = "https://urvoices.com"
@@ -52,6 +53,7 @@ fun NavGraphBuilder.authGraph(
 fun NavGraphBuilder.mainGraph(
     navController: NavController,
     authViewModel: AuthViewModel,
+    searchViewModel: SearchViewModel,
     playerViewModel: MediaPlayerVM,
     homeViewModel: HomeViewModel,
     uploadViewModel: UploadViewModel,
@@ -70,6 +72,12 @@ fun NavGraphBuilder.mainGraph(
         composable(route = MainScreen.SearchScreen.route){
             SearchScreen(
                 navController = navController,
+                searchBoxState = searchViewModel.searchBoxState,
+                userState = searchViewModel.userState,
+                postState = searchViewModel.postState,
+                filterState = searchViewModel.filterState,
+                filterListState = searchViewModel.filterListState,
+                onClearFilter = { searchViewModel.onClearFilter() },
                 playerViewModel = playerViewModel,
             )
         }

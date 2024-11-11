@@ -29,7 +29,7 @@ data class PostEntity(
         amplitudes = amplitudes,
         likes = likes,
         comments = comments,
-        tag = tags,
+        _tags = tags,
         createdAt = createdAt,
         updatedAt = updatedAt,
         deletedAt = deletedAt

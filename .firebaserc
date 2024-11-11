@@ -1,5 +1,11 @@
 {
   "projects": {
     "default": "urvoice-98254"
+  },
+  "targets": {},
+  "etags": {
+    "urvoice-98254": {
+      "extensionInstances": {}
+    }
   }
 }

@@ -79,6 +79,26 @@ class PostRepository @Inject constructor(
     }
 
     //Post Interaction Events
+    suspend fun savePost(postID: String): Boolean? {
+        try {
+            val result = firestorePostService.savePosts(postID)
+            return result
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+        return false
+    }
+
+    suspend fun getSaveStatus(postID: String): Boolean {
+        try {
+            val result = firestorePostService.getSaveStatus(postID)
+            return result
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+        return false
+    }
+
     suspend fun likePost(actionUserID: String, postID: String): String {
         val result = firestorePostService.likePost(
             postId = postID,

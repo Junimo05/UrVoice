@@ -1,47 +1,98 @@
 package com.example.urvoices.ui.MainScreen
 
 import android.annotation.SuppressLint
+import android.util.Log
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.FlowRowOverflow
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.media3.common.text.TextAnnotation
 import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
-import com.example.urvoices.presentations.theme.MyTheme
-import com.example.urvoices.ui.noti_msg.SearchBar
+import androidx.paging.compose.LazyPagingItems
+import androidx.paging.compose.collectAsLazyPagingItems
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
+import com.algolia.instantsearch.android.paging3.Paginator
+import com.algolia.instantsearch.android.paging3.flow
+import com.algolia.instantsearch.compose.filter.list.FilterListState
+import com.algolia.instantsearch.compose.highlighting.toAnnotatedString
+import com.algolia.instantsearch.compose.hits.HitsState
+import com.algolia.instantsearch.compose.searchbox.SearchBoxState
+import com.algolia.instantsearch.filter.state.FilterState
+import com.algolia.search.model.filter.Filter
+import com.example.urvoices.R
+import com.example.urvoices.data.algolia.Post_Algolia
+import com.example.urvoices.data.algolia.User_Algolia
+import com.example.urvoices.data.model.User
+import com.example.urvoices.ui._component.SearchBar
+import com.example.urvoices.ui._component.TagSection
 import com.example.urvoices.viewmodel.MediaPlayerVM
+import kotlinx.coroutines.launch
 
-@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
+@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter", "UnrememberedMutableState")
 @Composable
 fun SearchScreen(
     navController: NavController,
+    modifier: Modifier = Modifier,
+    searchBoxState: SearchBoxState,
+    userState: HitsState<User_Algolia>,
+    postState: HitsState<Post_Algolia>,
+    filterState: FilterState,
+    filterListState: FilterListState<Filter.Tag>,
+    onClearFilter: () -> Unit,
     playerViewModel: MediaPlayerVM,
 ) {
+    val TAG = "SearchScreen"
+    val scope = rememberCoroutineScope()
+    val listState = rememberLazyListState()
+    val isSearching = mutableStateOf(false)
+
+
     Scaffold(
         topBar = {
             Box(
@@ -81,85 +132,255 @@ fun SearchScreen(
                 .fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally
         ){
-            SearchBar()
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp)
-            ) {
-                TagSection(listOf("life", "sing", "story", "dark", "trend"))
-            }
-        }
-    }
-}
-
-
-@OptIn(ExperimentalLayoutApi::class)
-@Composable
-fun TagSection(tags: List<String>) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(MaterialTheme.colorScheme.primaryContainer)// Light pink background
-            .padding(16.dp)
-    ) {
-        Text(
-            text = "Tag",
-            style = TextStyle(
-                color = MaterialTheme.colorScheme.onPrimary,
-                fontSize = 22.sp,
-                fontWeight = FontWeight.Bold
-            ),
-            color = Color.Black,
-            modifier = Modifier.padding(bottom = 8.dp)
-        )
-
-        FlowRow(
-            modifier = Modifier.fillMaxWidth(),
-            overflow = FlowRowOverflow.Clip,
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            tags.forEach { tag ->
-                Tag(
-                    text = tag
+            SearchBar(
+                searchBoxState = searchBoxState,
+                onValueChange = {
+                    isSearching.value = it.isNotEmpty()
+                    scope.launch {
+                        listState.scrollToItem(0)
+                    }
+                }
+            )
+            TagSection(
+                filterListState = filterListState,
+                filterState = filterState,
+                isFiltered = isSearching,
+                onClearFilter = {
+                    onClearFilter()
+                }
+            )
+            if(isSearching.value){
+                SearchList(
+                    navController = navController,
+                    userState = userState,
+                    postState = postState,
+                    listState = listState,
+                    mediaPlayerVM = playerViewModel
                 )
             }
         }
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun Tag(
-    text: String,
-    onClick: () -> Unit = {}
-) {
-    Surface(
-        shape = RoundedCornerShape(16.dp),
-        color = MaterialTheme.colorScheme.inverseSurface // Dark gray background
+fun SearchList(
+    navController: NavController,
+    modifier: Modifier = Modifier,
+    userState: HitsState<User_Algolia>,
+    postState: HitsState<Post_Algolia>,
+    listState: LazyListState,
+    mediaPlayerVM: MediaPlayerVM,
+){
+    LazyColumn(
+        modifier = modifier,
+        state = listState
     ) {
+        stickyHeader { SectionTitle(title = "User") }
+        if(userState.hits.isNotEmpty()){
+            items(userState.hits.size) { index ->
+                UserSearchItem(
+                    user = userState.hits[index],
+                    navController = navController
+                )
+                HorizontalDivider(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .width(1.dp)
+                )
+            }
+        } else {
+            item {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(100.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "No User Found",
+                        style = TextStyle(
+                            color = MaterialTheme.colorScheme.onSurface,
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Bold
+                        ),
+                        modifier = Modifier.padding(8.dp)
+                    )
+                }
+            }
+        }
+        stickyHeader { SectionTitle(title = "Post") }
+        if (postState.hits.isNotEmpty()) {
+            items(postState.hits.size) { index ->
+                PostSearchItem(
+                    navController = navController,
+                    post = postState.hits[index],
+                    playerViewModel = mediaPlayerVM
+                )
+                HorizontalDivider(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .width(1.dp)
+                )
+            }
+        } else {
+            item {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(100.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "No Post Found",
+                        style = TextStyle(
+                            color = MaterialTheme.colorScheme.onSurface,
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Bold
+                        ),
+                        modifier = Modifier.padding(8.dp)
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun SectionTitle(title: String) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.Start,
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(MaterialTheme.colorScheme.surface)
+    ){
         Text(
-            text = "#$text",
-            color = MaterialTheme.colorScheme.inverseOnSurface,
-            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
-            style = MaterialTheme.typography.bodyMedium
+            text = title,
+            style = TextStyle(
+                color = MaterialTheme.colorScheme.onSurface,
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Bold
+            ),
+            modifier = Modifier
+                .padding(8.dp)
         )
     }
+
 }
 
-@Preview
 @Composable
-fun TagSectionPreview() {
-    MyTheme {
-        TagSection(listOf("life", "sing", "story", "dark", "trend"))
+fun UserSearchItem(
+    user: User_Algolia,
+    navController: NavController
+){
+
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier
+            .padding(8.dp)
+            .fillMaxWidth()
+            .clickable {
+                //To Profile
+                navController.navigate("profile/${user.ID}")
+            }
+    ) {
+        AsyncImage(
+            model = ImageRequest.Builder(LocalContext.current)
+                .data(user.avatarUrl)
+                .crossfade(true)
+                .build(),
+            contentDescription = "Avatar",
+            placeholder = painterResource(id = R.drawable.person),
+            contentScale = ContentScale.Crop,
+            modifier = Modifier
+                .size(64.dp)
+                .clip(CircleShape)
+                .border(2.dp, Color.Black, CircleShape)
+                .clickable {
+                    //To Profile
+                    navController.navigate("profile/${user.ID}")
+                }
+        )
+        Column(
+            modifier = Modifier.padding(8.dp)
+        ) {
+            Text(
+                text = buildAnnotatedString {
+                    withStyle(style = SpanStyle(color = MaterialTheme.colorScheme.onSurface, fontSize = 18.sp, fontWeight = FontWeight.Normal)){
+                        append(user.highlightedName!!.toAnnotatedString())
+                    }
+                },
+                style = TextStyle(
+                    color = MaterialTheme.colorScheme.onSurface,
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold
+                )
+            )
+        }
     }
 }
 
-@Preview(showBackground = true)
 @Composable
-fun SearchScreenPreview() {
-    var navController = rememberNavController()
-    MyTheme {
-        SearchScreen(navController = navController, playerViewModel = hiltViewModel())
+fun PostSearchItem(
+    navController: NavController,
+    post: Post_Algolia,
+    playerViewModel: MediaPlayerVM
+){
+    Card(
+        modifier = Modifier
+            .padding(8.dp)
+            .fillMaxWidth()
+            .clickable {
+                navController.navigate("post/${post.userId}/${post.ID}")
+            }
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp)
+        ) {
+            Text(
+                text = buildAnnotatedString {
+                    withStyle(style = SpanStyle(color = MaterialTheme.colorScheme.onSurface, fontSize = 18.sp, fontWeight = FontWeight.Normal)) {
+                        if (post.highlightedName != null) {
+                            append(post.highlightedName!!.toAnnotatedString())
+                        } else {
+                            append("No Name")
+                        }
+                    }
+                },
+                style = TextStyle(
+                    color = MaterialTheme.colorScheme.onSurface,
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Normal
+                )
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                text = post.description,
+                style = TextStyle(
+                    color = MaterialTheme.colorScheme.onSurface,
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Light
+                )
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth()
+            ){
+                post._tags.forEach { tag ->
+                    Text(
+                        text = "#$tag",
+                        style = TextStyle(
+                            color = MaterialTheme.colorScheme.onSurface,
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                    )
+                }
+            }
+        }
     }
 }
+

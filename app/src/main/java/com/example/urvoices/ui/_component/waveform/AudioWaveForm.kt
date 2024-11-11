@@ -104,7 +104,7 @@ fun AudioWaveform(
     }
 
     LaunchedEffect(amplitudes){
-        Log.e("AudioWaveform", "Amplitudes This Track: $amplitudes")
+//        Log.e("AudioWaveform", "Amplitudes This Track: $amplitudes")
     }
 
     val spikes = with(density) {

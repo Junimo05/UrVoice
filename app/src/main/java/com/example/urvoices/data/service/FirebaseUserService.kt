@@ -25,12 +25,11 @@ class FirebaseUserService @Inject constructor(
 
             val userID = docRef.data?.get("ID") as String
             val username = docRef.data?.get("username") as String
-            val displayname = docRef.data?.get("displayname")?.toString() ?: username
             val email = docRef.data?.get("email") as String
             val country = docRef.data?.get("country") as String
             val avatarUrl = docRef.data?.get("avatarUrl") as String
             val bio = docRef.data?.get("bio") as String
-            return User(userID, username, displayname, email, country, avatarUrl, bio)
+            return User(userID, username, email, country, avatarUrl, bio)
 
         }catch (e: Exception){
             e.printStackTrace()

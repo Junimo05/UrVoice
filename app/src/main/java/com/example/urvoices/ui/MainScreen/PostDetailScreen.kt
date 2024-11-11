@@ -1,12 +1,15 @@
 package com.example.urvoices.ui.MainScreen
 
 import android.annotation.SuppressLint
+import android.content.ClipData
+import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -32,6 +35,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -58,14 +62,17 @@ import com.example.urvoices.data.model.Comment
 import com.example.urvoices.data.model.Post
 import com.example.urvoices.data.model.User
 import com.example.urvoices.ui._component.InteractionRow
+import com.example.urvoices.ui._component.MoreAction.DropDownMenu
+import com.example.urvoices.ui._component.MoreAction.PostAction
 import com.example.urvoices.ui._component.PostComponent.AudioWaveformItem
 import com.example.urvoices.ui._component.PostComponent.CommentBar
 import com.example.urvoices.ui._component.PostComponent.CommentItem
 import com.example.urvoices.ui._component.TopBarBackButton
+import com.example.urvoices.utils.Navigator.BASE_URL
 import com.example.urvoices.utils.Post_Interactions
 import com.example.urvoices.viewmodel.AuthViewModel
 import com.example.urvoices.viewmodel.CommentViewModel
-import com.example.urvoices.viewmodel.InteractionRowViewModel
+import com.example.urvoices.viewmodel.InteractionViewModel
 import com.example.urvoices.viewmodel.MediaPlayerVM
 import com.example.urvoices.viewmodel.PostDetailState
 import com.example.urvoices.viewmodel.PostDetailViewModel
@@ -82,23 +89,33 @@ fun PostDetail(
     postID: String = "",
     userID: String = ""
 ) {
+    val TAG = "PostDetailScreen"
+    val context = LocalContext.current
+    val clipboardManager = context.getSystemService(android.content.ClipboardManager::class.java)
     val currentUser = authViewModel.getCurrentUser()
-
-    val uiState = postDetailViewModel.uiState.collectAsState()
-
     val commentViewModel = hiltViewModel<CommentViewModel>()
-    val interactionViewModel = hiltViewModel<InteractionRowViewModel>()
+    val interactionViewModel = hiltViewModel<InteractionViewModel>()
 
-    //Post Interaction Status
+    //STATE
+    val uiState = postDetailViewModel.uiState.collectAsState()
+    val expandMoreAction = rememberSaveable{
+        mutableStateOf(false)
+    }
     val isLove = remember {
         mutableStateOf(false)
     }
+    val isBlock = remember {
+        mutableStateOf(false)
+    }
+
 
     LaunchedEffect(postID, userID) {
-//        Log.e("PostDetail", "PostID: $postID, UserID: $userID")
         postDetailViewModel.loadData(postID = postID, userID = userID)
         interactionViewModel.getLoveStatus(postID = postID){ result ->
             isLove.value = result
+        }
+        interactionViewModel.getBlockStatus(userID){ result ->
+            isBlock.value = result
         }
     }
 
@@ -125,13 +142,62 @@ fun PostDetail(
 
     Scaffold(
         topBar = {
-            TopBarBackButton(
-                navController = navController,
-                title = userPost.username,
-                endIcon = R.drawable.ic_actions_more_1,
-                endIconAction = { /*TODO*/ },
-                modifier = Modifier.background(MaterialTheme.colorScheme.surfaceVariant)
-            )
+            Row{
+                TopBarBackButton(
+                    navController = navController,
+                    title = userPost.username,
+                    endIcon = R.drawable.ic_actions_more_1,
+                    endIconAction = {
+                        expandMoreAction.value = !expandMoreAction.value
+                    },
+                    modifier = Modifier.background(MaterialTheme.colorScheme.surfaceVariant)
+                )
+                DropDownMenu(
+                    expand = expandMoreAction,
+                    actions = PostAction(
+                        isCurrentUserPost = userID == currentUser?.uid,
+                        goToPost = {
+                            navController.navigate("post/${userID}/${postID}")
+                            expandMoreAction.value = false
+                        },
+                        goToUser = {
+                            navController.navigate("profile/${userID}")
+                            expandMoreAction.value = false
+                        },
+                        copyLink = {
+                            val clip = ClipData.newPlainText("PostLink", "$BASE_URL/post/${userID}/${postID}")
+                            clipboardManager.setPrimaryClip(clip)
+                            Toast.makeText(context, "Link Copied", Toast.LENGTH_SHORT).show()
+                            expandMoreAction.value = false
+                        },
+                        savePost = {
+                            interactionViewModel.savePost(postID){result ->
+                                if(result != null){
+                                    if(result){
+                                        Toast.makeText(context, "Saved", Toast.LENGTH_SHORT).show()
+                                    } else {
+                                        Toast.makeText(context, "Unsaved", Toast.LENGTH_SHORT).show()
+                                    }
+                                }
+                                expandMoreAction.value = false
+                            }
+                        },
+                        isBlock = isBlock,
+                        blockUser = {
+                            if(isBlock.value){
+                                val result = interactionViewModel.unblockUser(userID)
+                                Toast.makeText(context, result, Toast.LENGTH_SHORT).show()
+                                isBlock.value = false
+                            } else {
+                                val result = interactionViewModel.blockUser(userID)
+                                Toast.makeText(context, result, Toast.LENGTH_SHORT).show()
+                                isBlock.value = true
+                            }
+                            expandMoreAction.value = false
+                        }
+                    )
+                )
+            }
         },
         bottomBar = {
             CommentBar(
@@ -164,7 +230,7 @@ fun PostDetail(
                 ProfileDetail(
                     navController = navController,
                     user = userPost,
-                    isFollowed = postDetailViewModel.isFollowed
+//                    isFollowed = postDetailViewModel.isFollowed
                 )
                 Spacer(modifier = Modifier.height(30.dp))
             }
@@ -175,7 +241,8 @@ fun PostDetail(
                     ContentDetail(
                         navController = navController,
                         isLove = isLove,
-                        interactionRowViewModel = interactionViewModel,
+                        interactionViewModel = interactionViewModel,
+                        postDetailViewModel = postDetailViewModel,
                         scrollThroughContentDetail = scrollThroughContentDetail,
                         playerViewModel = playerViewModel,
                         post = currentPost
@@ -200,14 +267,9 @@ fun PostDetail(
                         navController = navController,
                         uiState = uiState,
                         comment = comment,
-                        index = index,
-                        lastParentCommentID = postDetailViewModel.lastParentCommentID,
                         postDetailViewModel = postDetailViewModel,
                         interactionViewModel = interactionViewModel,
                         commentViewModel = commentViewModel,
-                        loadReply = { commentID ->
-                            postDetailViewModel.loadMoreReplyComments(commentID)
-                        },
                         replyAct = { commentItem, parentCmtUsername ->
                             replyTo.value = commentItem
                             parentUserName.value = parentCmtUsername
@@ -259,7 +321,6 @@ private fun ErrorItem(onRetry: () -> Unit) {
 @Composable
 fun ProfileDetail(
     user: User,
-    isFollowed: Boolean,
     navController: NavController
 ){
     Column(
@@ -281,7 +342,7 @@ fun ProfileDetail(
                 .clip(CircleShape)
                 .border(2.dp, Color.Black, CircleShape)
                 .clickable {
-                    navController.navigate("profile/${user.id}")
+                    navController.navigate("profile/${user.ID}")
                 }
         )
         Spacer(modifier = Modifier.height(16.dp))
@@ -310,10 +371,11 @@ fun ProfileDetail(
 fun ContentDetail(
     navController: NavController,
     isLove: MutableState<Boolean>,
-    interactionRowViewModel: InteractionRowViewModel,
-    scrollThroughContentDetail: MutableState<Boolean>,
+    interactionViewModel: InteractionViewModel,
+    postDetailViewModel: PostDetailViewModel,
     playerViewModel: MediaPlayerVM,
     post: Post,
+    scrollThroughContentDetail: MutableState<Boolean>,
 ){
     val transitionVisible = remember {
         mutableStateOf(true)
@@ -396,17 +458,24 @@ fun ContentDetail(
                 loveCounts = post.likes!!,
                 commentCounts = post.comments!!,
                 love_act = {
-                    isLove.value = it
-                    interactionRowViewModel.loveAction(
+                    interactionViewModel.loveAction(
                         isLove = it,
                         postID = post.ID,
                         targetUserID = post.userId
-                    ) {result ->
-                        if(result) post.likes = post.likes!! + 1
+                    ) { result ->
+                        //get isLove input then update UI if result = true
+                        if(result){
+                            isLove.value = it
+                            if(isLove.value){
+                                post.likes = post.likes!! + 1
+                            } else {
+                                post.likes = post.likes!! - 1
+                            }
+                        }
                     }
                 },
                 comment_act = {
-                    //Do nothing
+                    postDetailViewModel.reloadComment()
                 }
             )
         )

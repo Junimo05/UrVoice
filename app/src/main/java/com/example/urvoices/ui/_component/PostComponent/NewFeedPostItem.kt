@@ -4,12 +4,14 @@ import android.annotation.SuppressLint
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.MarqueeAnimationMode
 import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -59,7 +61,7 @@ import com.example.urvoices.utils.Post_Interactions
 import com.example.urvoices.utils.getTimeElapsed
 import com.example.urvoices.viewmodel.AuthViewModel
 import com.example.urvoices.viewmodel.HomeViewModel
-import com.example.urvoices.viewmodel.InteractionRowViewModel
+import com.example.urvoices.viewmodel.InteractionViewModel
 import com.example.urvoices.viewmodel.MediaPlayerVM
 import com.example.urvoices.viewmodel.UIEvents
 
@@ -78,24 +80,27 @@ fun NewFeedPostItem(
     val clipboardManager = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
     val timeText = getTimeElapsed(post.createdAt)
 
-    val interactionViewModel = hiltViewModel<InteractionRowViewModel>(
+    val interactionViewModel = hiltViewModel<InteractionViewModel>(
         key = post.ID
     )
 
     val currentUser = authVM.getCurrentUser()
 
     //State
-    val loadedWaveForm = rememberSaveable{
-        mutableStateOf(false)
-    }
     val expandMenu = rememberSaveable { mutableStateOf(false) }
-    val isBlock = rememberSaveable { mutableStateOf(false) } //User Block
+    val isBlock = rememberSaveable { mutableStateOf(false) }
+    val isSaved = rememberSaveable { mutableStateOf(false) }
     val isLove = rememberSaveable { mutableStateOf(false) }
 
     LaunchedEffect(post.ID) {
         interactionViewModel.getLoveStatus(post.ID!!) {
             isLove.value = it
         }
+        interactionViewModel.getSaveStatus(post.ID) {
+//            Log.e(TAG, "Save Status: $it")
+            isSaved.value = it
+        }
+        //No need to Block Status Getter
     }
 
     Card(
@@ -126,7 +131,7 @@ fun NewFeedPostItem(
                     IconButton(
                         modifier = Modifier.align(Alignment.CenterVertically),
                         onClick = {
-                            expandMenu.value = true
+                            expandMenu.value = !expandMenu.value
                         }
                     ) {
                         Icon(
@@ -154,14 +159,26 @@ fun NewFeedPostItem(
                                 Toast.makeText(context, "Link Copied", Toast.LENGTH_SHORT).show()
                                 expandMenu.value = false
                             },
+                            savePost = {
+                                interactionViewModel.savePost(post.ID!!){result ->
+                                    if(result != null){
+                                        if(result){
+                                            Toast.makeText(context, "Saved", Toast.LENGTH_SHORT).show()
+                                        } else {
+                                            Toast.makeText(context, "Unsaved", Toast.LENGTH_SHORT).show()
+                                        }
+                                    }
+                                    expandMenu.value = false
+                                }
+                            },
                             isBlock = isBlock,
                             blockUser = {
                                 if(isBlock.value){
-                                    val result = homeViewModel.unblockUser(post.userId)
+                                    val result = interactionViewModel.unblockUser(post.userId)
                                     Toast.makeText(context, result, Toast.LENGTH_SHORT).show()
                                     isBlock.value = false
                                 } else {
-                                    val result = homeViewModel.blockUser(post.userId)
+                                    val result = interactionViewModel.blockUser(post.userId)
                                     Toast.makeText(context, result, Toast.LENGTH_SHORT).show()
                                     isBlock.value = true
                                 }
@@ -222,28 +239,59 @@ fun NewFeedPostItem(
                     },
                 )
                 Spacer(modifier = Modifier.height(8.dp))
-                InteractionRow(
-                    interactions = Post_Interactions(
-                        loveCounts = post.likes!!,
-                        commentCounts = post.comments!!,
-                        isLove = isLove.value,
-                        love_act = {
-                            isLove.value = it
-                            interactionViewModel.loveAction(
-                                isLove = it,
-                                targetUserID = post.userId,
-                                postID = post.ID
-                            ){ result ->
-                                if(result){
-                                    post.likes = post.likes!! + 1
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                ){
+                    InteractionRow(
+                        interactions = Post_Interactions(
+                            loveCounts = post.likes!!,
+                            commentCounts = post.comments!!,
+                            isLove = isLove.value,
+                            love_act = {
+                                interactionViewModel.loveAction(
+                                    isLove = it,
+                                    targetUserID = post.userId,
+                                    postID = post.ID
+                                ){ result ->
+                                    //get isLove input then update UI if result = true
+                                    if(result){
+                                        isLove.value = it
+                                        if(isLove.value){
+                                            post.likes = post.likes!! + 1
+                                        } else {
+                                            post.likes = post.likes!! - 1
+                                        }
+                                    }
                                 }
-                            }
-                        },
-                        comment_act = {
-                            navController.navigate("post/${post.userId}/${post.ID}")
-                        },
+                            },
+                            comment_act = {
+                                navController.navigate("post/${post.userId}/${post.ID}")
+                            },
+                        ),
+                        modifier = Modifier.weight(1f)
                     )
-                )
+                    IconButton(onClick = {
+                        interactionViewModel.savePost(post.ID){result ->
+                            if(result != null){
+                                if(result){
+                                    isSaved.value = true
+                                    Toast.makeText(context, "Saved", Toast.LENGTH_SHORT).show()
+                                } else {
+                                    isSaved.value = false
+                                    Toast.makeText(context, "Unsaved", Toast.LENGTH_SHORT).show()
+                                }
+                            } else {
+                                Toast.makeText(context, "Unknown Error", Toast.LENGTH_SHORT).show()
+                            }
+                        }
+                    }) {
+                        Icon(
+                            painter = if(isSaved.value) painterResource(id = R.drawable.ic_action_remove_ribbon) else painterResource(id = R.drawable.ic_actions_add_ribbon),
+                            contentDescription = "Save",
+                        )
+                    }
+                }
             }
         }
     }

@@ -35,7 +35,7 @@ val emptyPost = Post(
     description = "",
     likes = 0,
     comments = 0,
-    tag = listOf(),
+    _tags = listOf(),
     createdAt = 0,
     updatedAt = 0,
     deletedAt = 0
@@ -75,23 +75,11 @@ class PostDetailViewModel @Inject constructor(
     private val _commentFlow = MutableStateFlow<PagingData<Comment>>(PagingData.empty())
     val commentFlow = _commentFlow.asStateFlow()
 
-
-    //Reply Comment Control
-    private val lastCommentReplyID = mutableStateOf("")
-    val lastParentCommentID = mutableStateOf("")
-    private val _replyLists = MutableStateFlow<List<Comment>>(emptyList())
-    val replyLists = _replyLists.asStateFlow()
-
-    private val loadedCommentIds = mutableSetOf<String>()
-    private val loadedReplyIds = mutableSetOf<String>()
-
     fun loadData(postID: String, userID: String) {
         this.postID = postID
         currentPost.value = emptyPost
         userPost = userTemp
-        loadedCommentIds.clear()
-        loadedReplyIds.clear()
-        initializeCommentPager(true)
+        reloadComment()
 
         viewModelScope.launch {
             try {
@@ -191,23 +179,8 @@ class PostDetailViewModel @Inject constructor(
 
 
 
-    fun loadMoreReplyComments(commentID: String) {
-        try {
-            _uiState.value = PostDetailState.Working
-            viewModelScope.launch {
-                val result = postRepository.getReplyComments(commentID, lastCommentReplyID, lastParentCommentID)
-                _replyLists.value = result
-                if(replyLists.value.isNotEmpty()){
-                    _uiState.value = PostDetailState.Success
-                    Log.e(TAG, "loadMoreReplyComments: ${replyLists.value.size}")
-                }else {
-                    _uiState.value = PostDetailState.Failed
-                }
-            }
-        } catch (e: Exception) {
-            e.printStackTrace()
-            _uiState.value = PostDetailState.Error
-        }
+    fun reloadComment() {
+        initializeCommentPager(true)
     }
 
     private suspend fun loadPostData(postID: String) {

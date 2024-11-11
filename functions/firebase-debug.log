@@ -1,0 +1,1082 @@
+[debug] [2024-11-10T15:11:21.440Z] ----------------------------------------------------------------------
+[debug] [2024-11-10T15:11:21.442Z] Command:       C:\Program Files\nodejs\node.exe C:\Users\anhtu\AppData\Roaming\npm\node_modules\firebase-tools\lib\bin\firebase.js emulators:start --only functions
+[debug] [2024-11-10T15:11:21.443Z] CLI Version:   13.24.2
+[debug] [2024-11-10T15:11:21.443Z] Platform:      win32
+[debug] [2024-11-10T15:11:21.443Z] Node Version:  v20.5.0
+[debug] [2024-11-10T15:11:21.443Z] Time:          Sun Nov 10 2024 22:11:21 GMT+0700 (Giờ Đông Dương)
+[debug] [2024-11-10T15:11:21.443Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2024-11-10T15:11:21.548Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2024-11-10T15:11:21.548Z] > authorizing via signed-in user (ungvang67@gmail.com)
+[info] i  emulators: Starting emulators: functions {"metadata":{"emulator":{"name":"hub"},"message":"Starting emulators: functions"}}
+[debug] [2024-11-10T15:11:21.558Z] [logging] Logging Emulator only supports listening on one address (127.0.0.1). Not listening on ::1
+[debug] [2024-11-10T15:11:21.558Z] assigned listening specs for emulators {"user":{"hub":[{"address":"127.0.0.1","family":"IPv4","port":4400},{"address":"::1","family":"IPv6","port":4400}],"ui":[{"address":"127.0.0.1","family":"IPv4","port":4000},{"address":"::1","family":"IPv6","port":4000}],"logging":[{"address":"127.0.0.1","family":"IPv4","port":4500}]},"metadata":{"message":"assigned listening specs for emulators"}}
+[debug] [2024-11-10T15:11:21.563Z] [hub] writing locator at C:\Users\anhtu\AppData\Local\Temp\hub-urvoice-98254.json
+[debug] [2024-11-10T15:11:21.583Z] [functions] Functions Emulator only supports listening on one address (127.0.0.1). Not listening on ::1
+[debug] [2024-11-10T15:11:21.583Z] [eventarc] Eventarc Emulator only supports listening on one address (127.0.0.1). Not listening on ::1
+[debug] [2024-11-10T15:11:21.584Z] [tasks] Cloud Tasks Emulator only supports listening on one address (127.0.0.1). Not listening on ::1
+[debug] [2024-11-10T15:11:21.584Z] late-assigned ports for functions and eventarc emulators {"user":{"hub":[{"address":"127.0.0.1","family":"IPv4","port":4400},{"address":"::1","family":"IPv6","port":4400}],"ui":[{"address":"127.0.0.1","family":"IPv4","port":4000},{"address":"::1","family":"IPv6","port":4000}],"logging":[{"address":"127.0.0.1","family":"IPv4","port":4500}],"functions":[{"address":"127.0.0.1","family":"IPv4","port":5001}],"eventarc":[{"address":"127.0.0.1","family":"IPv4","port":9299}],"tasks":[{"address":"127.0.0.1","family":"IPv4","port":9499}]},"metadata":{"message":"late-assigned ports for functions and eventarc emulators"}}
+[warn] !  functions: The following emulators are not running, calls to these services from the Functions emulator will affect production: auth, firestore, database, hosting, pubsub, storage, dataconnect {"metadata":{"emulator":{"name":"functions"},"message":"The following emulators are not running, calls to these services from the Functions emulator will affect production: \u001b[1mauth, firestore, database, hosting, pubsub, storage, dataconnect\u001b[22m"}}
+[debug] [2024-11-10T15:11:21.587Z] defaultcredentials: writing to file C:\Users\anhtu\AppData\Roaming\firebase\ungvang67_gmail_com_application_default_credentials.json
+[debug] [2024-11-10T15:11:21.590Z] Setting GAC to C:\Users\anhtu\AppData\Roaming\firebase\ungvang67_gmail_com_application_default_credentials.json {"metadata":{"emulator":{"name":"functions"},"message":"Setting GAC to C:\\Users\\anhtu\\AppData\\Roaming\\firebase\\ungvang67_gmail_com_application_default_credentials.json"}}
+[debug] [2024-11-10T15:11:21.591Z] Checked if tokens are valid: true, expires at: 1731254800805
+[debug] [2024-11-10T15:11:21.591Z] Checked if tokens are valid: true, expires at: 1731254800805
+[debug] [2024-11-10T15:11:21.592Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects/urvoice-98254/adminSdkConfig [none]
+[debug] [2024-11-10T15:11:22.762Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects/urvoice-98254/adminSdkConfig 200
+[debug] [2024-11-10T15:11:22.763Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects/urvoice-98254/adminSdkConfig {"projectId":"urvoice-98254","databaseURL":"https://urvoice-98254-default-rtdb.asia-southeast1.firebasedatabase.app","storageBucket":"urvoice-98254.appspot.com","locationId":"us-central"}
+[debug] [2024-11-10T15:11:22.797Z] Ignoring unsupported arg: auto_download {"metadata":{"emulator":{"name":"ui"},"message":"Ignoring unsupported arg: auto_download"}}
+[debug] [2024-11-10T15:11:22.798Z] Ignoring unsupported arg: port {"metadata":{"emulator":{"name":"ui"},"message":"Ignoring unsupported arg: port"}}
+[debug] [2024-11-10T15:11:22.798Z] Starting Emulator UI with command {"binary":"node","args":["C:\\Users\\anhtu\\.cache\\firebase\\emulators\\ui-v1.14.0\\server\\server.mjs"],"optionalArgs":[],"joinArgs":false,"shell":false,"port":4000} {"metadata":{"emulator":{"name":"ui"},"message":"Starting Emulator UI with command {\"binary\":\"node\",\"args\":[\"C:\\\\Users\\\\anhtu\\\\.cache\\\\firebase\\\\emulators\\\\ui-v1.14.0\\\\server\\\\server.mjs\"],\"optionalArgs\":[],\"joinArgs\":false,\"shell\":false,\"port\":4000}"}}
+[info] i  ui: Emulator UI logging to ui-debug.log {"metadata":{"emulator":{"name":"ui"},"message":"Emulator UI logging to \u001b[1mui-debug.log\u001b[22m"}}
+[debug] [2024-11-10T15:11:22.945Z] Web / API server started at 127.0.0.1:4000
+ {"metadata":{"emulator":{"name":"ui"},"message":"Web / API server started at 127.0.0.1:4000\n"}}
+[debug] [2024-11-10T15:11:22.946Z] Web / API server started at ::1:4000
+ {"metadata":{"emulator":{"name":"ui"},"message":"Web / API server started at ::1:4000\n"}}
+[info] i  functions: Watching "C:\Users\anhtu\AndroidStudioProjects\TheVoices\functions" for Cloud Functions... {"metadata":{"emulator":{"name":"functions"},"message":"Watching \"C:\\Users\\anhtu\\AndroidStudioProjects\\TheVoices\\functions\" for Cloud Functions..."}}
+[debug] [2024-11-10T15:11:23.034Z] Validating nodejs source
+[warn] !  functions: package.json indicates an outdated version of firebase-functions. Please upgrade using npm install --save firebase-functions@latest in your functions directory. 
+[warn] !  functions: Please note that there will be breaking changes when you upgrade. 
+[debug] [2024-11-10T15:11:24.655Z] > [functions] package.json contents: {
+  "name": "functions",
+  "description": "Cloud Functions for Firebase",
+  "scripts": {
+    "build": "",
+    "lint": "eslint",
+    "serve": "firebase emulators:start --only functions",
+    "shell": "firebase functions:shell",
+    "start": "npm run shell",
+    "deploy": "firebase deploy --only functions",
+    "logs": "firebase functions:log"
+  },
+  "engines": {
+    "node": "18"
+  },
+  "main": "index.js",
+  "dependencies": {
+    "@google-cloud/pubsub": "^4.8.0",
+    "bad-words": "^3.0.4",
+    "capitalize-sentence": "^0.1.5",
+    "firebase-admin": "^12.7.0",
+    "firebase-functions": "^5.1.1",
+    "functions": "file:",
+    "google-auth-library": "^9.14.2"
+  },
+  "devDependencies": {
+    "eslint": "^8.15.0",
+    "eslint-config-google": "^0.14.0",
+    "firebase-functions-test": "^3.1.0"
+  },
+  "private": true
+}
+[debug] [2024-11-10T15:11:24.656Z] Building nodejs source
+[debug] [2024-11-10T15:11:24.656Z] Failed to find version of module node: reached end of search path C:\Users\anhtu\AndroidStudioProjects\TheVoices\functions\node_modules
+[warn] !  functions: Your requested "node" version "18" doesn't match your global version "20". Using node@20 from host. 
+[debug] [2024-11-10T15:11:24.660Z] Could not find functions.yaml. Must use http discovery
+[debug] [2024-11-10T15:11:24.675Z] Found firebase-functions binary at 'C:\Users\anhtu\AndroidStudioProjects\TheVoices\functions\node_modules\.bin\firebase-functions'
+[info] Serving at port 8018
+
+[debug] [2024-11-10T15:11:25.704Z] Got response from /__/functions.yaml {"endpoints":{"helloWorld":{"availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"concurrency":null,"serviceAccountEmail":null,"vpc":null,"platform":"gcfv2","labels":{},"httpsTrigger":{},"entryPoint":"helloWorld"},"addmessage":{"availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"concurrency":null,"serviceAccountEmail":null,"vpc":null,"platform":"gcfv2","labels":{},"httpsTrigger":{},"entryPoint":"addmessage"},"addmessage2":{"availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"concurrency":null,"serviceAccountEmail":null,"vpc":null,"platform":"gcfv2","labels":{},"callableTrigger":{},"entryPoint":"addmessage2"},"makeuppercase":{"availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"concurrency":null,"serviceAccountEmail":null,"vpc":null,"platform":"gcfv2","labels":{},"eventTrigger":{"eventType":"google.cloud.firestore.document.v1.created","eventFilters":{"database":"(default)","namespace":"(default)"},"eventFilterPathPatterns":{"document":"messages/{documentId}"},"retry":false},"entryPoint":"makeuppercase"}},"specVersion":"v1alpha1","requiredAPIs":[],"extensions":{}}
+[info] +  functions: Loaded functions definitions from source: helloWorld, addmessage, addmessage2, makeuppercase. {"metadata":{"emulator":{"name":"functions"},"message":"Loaded functions definitions from source: helloWorld, addmessage, addmessage2, makeuppercase."}}
+[info] +  functions[us-central1-helloWorld]: http function initialized (http://127.0.0.1:5001/urvoice-98254/us-central1/helloWorld). {"metadata":{"emulator":{"name":"functions"},"message":"\u001b[1mhttp\u001b[22m function initialized (http://127.0.0.1:5001/urvoice-98254/us-central1/helloWorld)."}}
+[info] +  functions[us-central1-addmessage]: http function initialized (http://127.0.0.1:5001/urvoice-98254/us-central1/addmessage). {"metadata":{"emulator":{"name":"functions"},"message":"\u001b[1mhttp\u001b[22m function initialized (http://127.0.0.1:5001/urvoice-98254/us-central1/addmessage)."}}
+[info] +  functions[us-central1-addmessage2]: http function initialized (http://127.0.0.1:5001/urvoice-98254/us-central1/addmessage2). {"metadata":{"emulator":{"name":"functions"},"message":"\u001b[1mhttp\u001b[22m function initialized (http://127.0.0.1:5001/urvoice-98254/us-central1/addmessage2)."}}
+[info] i  functions[us-central1-makeuppercase]: function ignored because the firestore emulator does not exist or is not running. {"metadata":{"emulator":{"name":"functions"},"message":"function ignored because the firestore emulator does not exist or is not running."}}
+[debug] [2024-11-10T15:11:30.749Z] Could not find VSCode notification endpoint: FetchError: request to http://localhost:40001/vscode/notify failed, reason: . If you are not running the Firebase Data Connect VSCode extension, this is expected and not an issue.
+[info] 
+┌─────────────────────────────────────────────────────────────┐
+│ ✔  All emulators ready! It is now safe to connect your app. │
+│ i  View Emulator UI at http://127.0.0.1:4000/               │
+└─────────────────────────────────────────────────────────────┘
+
+┌───────────┬────────────────┬─────────────────────────────────┐
+│ Emulator  │ Host:Port      │ View in Emulator UI             │
+├───────────┼────────────────┼─────────────────────────────────┤
+│ Functions │ 127.0.0.1:5001 │ http://127.0.0.1:4000/functions │
+└───────────┴────────────────┴─────────────────────────────────┘
+  Emulator Hub running at 127.0.0.1:4400
+  Other reserved ports: 4500
+
+Issues? Report them at https://github.com/firebase/firebase-tools/issues and attach the *-debug.log files.
+ 
+[debug] [2024-11-10T15:11:41.726Z] [work-queue] {"queuedWork":["/urvoice-98254/us-central1/helloWorld-2024-11-10T15:11:41.726Z"],"queueLength":1,"runningWork":[],"workRunningCount":0}
+[debug] [2024-11-10T15:11:41.727Z] [work-queue] {"queuedWork":[],"queueLength":0,"runningWork":["/urvoice-98254/us-central1/helloWorld-2024-11-10T15:11:41.726Z"],"workRunningCount":1}
+[debug] [2024-11-10T15:11:41.727Z] Accepted request GET /urvoice-98254/us-central1/helloWorld --> us-central1-helloWorld
+[debug] [2024-11-10T15:11:41.731Z] [functions] Runtime ready! Sending request! {"metadata":{"emulator":{"name":"functions"},"message":"[functions] Runtime ready! Sending request!"}}
+[debug] [2024-11-10T15:11:41.732Z] [functions] Got req.url=/urvoice-98254/us-central1/helloWorld, mapping to path=/ {"metadata":{"emulator":{"name":"functions"},"message":"[functions] Got req.url=/urvoice-98254/us-central1/helloWorld, mapping to path=/"}}
+[debug] [2024-11-10T15:11:41.744Z] [worker-pool] addWorker(us-central1-helloWorld) {"metadata":{"emulator":{"name":"functions"},"message":"[worker-pool] addWorker(us-central1-helloWorld)"}}
+[debug] [2024-11-10T15:11:41.744Z] [worker-pool] Adding worker with key us-central1-helloWorld, total=1 {"metadata":{"emulator":{"name":"functions"},"message":"[worker-pool] Adding worker with key us-central1-helloWorld, total=1"}}
+[debug] [2024-11-10T15:11:43.510Z] [runtime-status] [24496] Resolved module firebase-admin {"declared":true,"installed":true,"version":"12.7.0","resolution":"C:\\Users\\anhtu\\AndroidStudioProjects\\TheVoices\\functions\\node_modules\\firebase-admin\\lib\\index.js"} {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-helloWorld"},"extension":{},"message":"[runtime-status] [24496] Resolved module firebase-admin {\"declared\":true,\"installed\":true,\"version\":\"12.7.0\",\"resolution\":\"C:\\\\Users\\\\anhtu\\\\AndroidStudioProjects\\\\TheVoices\\\\functions\\\\node_modules\\\\firebase-admin\\\\lib\\\\index.js\"}"}}
+[debug] [2024-11-10T15:11:43.511Z] [runtime-status] [24496] Resolved module firebase-functions {"declared":true,"installed":true,"version":"5.1.1","resolution":"C:\\Users\\anhtu\\AndroidStudioProjects\\TheVoices\\functions\\node_modules\\firebase-functions\\lib\\v1\\index.js"} {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-helloWorld"},"extension":{},"message":"[runtime-status] [24496] Resolved module firebase-functions {\"declared\":true,\"installed\":true,\"version\":\"5.1.1\",\"resolution\":\"C:\\\\Users\\\\anhtu\\\\AndroidStudioProjects\\\\TheVoices\\\\functions\\\\node_modules\\\\firebase-functions\\\\lib\\\\v1\\\\index.js\"}"}}
+[debug] [2024-11-10T15:11:43.511Z] [runtime-status] [24496] Outgoing network have been stubbed. [{"name":"http","status":"mocked"},{"name":"http","status":"mocked"},{"name":"https","status":"mocked"},{"name":"https","status":"mocked"},{"name":"net","status":"mocked"}] {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-helloWorld"},"extension":{},"message":"[runtime-status] [24496] Outgoing network have been stubbed. [{\"name\":\"http\",\"status\":\"mocked\"},{\"name\":\"http\",\"status\":\"mocked\"},{\"name\":\"https\",\"status\":\"mocked\"},{\"name\":\"https\",\"status\":\"mocked\"},{\"name\":\"net\",\"status\":\"mocked\"}]"}}
+[debug] [2024-11-10T15:11:43.513Z] [runtime-status] [24496] Resolved module firebase-functions {"declared":true,"installed":true,"version":"5.1.1","resolution":"C:\\Users\\anhtu\\AndroidStudioProjects\\TheVoices\\functions\\node_modules\\firebase-functions\\lib\\v1\\index.js"} {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-helloWorld"},"extension":{},"message":"[runtime-status] [24496] Resolved module firebase-functions {\"declared\":true,\"installed\":true,\"version\":\"5.1.1\",\"resolution\":\"C:\\\\Users\\\\anhtu\\\\AndroidStudioProjects\\\\TheVoices\\\\functions\\\\node_modules\\\\firebase-functions\\\\lib\\\\v1\\\\index.js\"}"}}
+[debug] [2024-11-10T15:11:43.842Z] [runtime-status] [24496] Checked functions.config() {"config":{}} {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-helloWorld"},"extension":{},"message":"[runtime-status] [24496] Checked functions.config() {\"config\":{}}"}}
+[debug] [2024-11-10T15:11:43.843Z] [runtime-status] [24496] firebase-functions has been stubbed. {"functionsResolution":{"declared":true,"installed":true,"version":"5.1.1","resolution":"C:\\Users\\anhtu\\AndroidStudioProjects\\TheVoices\\functions\\node_modules\\firebase-functions\\lib\\v1\\index.js"}} {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-helloWorld"},"extension":{},"message":"[runtime-status] [24496] firebase-functions has been stubbed. {\"functionsResolution\":{\"declared\":true,\"installed\":true,\"version\":\"5.1.1\",\"resolution\":\"C:\\\\Users\\\\anhtu\\\\AndroidStudioProjects\\\\TheVoices\\\\functions\\\\node_modules\\\\firebase-functions\\\\lib\\\\v1\\\\index.js\"}}"}}
+[debug] [2024-11-10T15:11:43.843Z] [runtime-status] [24496] Resolved module firebase-functions {"declared":true,"installed":true,"version":"5.1.1","resolution":"C:\\Users\\anhtu\\AndroidStudioProjects\\TheVoices\\functions\\node_modules\\firebase-functions\\lib\\v1\\index.js"} {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-helloWorld"},"extension":{},"message":"[runtime-status] [24496] Resolved module firebase-functions {\"declared\":true,\"installed\":true,\"version\":\"5.1.1\",\"resolution\":\"C:\\\\Users\\\\anhtu\\\\AndroidStudioProjects\\\\TheVoices\\\\functions\\\\node_modules\\\\firebase-functions\\\\lib\\\\v1\\\\index.js\"}"}}
+[debug] [2024-11-10T15:11:43.844Z] [runtime-status] [24496] Resolved module firebase-admin {"declared":true,"installed":true,"version":"12.7.0","resolution":"C:\\Users\\anhtu\\AndroidStudioProjects\\TheVoices\\functions\\node_modules\\firebase-admin\\lib\\index.js"} {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-helloWorld"},"extension":{},"message":"[runtime-status] [24496] Resolved module firebase-admin {\"declared\":true,\"installed\":true,\"version\":\"12.7.0\",\"resolution\":\"C:\\\\Users\\\\anhtu\\\\AndroidStudioProjects\\\\TheVoices\\\\functions\\\\node_modules\\\\firebase-admin\\\\lib\\\\index.js\"}"}}
+[debug] [2024-11-10T15:11:43.847Z] [runtime-status] [24496] Resolved module firebase-functions {"declared":true,"installed":true,"version":"5.1.1","resolution":"C:\\Users\\anhtu\\AndroidStudioProjects\\TheVoices\\functions\\node_modules\\firebase-functions\\lib\\v1\\index.js"} {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-helloWorld"},"extension":{},"message":"[runtime-status] [24496] Resolved module firebase-functions {\"declared\":true,\"installed\":true,\"version\":\"5.1.1\",\"resolution\":\"C:\\\\Users\\\\anhtu\\\\AndroidStudioProjects\\\\TheVoices\\\\functions\\\\node_modules\\\\firebase-functions\\\\lib\\\\v1\\\\index.js\"}"}}
+[debug] [2024-11-10T15:11:43.847Z] [runtime-status] [24496] firebase-admin has been stubbed. {"adminResolution":{"declared":true,"installed":true,"version":"12.7.0","resolution":"C:\\Users\\anhtu\\AndroidStudioProjects\\TheVoices\\functions\\node_modules\\firebase-admin\\lib\\index.js"}} {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-helloWorld"},"extension":{},"message":"[runtime-status] [24496] firebase-admin has been stubbed. {\"adminResolution\":{\"declared\":true,\"installed\":true,\"version\":\"12.7.0\",\"resolution\":\"C:\\\\Users\\\\anhtu\\\\AndroidStudioProjects\\\\TheVoices\\\\functions\\\\node_modules\\\\firebase-admin\\\\lib\\\\index.js\"}}"}}
+[debug] [2024-11-10T15:11:43.975Z] [runtime-status] [24496] initializeApp(DEFAULT) {"credential":{"implicit":false,"projectId":"urvoice-98254","privateKey":"-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQCn5CX25fcp6LnI\nI4vq/HqHdx2CsJsqaoacdAnnZe+lR82TCsu5WOqt+Iq9coGiAXIcvQgRj8tv+0vf\nN/mhtQ/Z5UFFJxFbVAL/CMbq10t+XsPyA1BiiB3Gu0ry15nhDwteqT3Ax14o3Dm2\n8MRQq+Ejli28Nfny3p+n458P/R1u0fzWm31rmQedDOEBiu9rLGd5cpHXLHuwnX5k\nmX2jLxX11in7Y3fNPPp6nRBMZ6kzRD3uXx0lxrB9BtogIwDomYJNsK1RngfHANzW\nBA7GB6T29zEm9VhNIoxmeWtt6a/w7oPfMUysOfYkSmOtqeUA5HIZyv2ld0FazOME\nfLvuRd/vAgMBAAECggEACRdsAOAFT67FEYC8Eztp2f6wYxym9ZfAKb+7SF13EGqA\nSA3ZG1sK/LHAg/xfGoOpulzej3wYbNXdKKP/PIT+bAyKL/4q5ljfZd0dT6ep9GVm\nuffFxhgpEjmfmBSzX5vkQAa58j/TKjMTj9CfT0XURfLCqXYvNO1eR7kMd4RIfQqc\nvYclS79WMkKA6OmyIOInvZ/N2pWXVSLibbkT6YiNjMkN46jnatwNvyVJ0fBUaQ7M\nDhXiqAiL8KfHQ54Zrurn9xuRWj1uUirMzXUkjp5v2Hu8aD2ENpmu+UXnFe0/L0Oo\nROv4v1ZeUy+cNH2pDMlC1ixOcxLRlO4U2klNQcI93QKBgQDs9mHDKEq7oyyOHysu\no3ObUBbl2ccAbEH3X5YalXny7nL4LIlhERBFpY2tMffjJMD7XafOI/NwBNybpRkm\nIA4zx2OSrIX+Qc4Z4PnJIDn62lNSHYKSsM8p/XxjksPhveqkSgvQ8kFBWxzgzE0S\nC+y/rxzRmw9Ws7quRBl0zqti2wKBgQC1YSzSJ490BLuLV9pM3i29tuI/n0kq08hJ\ntiPsrASCGZ2eWTx5tPpGvWW01I5KWm1WVrlKEITV9GUGhpja4+m34lByYdYdpWey\nSFpRudBmplUxuhzOA17vYwC9zNOXpIuhCwTyBvl5Oiy9dDIpE1fDxRsQwN+vhSCE\n1pC9zYdBfQKBgQCFRl3d4b+GoVPh623iIVRYOkdmp4HhnwHLHBvUf9XC6JIJOyNZ\nULuSMHbqvnvpaTaRKi/DJT0598IMWGM4qjbSsIY0bIxAYMqGi55xnIp/qGPMf4R8\n9KzPtR5M8rLxOFvMY0kaD+bb1176oG2IhOR3Owo+abPK0/NfKDYZGFQUmQKBgES9\nzYTgZWftGz8WTq/vTJqoI1tFfS90EGaPV1ItZ4//MVOAMoFV67y/rzo3jK31U5bz\nS0octJt6AofUnz3mPv/oD+Ep30JhG8nfzgtHRwqAY61zAdO6R1KmzPMiG9dPD3Q7\nfuZTal1dhPNQhGo44HxbyYQx9RTKeaaew0CMEoTpAoGAc8pBaIr1dqoAV6q4OLw4\n+vXE8YbanY/1lJ2e4YGGoHhcS1JZJ2ULnqfMVVw29vdSVbISWOzSOyV62BSTSilm\nN7s88WfBGMrciF+bAHYPvI9txJrlZ044T6q8m6uQiVqSt20f2foRvjo8WyW5rGxh\nMZgNCYuY+a2LU91qEL7qTYg=\n-----END PRIVATE KEY-----\n","clientEmail":"firebase-adminsdk-y0dmz@urvoice-98254.iam.gserviceaccount.com","httpClient":{"retry":{"maxRetries":4,"statusCodes":[503],"ioErrorCodes":["ECONNRESET","ETIMEDOUT"],"backOffFactor":0.5,"maxDelayInMillis":60000}}},"databaseURL":"https://urvoice-98254-default-rtdb.asia-southeast1.firebasedatabase.app"} {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-helloWorld"},"extension":{},"message":"[runtime-status] [24496] initializeApp(DEFAULT) {\"credential\":{\"implicit\":false,\"projectId\":\"urvoice-98254\",\"privateKey\":\"-----BEGIN PRIVATE KEY-----\\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQCn5CX25fcp6LnI\\nI4vq/HqHdx2CsJsqaoacdAnnZe+lR82TCsu5WOqt+Iq9coGiAXIcvQgRj8tv+0vf\\nN/mhtQ/Z5UFFJxFbVAL/CMbq10t+XsPyA1BiiB3Gu0ry15nhDwteqT3Ax14o3Dm2\\n8MRQq+Ejli28Nfny3p+n458P/R1u0fzWm31rmQedDOEBiu9rLGd5cpHXLHuwnX5k\\nmX2jLxX11in7Y3fNPPp6nRBMZ6kzRD3uXx0lxrB9BtogIwDomYJNsK1RngfHANzW\\nBA7GB6T29zEm9VhNIoxmeWtt6a/w7oPfMUysOfYkSmOtqeUA5HIZyv2ld0FazOME\\nfLvuRd/vAgMBAAECggEACRdsAOAFT67FEYC8Eztp2f6wYxym9ZfAKb+7SF13EGqA\\nSA3ZG1sK/LHAg/xfGoOpulzej3wYbNXdKKP/PIT+bAyKL/4q5ljfZd0dT6ep9GVm\\nuffFxhgpEjmfmBSzX5vkQAa58j/TKjMTj9CfT0XURfLCqXYvNO1eR7kMd4RIfQqc\\nvYclS79WMkKA6OmyIOInvZ/N2pWXVSLibbkT6YiNjMkN46jnatwNvyVJ0fBUaQ7M\\nDhXiqAiL8KfHQ54Zrurn9xuRWj1uUirMzXUkjp5v2Hu8aD2ENpmu+UXnFe0/L0Oo\\nROv4v1ZeUy+cNH2pDMlC1ixOcxLRlO4U2klNQcI93QKBgQDs9mHDKEq7oyyOHysu\\no3ObUBbl2ccAbEH3X5YalXny7nL4LIlhERBFpY2tMffjJMD7XafOI/NwBNybpRkm\\nIA4zx2OSrIX+Qc4Z4PnJIDn62lNSHYKSsM8p/XxjksPhveqkSgvQ8kFBWxzgzE0S\\nC+y/rxzRmw9Ws7quRBl0zqti2wKBgQC1YSzSJ490BLuLV9pM3i29tuI/n0kq08hJ\\ntiPsrASCGZ2eWTx5tPpGvWW01I5KWm1WVrlKEITV9GUGhpja4+m34lByYdYdpWey\\nSFpRudBmplUxuhzOA17vYwC9zNOXpIuhCwTyBvl5Oiy9dDIpE1fDxRsQwN+vhSCE\\n1pC9zYdBfQKBgQCFRl3d4b+GoVPh623iIVRYOkdmp4HhnwHLHBvUf9XC6JIJOyNZ\\nULuSMHbqvnvpaTaRKi/DJT0598IMWGM4qjbSsIY0bIxAYMqGi55xnIp/qGPMf4R8\\n9KzPtR5M8rLxOFvMY0kaD+bb1176oG2IhOR3Owo+abPK0/NfKDYZGFQUmQKBgES9\\nzYTgZWftGz8WTq/vTJqoI1tFfS90EGaPV1ItZ4//MVOAMoFV67y/rzo3jK31U5bz\\nS0octJt6AofUnz3mPv/oD+Ep30JhG8nfzgtHRwqAY61zAdO6R1KmzPMiG9dPD3Q7\\nfuZTal1dhPNQhGo44HxbyYQx9RTKeaaew0CMEoTpAoGAc8pBaIr1dqoAV6q4OLw4\\n+vXE8YbanY/1lJ2e4YGGoHhcS1JZJ2ULnqfMVVw29vdSVbISWOzSOyV62BSTSilm\\nN7s88WfBGMrciF+bAHYPvI9txJrlZ044T6q8m6uQiVqSt20f2foRvjo8WyW5rGxh\\nMZgNCYuY+a2LU91qEL7qTYg=\\n-----END PRIVATE KEY-----\\n\",\"clientEmail\":\"firebase-adminsdk-y0dmz@urvoice-98254.iam.gserviceaccount.com\",\"httpClient\":{\"retry\":{\"maxRetries\":4,\"statusCodes\":[503],\"ioErrorCodes\":[\"ECONNRESET\",\"ETIMEDOUT\"],\"backOffFactor\":0.5,\"maxDelayInMillis\":60000}}},\"databaseURL\":\"https://urvoice-98254-default-rtdb.asia-southeast1.firebasedatabase.app\"}"}}
+[warn] !  functions: The Cloud Firestore emulator is not running, so calls to Firestore will affect production. {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-helloWorld"},"extension":{},"message":"The Cloud Firestore emulator is not running, so calls to Firestore will affect production."}}
+[debug] [2024-11-10T15:11:44.229Z] [runtime-status] [24496] Functions runtime initialized. {"cwd":"C:\\Users\\anhtu\\AndroidStudioProjects\\TheVoices\\functions","node_version":"20.5.0"} {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-helloWorld"},"extension":{},"message":"[runtime-status] [24496] Functions runtime initialized. {\"cwd\":\"C:\\\\Users\\\\anhtu\\\\AndroidStudioProjects\\\\TheVoices\\\\functions\",\"node_version\":\"20.5.0\"}"}}
+[debug] [2024-11-10T15:11:44.229Z] [runtime-status] [24496] Listening to port: \\?\pipe\fire_emu_5bf8f5494304fe8f {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-helloWorld"},"extension":{},"message":"[runtime-status] [24496] Listening to port: \\\\?\\pipe\\fire_emu_5bf8f5494304fe8f"}}
+[debug] [2024-11-10T15:11:44.259Z] [worker-us-central1-helloWorld-ab4b5d80-4dca-4749-bdee-5ead04e0168e]: IDLE {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-helloWorld"},"extension":{},"message":"[worker-us-central1-helloWorld-ab4b5d80-4dca-4749-bdee-5ead04e0168e]: IDLE"}}
+[debug] [2024-11-10T15:11:44.259Z] [worker-pool] submitRequest(triggerId=us-central1-helloWorld) {"metadata":{"emulator":{"name":"functions"},"message":"[worker-pool] submitRequest(triggerId=us-central1-helloWorld)"}}
+[info] i  functions: Beginning execution of "us-central1-helloWorld" {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-helloWorld"},"extension":{},"message":"Beginning execution of \"us-central1-helloWorld\""}}
+[debug] [2024-11-10T15:11:44.260Z] [worker-us-central1-helloWorld-ab4b5d80-4dca-4749-bdee-5ead04e0168e]: BUSY {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-helloWorld"},"extension":{},"message":"[worker-us-central1-helloWorld-ab4b5d80-4dca-4749-bdee-5ead04e0168e]: BUSY"}}
+[info] >  {"structuredData":true,"severity":"INFO","message":"Hello logs!"} {"user":{"structuredData":true,"severity":"INFO","message":"Hello logs!"},"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-helloWorld"},"extension":{},"message":"\u001b[90m> \u001b[39m {\"structuredData\":true,\"severity\":\"INFO\",\"message\":\"Hello logs!\"}"}}
+[debug] [2024-11-10T15:11:44.267Z] Finishing up request with event=pause {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-helloWorld"},"extension":{},"message":"Finishing up request with event=pause"}}
+[info] i  functions: Finished "us-central1-helloWorld" in 7.419ms {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-helloWorld"},"extension":{},"message":"Finished \"us-central1-helloWorld\" in 7.419ms"}}
+[debug] [2024-11-10T15:11:44.268Z] [worker-us-central1-helloWorld-ab4b5d80-4dca-4749-bdee-5ead04e0168e]: IDLE {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-helloWorld"},"extension":{},"message":"[worker-us-central1-helloWorld-ab4b5d80-4dca-4749-bdee-5ead04e0168e]: IDLE"}}
+[debug] [2024-11-10T15:11:44.268Z] Finishing up request with event=finish {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-helloWorld"},"extension":{},"message":"Finishing up request with event=finish"}}
+[debug] [2024-11-10T15:11:44.269Z] Finishing up request with event=close {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-helloWorld"},"extension":{},"message":"Finishing up request with event=close"}}
+[debug] [2024-11-10T15:11:44.269Z] [work-queue] {"queuedWork":[],"queueLength":0,"runningWork":[],"workRunningCount":0}
+[info] >  TypeError: Cannot read properties of undefined (reading 'auth') {"user":"TypeError: Cannot read properties of undefined (reading 'auth')","metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-helloWorld"},"extension":{},"message":"\u001b[90m> \u001b[39m TypeError: Cannot read properties of undefined (reading 'auth')"}}
+[info] >      at C:\Users\anhtu\AndroidStudioProjects\TheVoices\functions\Token\token.js:7:34 {"user":"    at C:\\Users\\anhtu\\AndroidStudioProjects\\TheVoices\\functions\\Token\\token.js:7:34","metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-helloWorld"},"extension":{},"message":"\u001b[90m> \u001b[39m     at C:\\Users\\anhtu\\AndroidStudioProjects\\TheVoices\\functions\\Token\\token.js:7:34"}}
+[info] >      at new Promise (<anonymous>) {"user":"    at new Promise (<anonymous>)","metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-helloWorld"},"extension":{},"message":"\u001b[90m> \u001b[39m     at new Promise (<anonymous>)"}}
+[info] >      at getAccessToken (C:\Users\anhtu\AndroidStudioProjects\TheVoices\functions\Token\token.js:5:10) {"user":"    at getAccessToken (C:\\Users\\anhtu\\AndroidStudioProjects\\TheVoices\\functions\\Token\\token.js:5:10)","metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-helloWorld"},"extension":{},"message":"\u001b[90m> \u001b[39m     at getAccessToken (C:\\Users\\anhtu\\AndroidStudioProjects\\TheVoices\\functions\\Token\\token.js:5:10)"}}
+[info] >      at C:\Users\anhtu\AndroidStudioProjects\TheVoices\functions\index.js:39:5 {"user":"    at C:\\Users\\anhtu\\AndroidStudioProjects\\TheVoices\\functions\\index.js:39:5","metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-helloWorld"},"extension":{},"message":"\u001b[90m> \u001b[39m     at C:\\Users\\anhtu\\AndroidStudioProjects\\TheVoices\\functions\\index.js:39:5"}}
+[info] >      at C:\Users\anhtu\AndroidStudioProjects\TheVoices\functions\node_modules\firebase-functions\lib\v2\providers\https.js:65:29 {"user":"    at C:\\Users\\anhtu\\AndroidStudioProjects\\TheVoices\\functions\\node_modules\\firebase-functions\\lib\\v2\\providers\\https.js:65:29","metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-helloWorld"},"extension":{},"message":"\u001b[90m> \u001b[39m     at C:\\Users\\anhtu\\AndroidStudioProjects\\TheVoices\\functions\\node_modules\\firebase-functions\\lib\\v2\\providers\\https.js:65:29"}}
+[info] >      at cors (C:\Users\anhtu\AndroidStudioProjects\TheVoices\functions\node_modules\cors\lib\index.js:188:7) {"user":"    at cors (C:\\Users\\anhtu\\AndroidStudioProjects\\TheVoices\\functions\\node_modules\\cors\\lib\\index.js:188:7)","metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-helloWorld"},"extension":{},"message":"\u001b[90m> \u001b[39m     at cors (C:\\Users\\anhtu\\AndroidStudioProjects\\TheVoices\\functions\\node_modules\\cors\\lib\\index.js:188:7)"}}
+[info] >      at C:\Users\anhtu\AndroidStudioProjects\TheVoices\functions\node_modules\cors\lib\index.js:224:17 {"user":"    at C:\\Users\\anhtu\\AndroidStudioProjects\\TheVoices\\functions\\node_modules\\cors\\lib\\index.js:224:17","metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-helloWorld"},"extension":{},"message":"\u001b[90m> \u001b[39m     at C:\\Users\\anhtu\\AndroidStudioProjects\\TheVoices\\functions\\node_modules\\cors\\lib\\index.js:224:17"}}
+[info] >      at originCallback (C:\Users\anhtu\AndroidStudioProjects\TheVoices\functions\node_modules\cors\lib\index.js:214:15) {"user":"    at originCallback (C:\\Users\\anhtu\\AndroidStudioProjects\\TheVoices\\functions\\node_modules\\cors\\lib\\index.js:214:15)","metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-helloWorld"},"extension":{},"message":"\u001b[90m> \u001b[39m     at originCallback (C:\\Users\\anhtu\\AndroidStudioProjects\\TheVoices\\functions\\node_modules\\cors\\lib\\index.js:214:15)"}}
+[info] >      at C:\Users\anhtu\AndroidStudioProjects\TheVoices\functions\node_modules\cors\lib\index.js:219:13 {"user":"    at C:\\Users\\anhtu\\AndroidStudioProjects\\TheVoices\\functions\\node_modules\\cors\\lib\\index.js:219:13","metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-helloWorld"},"extension":{},"message":"\u001b[90m> \u001b[39m     at C:\\Users\\anhtu\\AndroidStudioProjects\\TheVoices\\functions\\node_modules\\cors\\lib\\index.js:219:13"}}
+[info] >      at optionsCallback (C:\Users\anhtu\AndroidStudioProjects\TheVoices\functions\node_modules\cors\lib\index.js:199:9) {"user":"    at optionsCallback (C:\\Users\\anhtu\\AndroidStudioProjects\\TheVoices\\functions\\node_modules\\cors\\lib\\index.js:199:9)","metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-helloWorld"},"extension":{},"message":"\u001b[90m> \u001b[39m     at optionsCallback (C:\\Users\\anhtu\\AndroidStudioProjects\\TheVoices\\functions\\node_modules\\cors\\lib\\index.js:199:9)"}}
+[debug] [2024-11-10T15:14:18.260Z] ----------------------------------------------------------------------
+[debug] [2024-11-10T15:14:18.264Z] Command:       C:\Program Files\nodejs\node.exe C:\Users\anhtu\AppData\Roaming\npm\node_modules\firebase-tools\lib\bin\firebase.js emulators:start --only functions
+[debug] [2024-11-10T15:14:18.265Z] CLI Version:   13.24.2
+[debug] [2024-11-10T15:14:18.265Z] Platform:      win32
+[debug] [2024-11-10T15:14:18.266Z] Node Version:  v20.5.0
+[debug] [2024-11-10T15:14:18.266Z] Time:          Sun Nov 10 2024 22:14:18 GMT+0700 (Giờ Đông Dương)
+[debug] [2024-11-10T15:14:18.266Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2024-11-10T15:14:18.428Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2024-11-10T15:14:18.429Z] > authorizing via signed-in user (ungvang67@gmail.com)
+[info] i  emulators: Starting emulators: functions {"metadata":{"emulator":{"name":"hub"},"message":"Starting emulators: functions"}}
+[debug] [2024-11-10T15:14:18.441Z] [logging] Logging Emulator only supports listening on one address (127.0.0.1). Not listening on ::1
+[warn] !  ui: Emulator UI unable to start on port 4000, starting on 4001 instead. {"metadata":{"emulator":{"name":"ui"},"message":"Emulator UI unable to start on port 4000, starting on 4001 instead."}}
+[debug] [2024-11-10T15:14:18.443Z] assigned listening specs for emulators {"user":{"hub":[{"address":"127.0.0.1","family":"IPv4","port":4400},{"address":"::1","family":"IPv6","port":4400}],"logging":[{"address":"127.0.0.1","family":"IPv4","port":4500}],"ui":[{"address":"127.0.0.1","family":"IPv4","port":4001},{"address":"::1","family":"IPv6","port":4001}]},"metadata":{"message":"assigned listening specs for emulators"}}
+[warn] !  emulators: It seems that you are running multiple instances of the emulator suite for project urvoice-98254. This may result in unexpected behavior. 
+[debug] [2024-11-10T15:14:18.449Z] [hub] writing locator at C:\Users\anhtu\AppData\Local\Temp\hub-urvoice-98254.json
+[debug] [2024-11-10T15:14:18.470Z] [functions] Functions Emulator only supports listening on one address (127.0.0.1). Not listening on ::1
+[debug] [2024-11-10T15:14:18.471Z] [eventarc] Eventarc Emulator only supports listening on one address (127.0.0.1). Not listening on ::1
+[debug] [2024-11-10T15:14:18.471Z] [tasks] Cloud Tasks Emulator only supports listening on one address (127.0.0.1). Not listening on ::1
+[debug] [2024-11-10T15:14:18.471Z] late-assigned ports for functions and eventarc emulators {"user":{"hub":[{"address":"127.0.0.1","family":"IPv4","port":4400},{"address":"::1","family":"IPv6","port":4400}],"logging":[{"address":"127.0.0.1","family":"IPv4","port":4500}],"ui":[{"address":"127.0.0.1","family":"IPv4","port":4001},{"address":"::1","family":"IPv6","port":4001}],"functions":[{"address":"127.0.0.1","family":"IPv4","port":5001}],"eventarc":[{"address":"127.0.0.1","family":"IPv4","port":9299}],"tasks":[{"address":"127.0.0.1","family":"IPv4","port":9499}]},"metadata":{"message":"late-assigned ports for functions and eventarc emulators"}}
+[warn] !  functions: The following emulators are not running, calls to these services from the Functions emulator will affect production: auth, firestore, database, hosting, pubsub, storage, dataconnect {"metadata":{"emulator":{"name":"functions"},"message":"The following emulators are not running, calls to these services from the Functions emulator will affect production: \u001b[1mauth, firestore, database, hosting, pubsub, storage, dataconnect\u001b[22m"}}
+[debug] [2024-11-10T15:14:18.475Z] defaultcredentials: writing to file C:\Users\anhtu\AppData\Roaming\firebase\ungvang67_gmail_com_application_default_credentials.json
+[debug] [2024-11-10T15:14:18.478Z] Setting GAC to C:\Users\anhtu\AppData\Roaming\firebase\ungvang67_gmail_com_application_default_credentials.json {"metadata":{"emulator":{"name":"functions"},"message":"Setting GAC to C:\\Users\\anhtu\\AppData\\Roaming\\firebase\\ungvang67_gmail_com_application_default_credentials.json"}}
+[debug] [2024-11-10T15:14:18.480Z] Checked if tokens are valid: true, expires at: 1731254800805
+[debug] [2024-11-10T15:14:18.480Z] Checked if tokens are valid: true, expires at: 1731254800805
+[debug] [2024-11-10T15:14:18.481Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects/urvoice-98254/adminSdkConfig [none]
+[debug] [2024-11-10T15:14:19.678Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects/urvoice-98254/adminSdkConfig 200
+[debug] [2024-11-10T15:14:19.678Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects/urvoice-98254/adminSdkConfig {"projectId":"urvoice-98254","databaseURL":"https://urvoice-98254-default-rtdb.asia-southeast1.firebasedatabase.app","storageBucket":"urvoice-98254.appspot.com","locationId":"us-central"}
+[debug] [2024-11-10T15:14:19.696Z] Ignoring unsupported arg: auto_download {"metadata":{"emulator":{"name":"ui"},"message":"Ignoring unsupported arg: auto_download"}}
+[debug] [2024-11-10T15:14:19.696Z] Ignoring unsupported arg: port {"metadata":{"emulator":{"name":"ui"},"message":"Ignoring unsupported arg: port"}}
+[debug] [2024-11-10T15:14:19.696Z] Starting Emulator UI with command {"binary":"node","args":["C:\\Users\\anhtu\\.cache\\firebase\\emulators\\ui-v1.14.0\\server\\server.mjs"],"optionalArgs":[],"joinArgs":false,"shell":false,"port":4000} {"metadata":{"emulator":{"name":"ui"},"message":"Starting Emulator UI with command {\"binary\":\"node\",\"args\":[\"C:\\\\Users\\\\anhtu\\\\.cache\\\\firebase\\\\emulators\\\\ui-v1.14.0\\\\server\\\\server.mjs\"],\"optionalArgs\":[],\"joinArgs\":false,\"shell\":false,\"port\":4000}"}}
+[info] i  ui: Emulator UI logging to ui-debug.log {"metadata":{"emulator":{"name":"ui"},"message":"Emulator UI logging to \u001b[1mui-debug.log\u001b[22m"}}
+[debug] [2024-11-10T15:14:19.859Z] Web / API server started at 127.0.0.1:4001
+ {"metadata":{"emulator":{"name":"ui"},"message":"Web / API server started at 127.0.0.1:4001\n"}}
+[debug] [2024-11-10T15:14:19.859Z] Web / API server started at ::1:4001
+ {"metadata":{"emulator":{"name":"ui"},"message":"Web / API server started at ::1:4001\n"}}
+[info] i  functions: Watching "C:\Users\anhtu\AndroidStudioProjects\TheVoices\functions" for Cloud Functions... {"metadata":{"emulator":{"name":"functions"},"message":"Watching \"C:\\Users\\anhtu\\AndroidStudioProjects\\TheVoices\\functions\" for Cloud Functions..."}}
+[debug] [2024-11-10T15:14:19.942Z] Validating nodejs source
+[warn] !  functions: package.json indicates an outdated version of firebase-functions. Please upgrade using npm install --save firebase-functions@latest in your functions directory. 
+[warn] !  functions: Please note that there will be breaking changes when you upgrade. 
+[debug] [2024-11-10T15:14:21.675Z] > [functions] package.json contents: {
+  "name": "functions",
+  "description": "Cloud Functions for Firebase",
+  "scripts": {
+    "build": "",
+    "lint": "eslint",
+    "serve": "firebase emulators:start --only functions",
+    "shell": "firebase functions:shell",
+    "start": "npm run shell",
+    "deploy": "firebase deploy --only functions",
+    "logs": "firebase functions:log"
+  },
+  "engines": {
+    "node": "18"
+  },
+  "main": "index.js",
+  "dependencies": {
+    "@google-cloud/pubsub": "^4.8.0",
+    "bad-words": "^3.0.4",
+    "capitalize-sentence": "^0.1.5",
+    "firebase-admin": "^12.7.0",
+    "firebase-functions": "^5.1.1",
+    "functions": "file:",
+    "google-auth-library": "^9.14.2"
+  },
+  "devDependencies": {
+    "eslint": "^8.15.0",
+    "eslint-config-google": "^0.14.0",
+    "firebase-functions-test": "^3.1.0"
+  },
+  "private": true
+}
+[debug] [2024-11-10T15:14:21.675Z] Building nodejs source
+[debug] [2024-11-10T15:14:21.676Z] Failed to find version of module node: reached end of search path C:\Users\anhtu\AndroidStudioProjects\TheVoices\functions\node_modules
+[warn] !  functions: Your requested "node" version "18" doesn't match your global version "20". Using node@20 from host. 
+[debug] [2024-11-10T15:14:21.678Z] Could not find functions.yaml. Must use http discovery
+[debug] [2024-11-10T15:14:21.685Z] Found firebase-functions binary at 'C:\Users\anhtu\AndroidStudioProjects\TheVoices\functions\node_modules\.bin\firebase-functions'
+[info] Serving at port 8593
+
+[debug] [2024-11-10T15:14:23.141Z] Got response from /__/functions.yaml {"endpoints":{"helloWorld":{"availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"concurrency":null,"serviceAccountEmail":null,"vpc":null,"platform":"gcfv2","labels":{},"httpsTrigger":{},"entryPoint":"helloWorld"},"addmessage":{"availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"concurrency":null,"serviceAccountEmail":null,"vpc":null,"platform":"gcfv2","labels":{},"httpsTrigger":{},"entryPoint":"addmessage"},"addmessage2":{"availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"concurrency":null,"serviceAccountEmail":null,"vpc":null,"platform":"gcfv2","labels":{},"callableTrigger":{},"entryPoint":"addmessage2"},"makeuppercase":{"availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"concurrency":null,"serviceAccountEmail":null,"vpc":null,"platform":"gcfv2","labels":{},"eventTrigger":{"eventType":"google.cloud.firestore.document.v1.created","eventFilters":{"database":"(default)","namespace":"(default)"},"eventFilterPathPatterns":{"document":"messages/{documentId}"},"retry":false},"entryPoint":"makeuppercase"}},"specVersion":"v1alpha1","requiredAPIs":[],"extensions":{}}
+[info] +  functions: Loaded functions definitions from source: helloWorld, addmessage, addmessage2, makeuppercase. {"metadata":{"emulator":{"name":"functions"},"message":"Loaded functions definitions from source: helloWorld, addmessage, addmessage2, makeuppercase."}}
+[info] +  functions[us-central1-helloWorld]: http function initialized (http://127.0.0.1:5001/urvoice-98254/us-central1/helloWorld). {"metadata":{"emulator":{"name":"functions"},"message":"\u001b[1mhttp\u001b[22m function initialized (http://127.0.0.1:5001/urvoice-98254/us-central1/helloWorld)."}}
+[info] +  functions[us-central1-addmessage]: http function initialized (http://127.0.0.1:5001/urvoice-98254/us-central1/addmessage). {"metadata":{"emulator":{"name":"functions"},"message":"\u001b[1mhttp\u001b[22m function initialized (http://127.0.0.1:5001/urvoice-98254/us-central1/addmessage)."}}
+[info] +  functions[us-central1-addmessage2]: http function initialized (http://127.0.0.1:5001/urvoice-98254/us-central1/addmessage2). {"metadata":{"emulator":{"name":"functions"},"message":"\u001b[1mhttp\u001b[22m function initialized (http://127.0.0.1:5001/urvoice-98254/us-central1/addmessage2)."}}
+[info] i  functions[us-central1-makeuppercase]: function ignored because the firestore emulator does not exist or is not running. {"metadata":{"emulator":{"name":"functions"},"message":"function ignored because the firestore emulator does not exist or is not running."}}
+[debug] [2024-11-10T15:14:28.191Z] Could not find VSCode notification endpoint: FetchError: request to http://localhost:40001/vscode/notify failed, reason: . If you are not running the Firebase Data Connect VSCode extension, this is expected and not an issue.
+[info] 
+┌─────────────────────────────────────────────────────────────┐
+│ ✔  All emulators ready! It is now safe to connect your app. │
+│ i  View Emulator UI at http://127.0.0.1:4001/               │
+└─────────────────────────────────────────────────────────────┘
+
+┌───────────┬────────────────┬─────────────────────────────────┐
+│ Emulator  │ Host:Port      │ View in Emulator UI             │
+├───────────┼────────────────┼─────────────────────────────────┤
+│ Functions │ 127.0.0.1:5001 │ http://127.0.0.1:4001/functions │
+└───────────┴────────────────┴─────────────────────────────────┘
+  Emulator Hub running at 127.0.0.1:4400
+  Other reserved ports: 4500
+
+Issues? Report them at https://github.com/firebase/firebase-tools/issues and attach the *-debug.log files.
+ 
+[debug] [2024-11-10T15:14:33.913Z] [work-queue] {"queuedWork":["/urvoice-98254/us-central1/helloWorld-2024-11-10T15:14:33.913Z"],"queueLength":1,"runningWork":[],"workRunningCount":0}
+[debug] [2024-11-10T15:14:33.914Z] [work-queue] {"queuedWork":[],"queueLength":0,"runningWork":["/urvoice-98254/us-central1/helloWorld-2024-11-10T15:14:33.913Z"],"workRunningCount":1}
+[debug] [2024-11-10T15:14:33.914Z] Accepted request GET /urvoice-98254/us-central1/helloWorld --> us-central1-helloWorld
+[debug] [2024-11-10T15:14:33.915Z] [functions] Runtime ready! Sending request! {"metadata":{"emulator":{"name":"functions"},"message":"[functions] Runtime ready! Sending request!"}}
+[debug] [2024-11-10T15:14:33.916Z] [functions] Got req.url=/urvoice-98254/us-central1/helloWorld, mapping to path=/ {"metadata":{"emulator":{"name":"functions"},"message":"[functions] Got req.url=/urvoice-98254/us-central1/helloWorld, mapping to path=/"}}
+[debug] [2024-11-10T15:14:33.926Z] [worker-pool] addWorker(us-central1-helloWorld) {"metadata":{"emulator":{"name":"functions"},"message":"[worker-pool] addWorker(us-central1-helloWorld)"}}
+[debug] [2024-11-10T15:14:33.927Z] [worker-pool] Adding worker with key us-central1-helloWorld, total=1 {"metadata":{"emulator":{"name":"functions"},"message":"[worker-pool] Adding worker with key us-central1-helloWorld, total=1"}}
+[debug] [2024-11-10T15:14:36.645Z] [runtime-status] [12928] Resolved module firebase-admin {"declared":true,"installed":true,"version":"12.7.0","resolution":"C:\\Users\\anhtu\\AndroidStudioProjects\\TheVoices\\functions\\node_modules\\firebase-admin\\lib\\index.js"} {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-helloWorld"},"extension":{},"message":"[runtime-status] [12928] Resolved module firebase-admin {\"declared\":true,\"installed\":true,\"version\":\"12.7.0\",\"resolution\":\"C:\\\\Users\\\\anhtu\\\\AndroidStudioProjects\\\\TheVoices\\\\functions\\\\node_modules\\\\firebase-admin\\\\lib\\\\index.js\"}"}}
+[debug] [2024-11-10T15:14:36.647Z] [runtime-status] [12928] Resolved module firebase-functions {"declared":true,"installed":true,"version":"5.1.1","resolution":"C:\\Users\\anhtu\\AndroidStudioProjects\\TheVoices\\functions\\node_modules\\firebase-functions\\lib\\v1\\index.js"} {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-helloWorld"},"extension":{},"message":"[runtime-status] [12928] Resolved module firebase-functions {\"declared\":true,\"installed\":true,\"version\":\"5.1.1\",\"resolution\":\"C:\\\\Users\\\\anhtu\\\\AndroidStudioProjects\\\\TheVoices\\\\functions\\\\node_modules\\\\firebase-functions\\\\lib\\\\v1\\\\index.js\"}"}}
+[debug] [2024-11-10T15:14:36.647Z] [runtime-status] [12928] Outgoing network have been stubbed. [{"name":"http","status":"mocked"},{"name":"http","status":"mocked"},{"name":"https","status":"mocked"},{"name":"https","status":"mocked"},{"name":"net","status":"mocked"}] {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-helloWorld"},"extension":{},"message":"[runtime-status] [12928] Outgoing network have been stubbed. [{\"name\":\"http\",\"status\":\"mocked\"},{\"name\":\"http\",\"status\":\"mocked\"},{\"name\":\"https\",\"status\":\"mocked\"},{\"name\":\"https\",\"status\":\"mocked\"},{\"name\":\"net\",\"status\":\"mocked\"}]"}}
+[debug] [2024-11-10T15:14:36.649Z] [runtime-status] [12928] Resolved module firebase-functions {"declared":true,"installed":true,"version":"5.1.1","resolution":"C:\\Users\\anhtu\\AndroidStudioProjects\\TheVoices\\functions\\node_modules\\firebase-functions\\lib\\v1\\index.js"} {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-helloWorld"},"extension":{},"message":"[runtime-status] [12928] Resolved module firebase-functions {\"declared\":true,\"installed\":true,\"version\":\"5.1.1\",\"resolution\":\"C:\\\\Users\\\\anhtu\\\\AndroidStudioProjects\\\\TheVoices\\\\functions\\\\node_modules\\\\firebase-functions\\\\lib\\\\v1\\\\index.js\"}"}}
+[debug] [2024-11-10T15:14:37.008Z] [runtime-status] [12928] Checked functions.config() {"config":{}} {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-helloWorld"},"extension":{},"message":"[runtime-status] [12928] Checked functions.config() {\"config\":{}}"}}
+[debug] [2024-11-10T15:14:37.008Z] [runtime-status] [12928] firebase-functions has been stubbed. {"functionsResolution":{"declared":true,"installed":true,"version":"5.1.1","resolution":"C:\\Users\\anhtu\\AndroidStudioProjects\\TheVoices\\functions\\node_modules\\firebase-functions\\lib\\v1\\index.js"}} {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-helloWorld"},"extension":{},"message":"[runtime-status] [12928] firebase-functions has been stubbed. {\"functionsResolution\":{\"declared\":true,\"installed\":true,\"version\":\"5.1.1\",\"resolution\":\"C:\\\\Users\\\\anhtu\\\\AndroidStudioProjects\\\\TheVoices\\\\functions\\\\node_modules\\\\firebase-functions\\\\lib\\\\v1\\\\index.js\"}}"}}
+[debug] [2024-11-10T15:14:37.009Z] [runtime-status] [12928] Resolved module firebase-functions {"declared":true,"installed":true,"version":"5.1.1","resolution":"C:\\Users\\anhtu\\AndroidStudioProjects\\TheVoices\\functions\\node_modules\\firebase-functions\\lib\\v1\\index.js"} {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-helloWorld"},"extension":{},"message":"[runtime-status] [12928] Resolved module firebase-functions {\"declared\":true,\"installed\":true,\"version\":\"5.1.1\",\"resolution\":\"C:\\\\Users\\\\anhtu\\\\AndroidStudioProjects\\\\TheVoices\\\\functions\\\\node_modules\\\\firebase-functions\\\\lib\\\\v1\\\\index.js\"}"}}
+[debug] [2024-11-10T15:14:37.011Z] [runtime-status] [12928] Resolved module firebase-admin {"declared":true,"installed":true,"version":"12.7.0","resolution":"C:\\Users\\anhtu\\AndroidStudioProjects\\TheVoices\\functions\\node_modules\\firebase-admin\\lib\\index.js"} {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-helloWorld"},"extension":{},"message":"[runtime-status] [12928] Resolved module firebase-admin {\"declared\":true,\"installed\":true,\"version\":\"12.7.0\",\"resolution\":\"C:\\\\Users\\\\anhtu\\\\AndroidStudioProjects\\\\TheVoices\\\\functions\\\\node_modules\\\\firebase-admin\\\\lib\\\\index.js\"}"}}
+[debug] [2024-11-10T15:14:37.015Z] [runtime-status] [12928] Resolved module firebase-functions {"declared":true,"installed":true,"version":"5.1.1","resolution":"C:\\Users\\anhtu\\AndroidStudioProjects\\TheVoices\\functions\\node_modules\\firebase-functions\\lib\\v1\\index.js"} {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-helloWorld"},"extension":{},"message":"[runtime-status] [12928] Resolved module firebase-functions {\"declared\":true,\"installed\":true,\"version\":\"5.1.1\",\"resolution\":\"C:\\\\Users\\\\anhtu\\\\AndroidStudioProjects\\\\TheVoices\\\\functions\\\\node_modules\\\\firebase-functions\\\\lib\\\\v1\\\\index.js\"}"}}
+[debug] [2024-11-10T15:14:37.016Z] [runtime-status] [12928] firebase-admin has been stubbed. {"adminResolution":{"declared":true,"installed":true,"version":"12.7.0","resolution":"C:\\Users\\anhtu\\AndroidStudioProjects\\TheVoices\\functions\\node_modules\\firebase-admin\\lib\\index.js"}} {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-helloWorld"},"extension":{},"message":"[runtime-status] [12928] firebase-admin has been stubbed. {\"adminResolution\":{\"declared\":true,\"installed\":true,\"version\":\"12.7.0\",\"resolution\":\"C:\\\\Users\\\\anhtu\\\\AndroidStudioProjects\\\\TheVoices\\\\functions\\\\node_modules\\\\firebase-admin\\\\lib\\\\index.js\"}}"}}
+[debug] [2024-11-10T15:14:37.187Z] [runtime-status] [12928] initializeApp(DEFAULT) {"credential":{"implicit":false,"projectId":"urvoice-98254","privateKey":"-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQCn5CX25fcp6LnI\nI4vq/HqHdx2CsJsqaoacdAnnZe+lR82TCsu5WOqt+Iq9coGiAXIcvQgRj8tv+0vf\nN/mhtQ/Z5UFFJxFbVAL/CMbq10t+XsPyA1BiiB3Gu0ry15nhDwteqT3Ax14o3Dm2\n8MRQq+Ejli28Nfny3p+n458P/R1u0fzWm31rmQedDOEBiu9rLGd5cpHXLHuwnX5k\nmX2jLxX11in7Y3fNPPp6nRBMZ6kzRD3uXx0lxrB9BtogIwDomYJNsK1RngfHANzW\nBA7GB6T29zEm9VhNIoxmeWtt6a/w7oPfMUysOfYkSmOtqeUA5HIZyv2ld0FazOME\nfLvuRd/vAgMBAAECggEACRdsAOAFT67FEYC8Eztp2f6wYxym9ZfAKb+7SF13EGqA\nSA3ZG1sK/LHAg/xfGoOpulzej3wYbNXdKKP/PIT+bAyKL/4q5ljfZd0dT6ep9GVm\nuffFxhgpEjmfmBSzX5vkQAa58j/TKjMTj9CfT0XURfLCqXYvNO1eR7kMd4RIfQqc\nvYclS79WMkKA6OmyIOInvZ/N2pWXVSLibbkT6YiNjMkN46jnatwNvyVJ0fBUaQ7M\nDhXiqAiL8KfHQ54Zrurn9xuRWj1uUirMzXUkjp5v2Hu8aD2ENpmu+UXnFe0/L0Oo\nROv4v1ZeUy+cNH2pDMlC1ixOcxLRlO4U2klNQcI93QKBgQDs9mHDKEq7oyyOHysu\no3ObUBbl2ccAbEH3X5YalXny7nL4LIlhERBFpY2tMffjJMD7XafOI/NwBNybpRkm\nIA4zx2OSrIX+Qc4Z4PnJIDn62lNSHYKSsM8p/XxjksPhveqkSgvQ8kFBWxzgzE0S\nC+y/rxzRmw9Ws7quRBl0zqti2wKBgQC1YSzSJ490BLuLV9pM3i29tuI/n0kq08hJ\ntiPsrASCGZ2eWTx5tPpGvWW01I5KWm1WVrlKEITV9GUGhpja4+m34lByYdYdpWey\nSFpRudBmplUxuhzOA17vYwC9zNOXpIuhCwTyBvl5Oiy9dDIpE1fDxRsQwN+vhSCE\n1pC9zYdBfQKBgQCFRl3d4b+GoVPh623iIVRYOkdmp4HhnwHLHBvUf9XC6JIJOyNZ\nULuSMHbqvnvpaTaRKi/DJT0598IMWGM4qjbSsIY0bIxAYMqGi55xnIp/qGPMf4R8\n9KzPtR5M8rLxOFvMY0kaD+bb1176oG2IhOR3Owo+abPK0/NfKDYZGFQUmQKBgES9\nzYTgZWftGz8WTq/vTJqoI1tFfS90EGaPV1ItZ4//MVOAMoFV67y/rzo3jK31U5bz\nS0octJt6AofUnz3mPv/oD+Ep30JhG8nfzgtHRwqAY61zAdO6R1KmzPMiG9dPD3Q7\nfuZTal1dhPNQhGo44HxbyYQx9RTKeaaew0CMEoTpAoGAc8pBaIr1dqoAV6q4OLw4\n+vXE8YbanY/1lJ2e4YGGoHhcS1JZJ2ULnqfMVVw29vdSVbISWOzSOyV62BSTSilm\nN7s88WfBGMrciF+bAHYPvI9txJrlZ044T6q8m6uQiVqSt20f2foRvjo8WyW5rGxh\nMZgNCYuY+a2LU91qEL7qTYg=\n-----END PRIVATE KEY-----\n","clientEmail":"firebase-adminsdk-y0dmz@urvoice-98254.iam.gserviceaccount.com","httpClient":{"retry":{"maxRetries":4,"statusCodes":[503],"ioErrorCodes":["ECONNRESET","ETIMEDOUT"],"backOffFactor":0.5,"maxDelayInMillis":60000}}},"databaseURL":"https://urvoice-98254-default-rtdb.asia-southeast1.firebasedatabase.app"} {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-helloWorld"},"extension":{},"message":"[runtime-status] [12928] initializeApp(DEFAULT) {\"credential\":{\"implicit\":false,\"projectId\":\"urvoice-98254\",\"privateKey\":\"-----BEGIN PRIVATE KEY-----\\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQCn5CX25fcp6LnI\\nI4vq/HqHdx2CsJsqaoacdAnnZe+lR82TCsu5WOqt+Iq9coGiAXIcvQgRj8tv+0vf\\nN/mhtQ/Z5UFFJxFbVAL/CMbq10t+XsPyA1BiiB3Gu0ry15nhDwteqT3Ax14o3Dm2\\n8MRQq+Ejli28Nfny3p+n458P/R1u0fzWm31rmQedDOEBiu9rLGd5cpHXLHuwnX5k\\nmX2jLxX11in7Y3fNPPp6nRBMZ6kzRD3uXx0lxrB9BtogIwDomYJNsK1RngfHANzW\\nBA7GB6T29zEm9VhNIoxmeWtt6a/w7oPfMUysOfYkSmOtqeUA5HIZyv2ld0FazOME\\nfLvuRd/vAgMBAAECggEACRdsAOAFT67FEYC8Eztp2f6wYxym9ZfAKb+7SF13EGqA\\nSA3ZG1sK/LHAg/xfGoOpulzej3wYbNXdKKP/PIT+bAyKL/4q5ljfZd0dT6ep9GVm\\nuffFxhgpEjmfmBSzX5vkQAa58j/TKjMTj9CfT0XURfLCqXYvNO1eR7kMd4RIfQqc\\nvYclS79WMkKA6OmyIOInvZ/N2pWXVSLibbkT6YiNjMkN46jnatwNvyVJ0fBUaQ7M\\nDhXiqAiL8KfHQ54Zrurn9xuRWj1uUirMzXUkjp5v2Hu8aD2ENpmu+UXnFe0/L0Oo\\nROv4v1ZeUy+cNH2pDMlC1ixOcxLRlO4U2klNQcI93QKBgQDs9mHDKEq7oyyOHysu\\no3ObUBbl2ccAbEH3X5YalXny7nL4LIlhERBFpY2tMffjJMD7XafOI/NwBNybpRkm\\nIA4zx2OSrIX+Qc4Z4PnJIDn62lNSHYKSsM8p/XxjksPhveqkSgvQ8kFBWxzgzE0S\\nC+y/rxzRmw9Ws7quRBl0zqti2wKBgQC1YSzSJ490BLuLV9pM3i29tuI/n0kq08hJ\\ntiPsrASCGZ2eWTx5tPpGvWW01I5KWm1WVrlKEITV9GUGhpja4+m34lByYdYdpWey\\nSFpRudBmplUxuhzOA17vYwC9zNOXpIuhCwTyBvl5Oiy9dDIpE1fDxRsQwN+vhSCE\\n1pC9zYdBfQKBgQCFRl3d4b+GoVPh623iIVRYOkdmp4HhnwHLHBvUf9XC6JIJOyNZ\\nULuSMHbqvnvpaTaRKi/DJT0598IMWGM4qjbSsIY0bIxAYMqGi55xnIp/qGPMf4R8\\n9KzPtR5M8rLxOFvMY0kaD+bb1176oG2IhOR3Owo+abPK0/NfKDYZGFQUmQKBgES9\\nzYTgZWftGz8WTq/vTJqoI1tFfS90EGaPV1ItZ4//MVOAMoFV67y/rzo3jK31U5bz\\nS0octJt6AofUnz3mPv/oD+Ep30JhG8nfzgtHRwqAY61zAdO6R1KmzPMiG9dPD3Q7\\nfuZTal1dhPNQhGo44HxbyYQx9RTKeaaew0CMEoTpAoGAc8pBaIr1dqoAV6q4OLw4\\n+vXE8YbanY/1lJ2e4YGGoHhcS1JZJ2ULnqfMVVw29vdSVbISWOzSOyV62BSTSilm\\nN7s88WfBGMrciF+bAHYPvI9txJrlZ044T6q8m6uQiVqSt20f2foRvjo8WyW5rGxh\\nMZgNCYuY+a2LU91qEL7qTYg=\\n-----END PRIVATE KEY-----\\n\",\"clientEmail\":\"firebase-adminsdk-y0dmz@urvoice-98254.iam.gserviceaccount.com\",\"httpClient\":{\"retry\":{\"maxRetries\":4,\"statusCodes\":[503],\"ioErrorCodes\":[\"ECONNRESET\",\"ETIMEDOUT\"],\"backOffFactor\":0.5,\"maxDelayInMillis\":60000}}},\"databaseURL\":\"https://urvoice-98254-default-rtdb.asia-southeast1.firebasedatabase.app\"}"}}
+[warn] !  functions: The Cloud Firestore emulator is not running, so calls to Firestore will affect production. {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-helloWorld"},"extension":{},"message":"The Cloud Firestore emulator is not running, so calls to Firestore will affect production."}}
+[debug] [2024-11-10T15:14:37.492Z] [runtime-status] [12928] Functions runtime initialized. {"cwd":"C:\\Users\\anhtu\\AndroidStudioProjects\\TheVoices\\functions","node_version":"20.5.0"} {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-helloWorld"},"extension":{},"message":"[runtime-status] [12928] Functions runtime initialized. {\"cwd\":\"C:\\\\Users\\\\anhtu\\\\AndroidStudioProjects\\\\TheVoices\\\\functions\",\"node_version\":\"20.5.0\"}"}}
+[debug] [2024-11-10T15:14:37.492Z] [runtime-status] [12928] Listening to port: \\?\pipe\fire_emu_fee3781dcc8a4588 {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-helloWorld"},"extension":{},"message":"[runtime-status] [12928] Listening to port: \\\\?\\pipe\\fire_emu_fee3781dcc8a4588"}}
+[debug] [2024-11-10T15:14:37.602Z] [worker-us-central1-helloWorld-389146de-8ed0-4068-a33d-f7bf340afa1b]: IDLE {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-helloWorld"},"extension":{},"message":"[worker-us-central1-helloWorld-389146de-8ed0-4068-a33d-f7bf340afa1b]: IDLE"}}
+[debug] [2024-11-10T15:14:37.602Z] [worker-pool] submitRequest(triggerId=us-central1-helloWorld) {"metadata":{"emulator":{"name":"functions"},"message":"[worker-pool] submitRequest(triggerId=us-central1-helloWorld)"}}
+[info] i  functions: Beginning execution of "us-central1-helloWorld" {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-helloWorld"},"extension":{},"message":"Beginning execution of \"us-central1-helloWorld\""}}
+[debug] [2024-11-10T15:14:37.603Z] [worker-us-central1-helloWorld-389146de-8ed0-4068-a33d-f7bf340afa1b]: BUSY {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-helloWorld"},"extension":{},"message":"[worker-us-central1-helloWorld-389146de-8ed0-4068-a33d-f7bf340afa1b]: BUSY"}}
+[info] >  {"structuredData":true,"severity":"INFO","message":"Hello logs!"} {"user":{"structuredData":true,"severity":"INFO","message":"Hello logs!"},"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-helloWorld"},"extension":{},"message":"\u001b[90m> \u001b[39m {\"structuredData\":true,\"severity\":\"INFO\",\"message\":\"Hello logs!\"}"}}
+[debug] [2024-11-10T15:14:37.615Z] Finishing up request with event=pause {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-helloWorld"},"extension":{},"message":"Finishing up request with event=pause"}}
+[info] i  functions: Finished "us-central1-helloWorld" in 11.8305ms {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-helloWorld"},"extension":{},"message":"Finished \"us-central1-helloWorld\" in 11.8305ms"}}
+[debug] [2024-11-10T15:14:37.616Z] [worker-us-central1-helloWorld-389146de-8ed0-4068-a33d-f7bf340afa1b]: IDLE {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-helloWorld"},"extension":{},"message":"[worker-us-central1-helloWorld-389146de-8ed0-4068-a33d-f7bf340afa1b]: IDLE"}}
+[debug] [2024-11-10T15:14:37.616Z] Finishing up request with event=finish {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-helloWorld"},"extension":{},"message":"Finishing up request with event=finish"}}
+[debug] [2024-11-10T15:14:37.617Z] Finishing up request with event=close {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-helloWorld"},"extension":{},"message":"Finishing up request with event=close"}}
+[debug] [2024-11-10T15:14:37.617Z] [work-queue] {"queuedWork":[],"queueLength":0,"runningWork":[],"workRunningCount":0}
+[info] >  TypeError: Cannot read properties of undefined (reading 'auth') {"user":"TypeError: Cannot read properties of undefined (reading 'auth')","metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-helloWorld"},"extension":{},"message":"\u001b[90m> \u001b[39m TypeError: Cannot read properties of undefined (reading 'auth')"}}
+[info] >      at C:\Users\anhtu\AndroidStudioProjects\TheVoices\functions\Token\token.js:7:34 {"user":"    at C:\\Users\\anhtu\\AndroidStudioProjects\\TheVoices\\functions\\Token\\token.js:7:34","metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-helloWorld"},"extension":{},"message":"\u001b[90m> \u001b[39m     at C:\\Users\\anhtu\\AndroidStudioProjects\\TheVoices\\functions\\Token\\token.js:7:34"}}
+[info] >      at new Promise (<anonymous>) {"user":"    at new Promise (<anonymous>)","metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-helloWorld"},"extension":{},"message":"\u001b[90m> \u001b[39m     at new Promise (<anonymous>)"}}
+[info] >      at getAccessToken (C:\Users\anhtu\AndroidStudioProjects\TheVoices\functions\Token\token.js:5:10) {"user":"    at getAccessToken (C:\\Users\\anhtu\\AndroidStudioProjects\\TheVoices\\functions\\Token\\token.js:5:10)","metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-helloWorld"},"extension":{},"message":"\u001b[90m> \u001b[39m     at getAccessToken (C:\\Users\\anhtu\\AndroidStudioProjects\\TheVoices\\functions\\Token\\token.js:5:10)"}}
+[info] >      at C:\Users\anhtu\AndroidStudioProjects\TheVoices\functions\index.js:39:5 {"user":"    at C:\\Users\\anhtu\\AndroidStudioProjects\\TheVoices\\functions\\index.js:39:5","metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-helloWorld"},"extension":{},"message":"\u001b[90m> \u001b[39m     at C:\\Users\\anhtu\\AndroidStudioProjects\\TheVoices\\functions\\index.js:39:5"}}
+[info] >      at C:\Users\anhtu\AndroidStudioProjects\TheVoices\functions\node_modules\firebase-functions\lib\v2\providers\https.js:65:29 {"user":"    at C:\\Users\\anhtu\\AndroidStudioProjects\\TheVoices\\functions\\node_modules\\firebase-functions\\lib\\v2\\providers\\https.js:65:29","metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-helloWorld"},"extension":{},"message":"\u001b[90m> \u001b[39m     at C:\\Users\\anhtu\\AndroidStudioProjects\\TheVoices\\functions\\node_modules\\firebase-functions\\lib\\v2\\providers\\https.js:65:29"}}
+[info] >      at cors (C:\Users\anhtu\AndroidStudioProjects\TheVoices\functions\node_modules\cors\lib\index.js:188:7) {"user":"    at cors (C:\\Users\\anhtu\\AndroidStudioProjects\\TheVoices\\functions\\node_modules\\cors\\lib\\index.js:188:7)","metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-helloWorld"},"extension":{},"message":"\u001b[90m> \u001b[39m     at cors (C:\\Users\\anhtu\\AndroidStudioProjects\\TheVoices\\functions\\node_modules\\cors\\lib\\index.js:188:7)"}}
+[info] >      at C:\Users\anhtu\AndroidStudioProjects\TheVoices\functions\node_modules\cors\lib\index.js:224:17 {"user":"    at C:\\Users\\anhtu\\AndroidStudioProjects\\TheVoices\\functions\\node_modules\\cors\\lib\\index.js:224:17","metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-helloWorld"},"extension":{},"message":"\u001b[90m> \u001b[39m     at C:\\Users\\anhtu\\AndroidStudioProjects\\TheVoices\\functions\\node_modules\\cors\\lib\\index.js:224:17"}}
+[info] >      at originCallback (C:\Users\anhtu\AndroidStudioProjects\TheVoices\functions\node_modules\cors\lib\index.js:214:15) {"user":"    at originCallback (C:\\Users\\anhtu\\AndroidStudioProjects\\TheVoices\\functions\\node_modules\\cors\\lib\\index.js:214:15)","metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-helloWorld"},"extension":{},"message":"\u001b[90m> \u001b[39m     at originCallback (C:\\Users\\anhtu\\AndroidStudioProjects\\TheVoices\\functions\\node_modules\\cors\\lib\\index.js:214:15)"}}
+[info] >      at C:\Users\anhtu\AndroidStudioProjects\TheVoices\functions\node_modules\cors\lib\index.js:219:13 {"user":"    at C:\\Users\\anhtu\\AndroidStudioProjects\\TheVoices\\functions\\node_modules\\cors\\lib\\index.js:219:13","metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-helloWorld"},"extension":{},"message":"\u001b[90m> \u001b[39m     at C:\\Users\\anhtu\\AndroidStudioProjects\\TheVoices\\functions\\node_modules\\cors\\lib\\index.js:219:13"}}
+[info] >      at optionsCallback (C:\Users\anhtu\AndroidStudioProjects\TheVoices\functions\node_modules\cors\lib\index.js:199:9) {"user":"    at optionsCallback (C:\\Users\\anhtu\\AndroidStudioProjects\\TheVoices\\functions\\node_modules\\cors\\lib\\index.js:199:9)","metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-helloWorld"},"extension":{},"message":"\u001b[90m> \u001b[39m     at optionsCallback (C:\\Users\\anhtu\\AndroidStudioProjects\\TheVoices\\functions\\node_modules\\cors\\lib\\index.js:199:9)"}}
+[debug] [2024-11-10T15:23:22.830Z] File C:\Users\anhtu\AndroidStudioProjects\TheVoices\functions\package-lock.json changed, reloading triggers {"metadata":{"emulator":{"name":"functions"},"message":"File C:\\Users\\anhtu\\AndroidStudioProjects\\TheVoices\\functions\\package-lock.json changed, reloading triggers"}}
+[debug] [2024-11-10T15:23:23.841Z] Validating nodejs source
+[warn] !  functions: package.json indicates an outdated version of firebase-functions. Please upgrade using npm install --save firebase-functions@latest in your functions directory. 
+[warn] !  functions: Please note that there will be breaking changes when you upgrade. 
+[debug] [2024-11-10T15:23:25.246Z] > [functions] package.json contents: {
+  "name": "functions",
+  "description": "Cloud Functions for Firebase",
+  "scripts": {
+    "build": "",
+    "lint": "eslint",
+    "serve": "firebase emulators:start --only functions",
+    "shell": "firebase functions:shell",
+    "start": "npm run shell",
+    "deploy": "firebase deploy --only functions",
+    "logs": "firebase functions:log"
+  },
+  "engines": {
+    "node": "18"
+  },
+  "main": "index.js",
+  "dependencies": {
+    "@google-cloud/pubsub": "^4.8.0",
+    "bad-words": "^3.0.4",
+    "capitalize-sentence": "^0.1.5",
+    "firebase-admin": "^12.7.0",
+    "firebase-functions": "^5.1.1",
+    "functions": "file:",
+    "google-auth-library": "^9.14.2"
+  },
+  "devDependencies": {
+    "eslint": "^8.15.0",
+    "eslint-config-google": "^0.14.0",
+    "firebase-functions-test": "^3.1.0"
+  },
+  "private": true
+}
+[debug] [2024-11-10T15:23:25.247Z] Building nodejs source
+[debug] [2024-11-10T15:23:25.247Z] Failed to find version of module node: reached end of search path C:\Users\anhtu\AndroidStudioProjects\TheVoices\functions\node_modules
+[warn] !  functions: Your requested "node" version "18" doesn't match your global version "20". Using node@20 from host. 
+[debug] [2024-11-10T15:23:25.247Z] Could not find functions.yaml. Must use http discovery
+[debug] [2024-11-10T15:23:25.252Z] Found firebase-functions binary at 'C:\Users\anhtu\AndroidStudioProjects\TheVoices\functions\node_modules\.bin\firebase-functions'
+[info] Serving at port 8839
+
+[debug] [2024-11-10T15:23:26.436Z] Got response from /__/functions.yaml {"endpoints":{"helloWorld":{"availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"concurrency":null,"serviceAccountEmail":null,"vpc":null,"platform":"gcfv2","labels":{},"httpsTrigger":{},"entryPoint":"helloWorld"},"addmessage":{"availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"concurrency":null,"serviceAccountEmail":null,"vpc":null,"platform":"gcfv2","labels":{},"httpsTrigger":{},"entryPoint":"addmessage"},"addmessage2":{"availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"concurrency":null,"serviceAccountEmail":null,"vpc":null,"platform":"gcfv2","labels":{},"callableTrigger":{},"entryPoint":"addmessage2"},"makeuppercase":{"availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"concurrency":null,"serviceAccountEmail":null,"vpc":null,"platform":"gcfv2","labels":{},"eventTrigger":{"eventType":"google.cloud.firestore.document.v1.created","eventFilters":{"database":"(default)","namespace":"(default)"},"eventFilterPathPatterns":{"document":"messages/{documentId}"},"retry":false},"entryPoint":"makeuppercase"}},"specVersion":"v1alpha1","requiredAPIs":[],"extensions":{}}
+[info] +  functions: Loaded functions definitions from source: helloWorld, addmessage, addmessage2, makeuppercase. {"metadata":{"emulator":{"name":"functions"},"message":"Loaded functions definitions from source: helloWorld, addmessage, addmessage2, makeuppercase."}}
+[debug] [2024-11-10T15:23:31.475Z] [worker-pool] Shutting down IDLE worker (us-central1-helloWorld) {"metadata":{"emulator":{"name":"functions"},"message":"[worker-pool] Shutting down IDLE worker (us-central1-helloWorld)"}}
+[debug] [2024-11-10T15:23:31.475Z] [worker-us-central1-helloWorld-389146de-8ed0-4068-a33d-f7bf340afa1b]: FINISHING {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-helloWorld"},"extension":{},"message":"[worker-us-central1-helloWorld-389146de-8ed0-4068-a33d-f7bf340afa1b]: FINISHING"}}
+[debug] [2024-11-10T15:23:31.484Z] [worker-us-central1-helloWorld-389146de-8ed0-4068-a33d-f7bf340afa1b]: exited {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-helloWorld"},"extension":{},"message":"[worker-us-central1-helloWorld-389146de-8ed0-4068-a33d-f7bf340afa1b]: exited"}}
+[debug] [2024-11-10T15:23:31.484Z] [worker-us-central1-helloWorld-389146de-8ed0-4068-a33d-f7bf340afa1b]: FINISHED {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-helloWorld"},"extension":{},"message":"[worker-us-central1-helloWorld-389146de-8ed0-4068-a33d-f7bf340afa1b]: FINISHED"}}
+[debug] [2024-11-10T15:23:41.564Z] File C:\Users\anhtu\AndroidStudioProjects\TheVoices\functions\Token\token.js changed, reloading triggers {"metadata":{"emulator":{"name":"functions"},"message":"File C:\\Users\\anhtu\\AndroidStudioProjects\\TheVoices\\functions\\Token\\token.js changed, reloading triggers"}}
+[debug] [2024-11-10T15:23:42.567Z] Validating nodejs source
+[warn] !  functions: package.json indicates an outdated version of firebase-functions. Please upgrade using npm install --save firebase-functions@latest in your functions directory. 
+[warn] !  functions: Please note that there will be breaking changes when you upgrade. 
+[debug] [2024-11-10T15:23:44.102Z] > [functions] package.json contents: {
+  "name": "functions",
+  "description": "Cloud Functions for Firebase",
+  "scripts": {
+    "build": "",
+    "lint": "eslint",
+    "serve": "firebase emulators:start --only functions",
+    "shell": "firebase functions:shell",
+    "start": "npm run shell",
+    "deploy": "firebase deploy --only functions",
+    "logs": "firebase functions:log"
+  },
+  "engines": {
+    "node": "18"
+  },
+  "main": "index.js",
+  "dependencies": {
+    "@google-cloud/pubsub": "^4.8.0",
+    "bad-words": "^3.0.4",
+    "capitalize-sentence": "^0.1.5",
+    "firebase-admin": "^12.7.0",
+    "firebase-functions": "^5.1.1",
+    "functions": "file:",
+    "google-auth-library": "^9.14.2"
+  },
+  "devDependencies": {
+    "eslint": "^8.15.0",
+    "eslint-config-google": "^0.14.0",
+    "firebase-functions-test": "^3.1.0"
+  },
+  "private": true
+}
+[debug] [2024-11-10T15:23:44.102Z] Building nodejs source
+[debug] [2024-11-10T15:23:44.102Z] Failed to find version of module node: reached end of search path C:\Users\anhtu\AndroidStudioProjects\TheVoices\functions\node_modules
+[warn] !  functions: Your requested "node" version "18" doesn't match your global version "20". Using node@20 from host. 
+[debug] [2024-11-10T15:23:44.103Z] Could not find functions.yaml. Must use http discovery
+[debug] [2024-11-10T15:23:44.110Z] Found firebase-functions binary at 'C:\Users\anhtu\AndroidStudioProjects\TheVoices\functions\node_modules\.bin\firebase-functions'
+[info] Serving at port 8325
+
+[debug] [2024-11-10T15:23:44.963Z] Got response from /__/functions.yaml {"endpoints":{"helloWorld":{"availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"concurrency":null,"serviceAccountEmail":null,"vpc":null,"platform":"gcfv2","labels":{},"httpsTrigger":{},"entryPoint":"helloWorld"},"addmessage":{"availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"concurrency":null,"serviceAccountEmail":null,"vpc":null,"platform":"gcfv2","labels":{},"httpsTrigger":{},"entryPoint":"addmessage"},"addmessage2":{"availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"concurrency":null,"serviceAccountEmail":null,"vpc":null,"platform":"gcfv2","labels":{},"callableTrigger":{},"entryPoint":"addmessage2"},"makeuppercase":{"availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"concurrency":null,"serviceAccountEmail":null,"vpc":null,"platform":"gcfv2","labels":{},"eventTrigger":{"eventType":"google.cloud.firestore.document.v1.created","eventFilters":{"database":"(default)","namespace":"(default)"},"eventFilterPathPatterns":{"document":"messages/{documentId}"},"retry":false},"entryPoint":"makeuppercase"}},"specVersion":"v1alpha1","requiredAPIs":[],"extensions":{}}
+[info] +  functions: Loaded functions definitions from source: helloWorld, addmessage, addmessage2, makeuppercase. {"metadata":{"emulator":{"name":"functions"},"message":"Loaded functions definitions from source: helloWorld, addmessage, addmessage2, makeuppercase."}}
+[debug] [2024-11-10T15:23:56.569Z] [work-queue] {"queuedWork":["/urvoice-98254/us-central1/helloWorld-2024-11-10T15:23:56.569Z"],"queueLength":1,"runningWork":[],"workRunningCount":0}
+[debug] [2024-11-10T15:23:56.569Z] [work-queue] {"queuedWork":[],"queueLength":0,"runningWork":["/urvoice-98254/us-central1/helloWorld-2024-11-10T15:23:56.569Z"],"workRunningCount":1}
+[debug] [2024-11-10T15:23:56.569Z] Accepted request GET /urvoice-98254/us-central1/helloWorld --> us-central1-helloWorld
+[debug] [2024-11-10T15:23:56.574Z] [functions] Runtime ready! Sending request! {"metadata":{"emulator":{"name":"functions"},"message":"[functions] Runtime ready! Sending request!"}}
+[debug] [2024-11-10T15:23:56.574Z] [functions] Got req.url=/urvoice-98254/us-central1/helloWorld, mapping to path=/ {"metadata":{"emulator":{"name":"functions"},"message":"[functions] Got req.url=/urvoice-98254/us-central1/helloWorld, mapping to path=/"}}
+[debug] [2024-11-10T15:23:56.574Z] [worker-pool] Cleaned up workers for us-central1-helloWorld: 1 --> 0 {"metadata":{"emulator":{"name":"functions"},"message":"[worker-pool] Cleaned up workers for us-central1-helloWorld: 1 --> 0"}}
+[debug] [2024-11-10T15:23:56.582Z] [worker-pool] addWorker(us-central1-helloWorld) {"metadata":{"emulator":{"name":"functions"},"message":"[worker-pool] addWorker(us-central1-helloWorld)"}}
+[debug] [2024-11-10T15:23:56.583Z] [worker-pool] Adding worker with key us-central1-helloWorld, total=1 {"metadata":{"emulator":{"name":"functions"},"message":"[worker-pool] Adding worker with key us-central1-helloWorld, total=1"}}
+[debug] [2024-11-10T15:23:58.818Z] [runtime-status] [22772] Resolved module firebase-admin {"declared":true,"installed":true,"version":"12.7.0","resolution":"C:\\Users\\anhtu\\AndroidStudioProjects\\TheVoices\\functions\\node_modules\\firebase-admin\\lib\\index.js"} {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-helloWorld"},"extension":{},"message":"[runtime-status] [22772] Resolved module firebase-admin {\"declared\":true,\"installed\":true,\"version\":\"12.7.0\",\"resolution\":\"C:\\\\Users\\\\anhtu\\\\AndroidStudioProjects\\\\TheVoices\\\\functions\\\\node_modules\\\\firebase-admin\\\\lib\\\\index.js\"}"}}
+[debug] [2024-11-10T15:23:58.819Z] [runtime-status] [22772] Resolved module firebase-functions {"declared":true,"installed":true,"version":"5.1.1","resolution":"C:\\Users\\anhtu\\AndroidStudioProjects\\TheVoices\\functions\\node_modules\\firebase-functions\\lib\\v1\\index.js"} {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-helloWorld"},"extension":{},"message":"[runtime-status] [22772] Resolved module firebase-functions {\"declared\":true,\"installed\":true,\"version\":\"5.1.1\",\"resolution\":\"C:\\\\Users\\\\anhtu\\\\AndroidStudioProjects\\\\TheVoices\\\\functions\\\\node_modules\\\\firebase-functions\\\\lib\\\\v1\\\\index.js\"}"}}
+[debug] [2024-11-10T15:23:58.820Z] [runtime-status] [22772] Outgoing network have been stubbed. [{"name":"http","status":"mocked"},{"name":"http","status":"mocked"},{"name":"https","status":"mocked"},{"name":"https","status":"mocked"},{"name":"net","status":"mocked"}] {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-helloWorld"},"extension":{},"message":"[runtime-status] [22772] Outgoing network have been stubbed. [{\"name\":\"http\",\"status\":\"mocked\"},{\"name\":\"http\",\"status\":\"mocked\"},{\"name\":\"https\",\"status\":\"mocked\"},{\"name\":\"https\",\"status\":\"mocked\"},{\"name\":\"net\",\"status\":\"mocked\"}]"}}
+[debug] [2024-11-10T15:23:58.820Z] [runtime-status] [22772] Resolved module firebase-functions {"declared":true,"installed":true,"version":"5.1.1","resolution":"C:\\Users\\anhtu\\AndroidStudioProjects\\TheVoices\\functions\\node_modules\\firebase-functions\\lib\\v1\\index.js"} {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-helloWorld"},"extension":{},"message":"[runtime-status] [22772] Resolved module firebase-functions {\"declared\":true,\"installed\":true,\"version\":\"5.1.1\",\"resolution\":\"C:\\\\Users\\\\anhtu\\\\AndroidStudioProjects\\\\TheVoices\\\\functions\\\\node_modules\\\\firebase-functions\\\\lib\\\\v1\\\\index.js\"}"}}
+[debug] [2024-11-10T15:23:59.162Z] [runtime-status] [22772] Checked functions.config() {"config":{}} {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-helloWorld"},"extension":{},"message":"[runtime-status] [22772] Checked functions.config() {\"config\":{}}"}}
+[debug] [2024-11-10T15:23:59.162Z] [runtime-status] [22772] firebase-functions has been stubbed. {"functionsResolution":{"declared":true,"installed":true,"version":"5.1.1","resolution":"C:\\Users\\anhtu\\AndroidStudioProjects\\TheVoices\\functions\\node_modules\\firebase-functions\\lib\\v1\\index.js"}} {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-helloWorld"},"extension":{},"message":"[runtime-status] [22772] firebase-functions has been stubbed. {\"functionsResolution\":{\"declared\":true,\"installed\":true,\"version\":\"5.1.1\",\"resolution\":\"C:\\\\Users\\\\anhtu\\\\AndroidStudioProjects\\\\TheVoices\\\\functions\\\\node_modules\\\\firebase-functions\\\\lib\\\\v1\\\\index.js\"}}"}}
+[debug] [2024-11-10T15:23:59.163Z] [runtime-status] [22772] Resolved module firebase-functions {"declared":true,"installed":true,"version":"5.1.1","resolution":"C:\\Users\\anhtu\\AndroidStudioProjects\\TheVoices\\functions\\node_modules\\firebase-functions\\lib\\v1\\index.js"} {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-helloWorld"},"extension":{},"message":"[runtime-status] [22772] Resolved module firebase-functions {\"declared\":true,\"installed\":true,\"version\":\"5.1.1\",\"resolution\":\"C:\\\\Users\\\\anhtu\\\\AndroidStudioProjects\\\\TheVoices\\\\functions\\\\node_modules\\\\firebase-functions\\\\lib\\\\v1\\\\index.js\"}"}}
+[debug] [2024-11-10T15:23:59.165Z] [runtime-status] [22772] Resolved module firebase-admin {"declared":true,"installed":true,"version":"12.7.0","resolution":"C:\\Users\\anhtu\\AndroidStudioProjects\\TheVoices\\functions\\node_modules\\firebase-admin\\lib\\index.js"} {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-helloWorld"},"extension":{},"message":"[runtime-status] [22772] Resolved module firebase-admin {\"declared\":true,\"installed\":true,\"version\":\"12.7.0\",\"resolution\":\"C:\\\\Users\\\\anhtu\\\\AndroidStudioProjects\\\\TheVoices\\\\functions\\\\node_modules\\\\firebase-admin\\\\lib\\\\index.js\"}"}}
+[debug] [2024-11-10T15:23:59.168Z] [runtime-status] [22772] Resolved module firebase-functions {"declared":true,"installed":true,"version":"5.1.1","resolution":"C:\\Users\\anhtu\\AndroidStudioProjects\\TheVoices\\functions\\node_modules\\firebase-functions\\lib\\v1\\index.js"} {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-helloWorld"},"extension":{},"message":"[runtime-status] [22772] Resolved module firebase-functions {\"declared\":true,\"installed\":true,\"version\":\"5.1.1\",\"resolution\":\"C:\\\\Users\\\\anhtu\\\\AndroidStudioProjects\\\\TheVoices\\\\functions\\\\node_modules\\\\firebase-functions\\\\lib\\\\v1\\\\index.js\"}"}}
+[debug] [2024-11-10T15:23:59.168Z] [runtime-status] [22772] firebase-admin has been stubbed. {"adminResolution":{"declared":true,"installed":true,"version":"12.7.0","resolution":"C:\\Users\\anhtu\\AndroidStudioProjects\\TheVoices\\functions\\node_modules\\firebase-admin\\lib\\index.js"}} {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-helloWorld"},"extension":{},"message":"[runtime-status] [22772] firebase-admin has been stubbed. {\"adminResolution\":{\"declared\":true,\"installed\":true,\"version\":\"12.7.0\",\"resolution\":\"C:\\\\Users\\\\anhtu\\\\AndroidStudioProjects\\\\TheVoices\\\\functions\\\\node_modules\\\\firebase-admin\\\\lib\\\\index.js\"}}"}}
+[debug] [2024-11-10T15:23:59.307Z] [runtime-status] [22772] initializeApp(DEFAULT) {"credential":{"implicit":false,"projectId":"urvoice-98254","privateKey":"-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQCn5CX25fcp6LnI\nI4vq/HqHdx2CsJsqaoacdAnnZe+lR82TCsu5WOqt+Iq9coGiAXIcvQgRj8tv+0vf\nN/mhtQ/Z5UFFJxFbVAL/CMbq10t+XsPyA1BiiB3Gu0ry15nhDwteqT3Ax14o3Dm2\n8MRQq+Ejli28Nfny3p+n458P/R1u0fzWm31rmQedDOEBiu9rLGd5cpHXLHuwnX5k\nmX2jLxX11in7Y3fNPPp6nRBMZ6kzRD3uXx0lxrB9BtogIwDomYJNsK1RngfHANzW\nBA7GB6T29zEm9VhNIoxmeWtt6a/w7oPfMUysOfYkSmOtqeUA5HIZyv2ld0FazOME\nfLvuRd/vAgMBAAECggEACRdsAOAFT67FEYC8Eztp2f6wYxym9ZfAKb+7SF13EGqA\nSA3ZG1sK/LHAg/xfGoOpulzej3wYbNXdKKP/PIT+bAyKL/4q5ljfZd0dT6ep9GVm\nuffFxhgpEjmfmBSzX5vkQAa58j/TKjMTj9CfT0XURfLCqXYvNO1eR7kMd4RIfQqc\nvYclS79WMkKA6OmyIOInvZ/N2pWXVSLibbkT6YiNjMkN46jnatwNvyVJ0fBUaQ7M\nDhXiqAiL8KfHQ54Zrurn9xuRWj1uUirMzXUkjp5v2Hu8aD2ENpmu+UXnFe0/L0Oo\nROv4v1ZeUy+cNH2pDMlC1ixOcxLRlO4U2klNQcI93QKBgQDs9mHDKEq7oyyOHysu\no3ObUBbl2ccAbEH3X5YalXny7nL4LIlhERBFpY2tMffjJMD7XafOI/NwBNybpRkm\nIA4zx2OSrIX+Qc4Z4PnJIDn62lNSHYKSsM8p/XxjksPhveqkSgvQ8kFBWxzgzE0S\nC+y/rxzRmw9Ws7quRBl0zqti2wKBgQC1YSzSJ490BLuLV9pM3i29tuI/n0kq08hJ\ntiPsrASCGZ2eWTx5tPpGvWW01I5KWm1WVrlKEITV9GUGhpja4+m34lByYdYdpWey\nSFpRudBmplUxuhzOA17vYwC9zNOXpIuhCwTyBvl5Oiy9dDIpE1fDxRsQwN+vhSCE\n1pC9zYdBfQKBgQCFRl3d4b+GoVPh623iIVRYOkdmp4HhnwHLHBvUf9XC6JIJOyNZ\nULuSMHbqvnvpaTaRKi/DJT0598IMWGM4qjbSsIY0bIxAYMqGi55xnIp/qGPMf4R8\n9KzPtR5M8rLxOFvMY0kaD+bb1176oG2IhOR3Owo+abPK0/NfKDYZGFQUmQKBgES9\nzYTgZWftGz8WTq/vTJqoI1tFfS90EGaPV1ItZ4//MVOAMoFV67y/rzo3jK31U5bz\nS0octJt6AofUnz3mPv/oD+Ep30JhG8nfzgtHRwqAY61zAdO6R1KmzPMiG9dPD3Q7\nfuZTal1dhPNQhGo44HxbyYQx9RTKeaaew0CMEoTpAoGAc8pBaIr1dqoAV6q4OLw4\n+vXE8YbanY/1lJ2e4YGGoHhcS1JZJ2ULnqfMVVw29vdSVbISWOzSOyV62BSTSilm\nN7s88WfBGMrciF+bAHYPvI9txJrlZ044T6q8m6uQiVqSt20f2foRvjo8WyW5rGxh\nMZgNCYuY+a2LU91qEL7qTYg=\n-----END PRIVATE KEY-----\n","clientEmail":"firebase-adminsdk-y0dmz@urvoice-98254.iam.gserviceaccount.com","httpClient":{"retry":{"maxRetries":4,"statusCodes":[503],"ioErrorCodes":["ECONNRESET","ETIMEDOUT"],"backOffFactor":0.5,"maxDelayInMillis":60000}}},"databaseURL":"https://urvoice-98254-default-rtdb.asia-southeast1.firebasedatabase.app"} {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-helloWorld"},"extension":{},"message":"[runtime-status] [22772] initializeApp(DEFAULT) {\"credential\":{\"implicit\":false,\"projectId\":\"urvoice-98254\",\"privateKey\":\"-----BEGIN PRIVATE KEY-----\\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQCn5CX25fcp6LnI\\nI4vq/HqHdx2CsJsqaoacdAnnZe+lR82TCsu5WOqt+Iq9coGiAXIcvQgRj8tv+0vf\\nN/mhtQ/Z5UFFJxFbVAL/CMbq10t+XsPyA1BiiB3Gu0ry15nhDwteqT3Ax14o3Dm2\\n8MRQq+Ejli28Nfny3p+n458P/R1u0fzWm31rmQedDOEBiu9rLGd5cpHXLHuwnX5k\\nmX2jLxX11in7Y3fNPPp6nRBMZ6kzRD3uXx0lxrB9BtogIwDomYJNsK1RngfHANzW\\nBA7GB6T29zEm9VhNIoxmeWtt6a/w7oPfMUysOfYkSmOtqeUA5HIZyv2ld0FazOME\\nfLvuRd/vAgMBAAECggEACRdsAOAFT67FEYC8Eztp2f6wYxym9ZfAKb+7SF13EGqA\\nSA3ZG1sK/LHAg/xfGoOpulzej3wYbNXdKKP/PIT+bAyKL/4q5ljfZd0dT6ep9GVm\\nuffFxhgpEjmfmBSzX5vkQAa58j/TKjMTj9CfT0XURfLCqXYvNO1eR7kMd4RIfQqc\\nvYclS79WMkKA6OmyIOInvZ/N2pWXVSLibbkT6YiNjMkN46jnatwNvyVJ0fBUaQ7M\\nDhXiqAiL8KfHQ54Zrurn9xuRWj1uUirMzXUkjp5v2Hu8aD2ENpmu+UXnFe0/L0Oo\\nROv4v1ZeUy+cNH2pDMlC1ixOcxLRlO4U2klNQcI93QKBgQDs9mHDKEq7oyyOHysu\\no3ObUBbl2ccAbEH3X5YalXny7nL4LIlhERBFpY2tMffjJMD7XafOI/NwBNybpRkm\\nIA4zx2OSrIX+Qc4Z4PnJIDn62lNSHYKSsM8p/XxjksPhveqkSgvQ8kFBWxzgzE0S\\nC+y/rxzRmw9Ws7quRBl0zqti2wKBgQC1YSzSJ490BLuLV9pM3i29tuI/n0kq08hJ\\ntiPsrASCGZ2eWTx5tPpGvWW01I5KWm1WVrlKEITV9GUGhpja4+m34lByYdYdpWey\\nSFpRudBmplUxuhzOA17vYwC9zNOXpIuhCwTyBvl5Oiy9dDIpE1fDxRsQwN+vhSCE\\n1pC9zYdBfQKBgQCFRl3d4b+GoVPh623iIVRYOkdmp4HhnwHLHBvUf9XC6JIJOyNZ\\nULuSMHbqvnvpaTaRKi/DJT0598IMWGM4qjbSsIY0bIxAYMqGi55xnIp/qGPMf4R8\\n9KzPtR5M8rLxOFvMY0kaD+bb1176oG2IhOR3Owo+abPK0/NfKDYZGFQUmQKBgES9\\nzYTgZWftGz8WTq/vTJqoI1tFfS90EGaPV1ItZ4//MVOAMoFV67y/rzo3jK31U5bz\\nS0octJt6AofUnz3mPv/oD+Ep30JhG8nfzgtHRwqAY61zAdO6R1KmzPMiG9dPD3Q7\\nfuZTal1dhPNQhGo44HxbyYQx9RTKeaaew0CMEoTpAoGAc8pBaIr1dqoAV6q4OLw4\\n+vXE8YbanY/1lJ2e4YGGoHhcS1JZJ2ULnqfMVVw29vdSVbISWOzSOyV62BSTSilm\\nN7s88WfBGMrciF+bAHYPvI9txJrlZ044T6q8m6uQiVqSt20f2foRvjo8WyW5rGxh\\nMZgNCYuY+a2LU91qEL7qTYg=\\n-----END PRIVATE KEY-----\\n\",\"clientEmail\":\"firebase-adminsdk-y0dmz@urvoice-98254.iam.gserviceaccount.com\",\"httpClient\":{\"retry\":{\"maxRetries\":4,\"statusCodes\":[503],\"ioErrorCodes\":[\"ECONNRESET\",\"ETIMEDOUT\"],\"backOffFactor\":0.5,\"maxDelayInMillis\":60000}}},\"databaseURL\":\"https://urvoice-98254-default-rtdb.asia-southeast1.firebasedatabase.app\"}"}}
+[debug] [2024-11-10T15:23:59.581Z] [runtime-status] [22772] Functions runtime initialized. {"cwd":"C:\\Users\\anhtu\\AndroidStudioProjects\\TheVoices\\functions","node_version":"20.5.0"} {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-helloWorld"},"extension":{},"message":"[runtime-status] [22772] Functions runtime initialized. {\"cwd\":\"C:\\\\Users\\\\anhtu\\\\AndroidStudioProjects\\\\TheVoices\\\\functions\",\"node_version\":\"20.5.0\"}"}}
+[debug] [2024-11-10T15:23:59.581Z] [runtime-status] [22772] Listening to port: \\?\pipe\fire_emu_8446495151fe6a2a {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-helloWorld"},"extension":{},"message":"[runtime-status] [22772] Listening to port: \\\\?\\pipe\\fire_emu_8446495151fe6a2a"}}
+[debug] [2024-11-10T15:23:59.647Z] [worker-us-central1-helloWorld-59949b5b-d0ce-45e8-8bea-92256e22fb15]: IDLE {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-helloWorld"},"extension":{},"message":"[worker-us-central1-helloWorld-59949b5b-d0ce-45e8-8bea-92256e22fb15]: IDLE"}}
+[debug] [2024-11-10T15:23:59.647Z] [worker-pool] submitRequest(triggerId=us-central1-helloWorld) {"metadata":{"emulator":{"name":"functions"},"message":"[worker-pool] submitRequest(triggerId=us-central1-helloWorld)"}}
+[info] i  functions: Beginning execution of "us-central1-helloWorld" {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-helloWorld"},"extension":{},"message":"Beginning execution of \"us-central1-helloWorld\""}}
+[debug] [2024-11-10T15:23:59.648Z] [worker-us-central1-helloWorld-59949b5b-d0ce-45e8-8bea-92256e22fb15]: BUSY {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-helloWorld"},"extension":{},"message":"[worker-us-central1-helloWorld-59949b5b-d0ce-45e8-8bea-92256e22fb15]: BUSY"}}
+[info] >  {"structuredData":true,"severity":"INFO","message":"Hello logs!"} {"user":{"structuredData":true,"severity":"INFO","message":"Hello logs!"},"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-helloWorld"},"extension":{},"message":"\u001b[90m> \u001b[39m {\"structuredData\":true,\"severity\":\"INFO\",\"message\":\"Hello logs!\"}"}}
+[debug] [2024-11-10T15:23:59.656Z] Finishing up request with event=pause {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-helloWorld"},"extension":{},"message":"Finishing up request with event=pause"}}
+[info] i  functions: Finished "us-central1-helloWorld" in 7.965ms {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-helloWorld"},"extension":{},"message":"Finished \"us-central1-helloWorld\" in 7.965ms"}}
+[debug] [2024-11-10T15:23:59.657Z] [worker-us-central1-helloWorld-59949b5b-d0ce-45e8-8bea-92256e22fb15]: IDLE {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-helloWorld"},"extension":{},"message":"[worker-us-central1-helloWorld-59949b5b-d0ce-45e8-8bea-92256e22fb15]: IDLE"}}
+[debug] [2024-11-10T15:23:59.657Z] Finishing up request with event=finish {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-helloWorld"},"extension":{},"message":"Finishing up request with event=finish"}}
+[debug] [2024-11-10T15:23:59.657Z] Finishing up request with event=close {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-helloWorld"},"extension":{},"message":"Finishing up request with event=close"}}
+[debug] [2024-11-10T15:23:59.657Z] [work-queue] {"queuedWork":[],"queueLength":0,"runningWork":[],"workRunningCount":0}
+[info] >  TypeError: Cannot read properties of undefined (reading 'auth') {"user":"TypeError: Cannot read properties of undefined (reading 'auth')","metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-helloWorld"},"extension":{},"message":"\u001b[90m> \u001b[39m TypeError: Cannot read properties of undefined (reading 'auth')"}}
+[info] >      at C:\Users\anhtu\AndroidStudioProjects\TheVoices\functions\Token\token.js:7:34 {"user":"    at C:\\Users\\anhtu\\AndroidStudioProjects\\TheVoices\\functions\\Token\\token.js:7:34","metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-helloWorld"},"extension":{},"message":"\u001b[90m> \u001b[39m     at C:\\Users\\anhtu\\AndroidStudioProjects\\TheVoices\\functions\\Token\\token.js:7:34"}}
+[info] >      at new Promise (<anonymous>) {"user":"    at new Promise (<anonymous>)","metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-helloWorld"},"extension":{},"message":"\u001b[90m> \u001b[39m     at new Promise (<anonymous>)"}}
+[info] >      at getAccessToken (C:\Users\anhtu\AndroidStudioProjects\TheVoices\functions\Token\token.js:5:10) {"user":"    at getAccessToken (C:\\Users\\anhtu\\AndroidStudioProjects\\TheVoices\\functions\\Token\\token.js:5:10)","metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-helloWorld"},"extension":{},"message":"\u001b[90m> \u001b[39m     at getAccessToken (C:\\Users\\anhtu\\AndroidStudioProjects\\TheVoices\\functions\\Token\\token.js:5:10)"}}
+[info] >      at C:\Users\anhtu\AndroidStudioProjects\TheVoices\functions\index.js:39:5 {"user":"    at C:\\Users\\anhtu\\AndroidStudioProjects\\TheVoices\\functions\\index.js:39:5","metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-helloWorld"},"extension":{},"message":"\u001b[90m> \u001b[39m     at C:\\Users\\anhtu\\AndroidStudioProjects\\TheVoices\\functions\\index.js:39:5"}}
+[info] >      at C:\Users\anhtu\AndroidStudioProjects\TheVoices\functions\node_modules\firebase-functions\lib\v2\providers\https.js:65:29 {"user":"    at C:\\Users\\anhtu\\AndroidStudioProjects\\TheVoices\\functions\\node_modules\\firebase-functions\\lib\\v2\\providers\\https.js:65:29","metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-helloWorld"},"extension":{},"message":"\u001b[90m> \u001b[39m     at C:\\Users\\anhtu\\AndroidStudioProjects\\TheVoices\\functions\\node_modules\\firebase-functions\\lib\\v2\\providers\\https.js:65:29"}}
+[info] >      at cors (C:\Users\anhtu\AndroidStudioProjects\TheVoices\functions\node_modules\cors\lib\index.js:188:7) {"user":"    at cors (C:\\Users\\anhtu\\AndroidStudioProjects\\TheVoices\\functions\\node_modules\\cors\\lib\\index.js:188:7)","metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-helloWorld"},"extension":{},"message":"\u001b[90m> \u001b[39m     at cors (C:\\Users\\anhtu\\AndroidStudioProjects\\TheVoices\\functions\\node_modules\\cors\\lib\\index.js:188:7)"}}
+[info] >      at C:\Users\anhtu\AndroidStudioProjects\TheVoices\functions\node_modules\cors\lib\index.js:224:17 {"user":"    at C:\\Users\\anhtu\\AndroidStudioProjects\\TheVoices\\functions\\node_modules\\cors\\lib\\index.js:224:17","metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-helloWorld"},"extension":{},"message":"\u001b[90m> \u001b[39m     at C:\\Users\\anhtu\\AndroidStudioProjects\\TheVoices\\functions\\node_modules\\cors\\lib\\index.js:224:17"}}
+[info] >      at originCallback (C:\Users\anhtu\AndroidStudioProjects\TheVoices\functions\node_modules\cors\lib\index.js:214:15) {"user":"    at originCallback (C:\\Users\\anhtu\\AndroidStudioProjects\\TheVoices\\functions\\node_modules\\cors\\lib\\index.js:214:15)","metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-helloWorld"},"extension":{},"message":"\u001b[90m> \u001b[39m     at originCallback (C:\\Users\\anhtu\\AndroidStudioProjects\\TheVoices\\functions\\node_modules\\cors\\lib\\index.js:214:15)"}}
+[info] >      at C:\Users\anhtu\AndroidStudioProjects\TheVoices\functions\node_modules\cors\lib\index.js:219:13 {"user":"    at C:\\Users\\anhtu\\AndroidStudioProjects\\TheVoices\\functions\\node_modules\\cors\\lib\\index.js:219:13","metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-helloWorld"},"extension":{},"message":"\u001b[90m> \u001b[39m     at C:\\Users\\anhtu\\AndroidStudioProjects\\TheVoices\\functions\\node_modules\\cors\\lib\\index.js:219:13"}}
+[info] >      at optionsCallback (C:\Users\anhtu\AndroidStudioProjects\TheVoices\functions\node_modules\cors\lib\index.js:199:9) {"user":"    at optionsCallback (C:\\Users\\anhtu\\AndroidStudioProjects\\TheVoices\\functions\\node_modules\\cors\\lib\\index.js:199:9)","metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-helloWorld"},"extension":{},"message":"\u001b[90m> \u001b[39m     at optionsCallback (C:\\Users\\anhtu\\AndroidStudioProjects\\TheVoices\\functions\\node_modules\\cors\\lib\\index.js:199:9)"}}
+[debug] [2024-11-10T15:25:12.953Z] File C:\Users\anhtu\AndroidStudioProjects\TheVoices\functions\index.js changed, reloading triggers {"metadata":{"emulator":{"name":"functions"},"message":"File C:\\Users\\anhtu\\AndroidStudioProjects\\TheVoices\\functions\\index.js changed, reloading triggers"}}
+[debug] [2024-11-10T15:25:13.965Z] Validating nodejs source
+[warn] !  functions: package.json indicates an outdated version of firebase-functions. Please upgrade using npm install --save firebase-functions@latest in your functions directory. 
+[warn] !  functions: Please note that there will be breaking changes when you upgrade. 
+[debug] [2024-11-10T15:25:15.527Z] > [functions] package.json contents: {
+  "name": "functions",
+  "description": "Cloud Functions for Firebase",
+  "scripts": {
+    "build": "",
+    "lint": "eslint",
+    "serve": "firebase emulators:start --only functions",
+    "shell": "firebase functions:shell",
+    "start": "npm run shell",
+    "deploy": "firebase deploy --only functions",
+    "logs": "firebase functions:log"
+  },
+  "engines": {
+    "node": "18"
+  },
+  "main": "index.js",
+  "dependencies": {
+    "@google-cloud/pubsub": "^4.8.0",
+    "bad-words": "^3.0.4",
+    "capitalize-sentence": "^0.1.5",
+    "firebase-admin": "^12.7.0",
+    "firebase-functions": "^5.1.1",
+    "functions": "file:",
+    "google-auth-library": "^9.14.2"
+  },
+  "devDependencies": {
+    "eslint": "^8.15.0",
+    "eslint-config-google": "^0.14.0",
+    "firebase-functions-test": "^3.1.0"
+  },
+  "private": true
+}
+[debug] [2024-11-10T15:25:15.527Z] Building nodejs source
+[debug] [2024-11-10T15:25:15.527Z] Failed to find version of module node: reached end of search path C:\Users\anhtu\AndroidStudioProjects\TheVoices\functions\node_modules
+[warn] !  functions: Your requested "node" version "18" doesn't match your global version "20". Using node@20 from host. 
+[debug] [2024-11-10T15:25:15.529Z] Could not find functions.yaml. Must use http discovery
+[debug] [2024-11-10T15:25:15.536Z] Found firebase-functions binary at 'C:\Users\anhtu\AndroidStudioProjects\TheVoices\functions\node_modules\.bin\firebase-functions'
+[info] Serving at port 8716
+
+[debug] [2024-11-10T15:25:16.468Z] Got response from /__/functions.yaml {"endpoints":{"helloWorld":{"availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"concurrency":null,"serviceAccountEmail":null,"vpc":null,"platform":"gcfv2","labels":{},"httpsTrigger":{},"entryPoint":"helloWorld"},"addmessage":{"availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"concurrency":null,"serviceAccountEmail":null,"vpc":null,"platform":"gcfv2","labels":{},"httpsTrigger":{},"entryPoint":"addmessage"},"addmessage2":{"availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"concurrency":null,"serviceAccountEmail":null,"vpc":null,"platform":"gcfv2","labels":{},"callableTrigger":{},"entryPoint":"addmessage2"},"makeuppercase":{"availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"concurrency":null,"serviceAccountEmail":null,"vpc":null,"platform":"gcfv2","labels":{},"eventTrigger":{"eventType":"google.cloud.firestore.document.v1.created","eventFilters":{"database":"(default)","namespace":"(default)"},"eventFilterPathPatterns":{"document":"messages/{documentId}"},"retry":false},"entryPoint":"makeuppercase"}},"specVersion":"v1alpha1","requiredAPIs":[],"extensions":{}}
+[info] +  functions: Loaded functions definitions from source: helloWorld, addmessage, addmessage2, makeuppercase. {"metadata":{"emulator":{"name":"functions"},"message":"Loaded functions definitions from source: helloWorld, addmessage, addmessage2, makeuppercase."}}
+[debug] [2024-11-10T15:25:21.492Z] [worker-pool] Shutting down IDLE worker (us-central1-helloWorld) {"metadata":{"emulator":{"name":"functions"},"message":"[worker-pool] Shutting down IDLE worker (us-central1-helloWorld)"}}
+[debug] [2024-11-10T15:25:21.492Z] [worker-us-central1-helloWorld-59949b5b-d0ce-45e8-8bea-92256e22fb15]: FINISHING {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-helloWorld"},"extension":{},"message":"[worker-us-central1-helloWorld-59949b5b-d0ce-45e8-8bea-92256e22fb15]: FINISHING"}}
+[debug] [2024-11-10T15:25:21.501Z] [worker-us-central1-helloWorld-59949b5b-d0ce-45e8-8bea-92256e22fb15]: exited {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-helloWorld"},"extension":{},"message":"[worker-us-central1-helloWorld-59949b5b-d0ce-45e8-8bea-92256e22fb15]: exited"}}
+[debug] [2024-11-10T15:25:21.501Z] [worker-us-central1-helloWorld-59949b5b-d0ce-45e8-8bea-92256e22fb15]: FINISHED {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-helloWorld"},"extension":{},"message":"[worker-us-central1-helloWorld-59949b5b-d0ce-45e8-8bea-92256e22fb15]: FINISHED"}}
+[debug] [2024-11-10T15:25:25.970Z] [work-queue] {"queuedWork":["/urvoice-98254/us-central1/helloWorld-2024-11-10T15:25:25.970Z"],"queueLength":1,"runningWork":[],"workRunningCount":0}
+[debug] [2024-11-10T15:25:25.970Z] [work-queue] {"queuedWork":[],"queueLength":0,"runningWork":["/urvoice-98254/us-central1/helloWorld-2024-11-10T15:25:25.970Z"],"workRunningCount":1}
+[debug] [2024-11-10T15:25:25.970Z] Accepted request GET /urvoice-98254/us-central1/helloWorld --> us-central1-helloWorld
+[debug] [2024-11-10T15:25:25.972Z] [functions] Runtime ready! Sending request! {"metadata":{"emulator":{"name":"functions"},"message":"[functions] Runtime ready! Sending request!"}}
+[debug] [2024-11-10T15:25:25.972Z] [functions] Got req.url=/urvoice-98254/us-central1/helloWorld, mapping to path=/ {"metadata":{"emulator":{"name":"functions"},"message":"[functions] Got req.url=/urvoice-98254/us-central1/helloWorld, mapping to path=/"}}
+[debug] [2024-11-10T15:25:25.972Z] [worker-pool] Cleaned up workers for us-central1-helloWorld: 1 --> 0 {"metadata":{"emulator":{"name":"functions"},"message":"[worker-pool] Cleaned up workers for us-central1-helloWorld: 1 --> 0"}}
+[debug] [2024-11-10T15:25:25.978Z] [worker-pool] addWorker(us-central1-helloWorld) {"metadata":{"emulator":{"name":"functions"},"message":"[worker-pool] addWorker(us-central1-helloWorld)"}}
+[debug] [2024-11-10T15:25:25.978Z] [worker-pool] Adding worker with key us-central1-helloWorld, total=1 {"metadata":{"emulator":{"name":"functions"},"message":"[worker-pool] Adding worker with key us-central1-helloWorld, total=1"}}
+[debug] [2024-11-10T15:25:27.325Z] [runtime-status] [4780] Resolved module firebase-admin {"declared":true,"installed":true,"version":"12.7.0","resolution":"C:\\Users\\anhtu\\AndroidStudioProjects\\TheVoices\\functions\\node_modules\\firebase-admin\\lib\\index.js"} {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-helloWorld"},"extension":{},"message":"[runtime-status] [4780] Resolved module firebase-admin {\"declared\":true,\"installed\":true,\"version\":\"12.7.0\",\"resolution\":\"C:\\\\Users\\\\anhtu\\\\AndroidStudioProjects\\\\TheVoices\\\\functions\\\\node_modules\\\\firebase-admin\\\\lib\\\\index.js\"}"}}
+[debug] [2024-11-10T15:25:27.326Z] [runtime-status] [4780] Resolved module firebase-functions {"declared":true,"installed":true,"version":"5.1.1","resolution":"C:\\Users\\anhtu\\AndroidStudioProjects\\TheVoices\\functions\\node_modules\\firebase-functions\\lib\\v1\\index.js"} {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-helloWorld"},"extension":{},"message":"[runtime-status] [4780] Resolved module firebase-functions {\"declared\":true,\"installed\":true,\"version\":\"5.1.1\",\"resolution\":\"C:\\\\Users\\\\anhtu\\\\AndroidStudioProjects\\\\TheVoices\\\\functions\\\\node_modules\\\\firebase-functions\\\\lib\\\\v1\\\\index.js\"}"}}
+[debug] [2024-11-10T15:25:27.327Z] [runtime-status] [4780] Outgoing network have been stubbed. [{"name":"http","status":"mocked"},{"name":"http","status":"mocked"},{"name":"https","status":"mocked"},{"name":"https","status":"mocked"},{"name":"net","status":"mocked"}] {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-helloWorld"},"extension":{},"message":"[runtime-status] [4780] Outgoing network have been stubbed. [{\"name\":\"http\",\"status\":\"mocked\"},{\"name\":\"http\",\"status\":\"mocked\"},{\"name\":\"https\",\"status\":\"mocked\"},{\"name\":\"https\",\"status\":\"mocked\"},{\"name\":\"net\",\"status\":\"mocked\"}]"}}
+[debug] [2024-11-10T15:25:27.328Z] [runtime-status] [4780] Resolved module firebase-functions {"declared":true,"installed":true,"version":"5.1.1","resolution":"C:\\Users\\anhtu\\AndroidStudioProjects\\TheVoices\\functions\\node_modules\\firebase-functions\\lib\\v1\\index.js"} {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-helloWorld"},"extension":{},"message":"[runtime-status] [4780] Resolved module firebase-functions {\"declared\":true,\"installed\":true,\"version\":\"5.1.1\",\"resolution\":\"C:\\\\Users\\\\anhtu\\\\AndroidStudioProjects\\\\TheVoices\\\\functions\\\\node_modules\\\\firebase-functions\\\\lib\\\\v1\\\\index.js\"}"}}
+[debug] [2024-11-10T15:25:27.606Z] [runtime-status] [4780] Checked functions.config() {"config":{}} {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-helloWorld"},"extension":{},"message":"[runtime-status] [4780] Checked functions.config() {\"config\":{}}"}}
+[debug] [2024-11-10T15:25:27.606Z] [runtime-status] [4780] firebase-functions has been stubbed. {"functionsResolution":{"declared":true,"installed":true,"version":"5.1.1","resolution":"C:\\Users\\anhtu\\AndroidStudioProjects\\TheVoices\\functions\\node_modules\\firebase-functions\\lib\\v1\\index.js"}} {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-helloWorld"},"extension":{},"message":"[runtime-status] [4780] firebase-functions has been stubbed. {\"functionsResolution\":{\"declared\":true,\"installed\":true,\"version\":\"5.1.1\",\"resolution\":\"C:\\\\Users\\\\anhtu\\\\AndroidStudioProjects\\\\TheVoices\\\\functions\\\\node_modules\\\\firebase-functions\\\\lib\\\\v1\\\\index.js\"}}"}}
+[debug] [2024-11-10T15:25:27.607Z] [runtime-status] [4780] Resolved module firebase-functions {"declared":true,"installed":true,"version":"5.1.1","resolution":"C:\\Users\\anhtu\\AndroidStudioProjects\\TheVoices\\functions\\node_modules\\firebase-functions\\lib\\v1\\index.js"} {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-helloWorld"},"extension":{},"message":"[runtime-status] [4780] Resolved module firebase-functions {\"declared\":true,\"installed\":true,\"version\":\"5.1.1\",\"resolution\":\"C:\\\\Users\\\\anhtu\\\\AndroidStudioProjects\\\\TheVoices\\\\functions\\\\node_modules\\\\firebase-functions\\\\lib\\\\v1\\\\index.js\"}"}}
+[debug] [2024-11-10T15:25:27.608Z] [runtime-status] [4780] Resolved module firebase-admin {"declared":true,"installed":true,"version":"12.7.0","resolution":"C:\\Users\\anhtu\\AndroidStudioProjects\\TheVoices\\functions\\node_modules\\firebase-admin\\lib\\index.js"} {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-helloWorld"},"extension":{},"message":"[runtime-status] [4780] Resolved module firebase-admin {\"declared\":true,\"installed\":true,\"version\":\"12.7.0\",\"resolution\":\"C:\\\\Users\\\\anhtu\\\\AndroidStudioProjects\\\\TheVoices\\\\functions\\\\node_modules\\\\firebase-admin\\\\lib\\\\index.js\"}"}}
+[debug] [2024-11-10T15:25:27.611Z] [runtime-status] [4780] Resolved module firebase-functions {"declared":true,"installed":true,"version":"5.1.1","resolution":"C:\\Users\\anhtu\\AndroidStudioProjects\\TheVoices\\functions\\node_modules\\firebase-functions\\lib\\v1\\index.js"} {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-helloWorld"},"extension":{},"message":"[runtime-status] [4780] Resolved module firebase-functions {\"declared\":true,\"installed\":true,\"version\":\"5.1.1\",\"resolution\":\"C:\\\\Users\\\\anhtu\\\\AndroidStudioProjects\\\\TheVoices\\\\functions\\\\node_modules\\\\firebase-functions\\\\lib\\\\v1\\\\index.js\"}"}}
+[debug] [2024-11-10T15:25:27.611Z] [runtime-status] [4780] firebase-admin has been stubbed. {"adminResolution":{"declared":true,"installed":true,"version":"12.7.0","resolution":"C:\\Users\\anhtu\\AndroidStudioProjects\\TheVoices\\functions\\node_modules\\firebase-admin\\lib\\index.js"}} {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-helloWorld"},"extension":{},"message":"[runtime-status] [4780] firebase-admin has been stubbed. {\"adminResolution\":{\"declared\":true,\"installed\":true,\"version\":\"12.7.0\",\"resolution\":\"C:\\\\Users\\\\anhtu\\\\AndroidStudioProjects\\\\TheVoices\\\\functions\\\\node_modules\\\\firebase-admin\\\\lib\\\\index.js\"}}"}}
+[debug] [2024-11-10T15:25:27.715Z] [runtime-status] [4780] initializeApp(DEFAULT) {"credential":{"implicit":false,"projectId":"urvoice-98254","privateKey":"-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQCn5CX25fcp6LnI\nI4vq/HqHdx2CsJsqaoacdAnnZe+lR82TCsu5WOqt+Iq9coGiAXIcvQgRj8tv+0vf\nN/mhtQ/Z5UFFJxFbVAL/CMbq10t+XsPyA1BiiB3Gu0ry15nhDwteqT3Ax14o3Dm2\n8MRQq+Ejli28Nfny3p+n458P/R1u0fzWm31rmQedDOEBiu9rLGd5cpHXLHuwnX5k\nmX2jLxX11in7Y3fNPPp6nRBMZ6kzRD3uXx0lxrB9BtogIwDomYJNsK1RngfHANzW\nBA7GB6T29zEm9VhNIoxmeWtt6a/w7oPfMUysOfYkSmOtqeUA5HIZyv2ld0FazOME\nfLvuRd/vAgMBAAECggEACRdsAOAFT67FEYC8Eztp2f6wYxym9ZfAKb+7SF13EGqA\nSA3ZG1sK/LHAg/xfGoOpulzej3wYbNXdKKP/PIT+bAyKL/4q5ljfZd0dT6ep9GVm\nuffFxhgpEjmfmBSzX5vkQAa58j/TKjMTj9CfT0XURfLCqXYvNO1eR7kMd4RIfQqc\nvYclS79WMkKA6OmyIOInvZ/N2pWXVSLibbkT6YiNjMkN46jnatwNvyVJ0fBUaQ7M\nDhXiqAiL8KfHQ54Zrurn9xuRWj1uUirMzXUkjp5v2Hu8aD2ENpmu+UXnFe0/L0Oo\nROv4v1ZeUy+cNH2pDMlC1ixOcxLRlO4U2klNQcI93QKBgQDs9mHDKEq7oyyOHysu\no3ObUBbl2ccAbEH3X5YalXny7nL4LIlhERBFpY2tMffjJMD7XafOI/NwBNybpRkm\nIA4zx2OSrIX+Qc4Z4PnJIDn62lNSHYKSsM8p/XxjksPhveqkSgvQ8kFBWxzgzE0S\nC+y/rxzRmw9Ws7quRBl0zqti2wKBgQC1YSzSJ490BLuLV9pM3i29tuI/n0kq08hJ\ntiPsrASCGZ2eWTx5tPpGvWW01I5KWm1WVrlKEITV9GUGhpja4+m34lByYdYdpWey\nSFpRudBmplUxuhzOA17vYwC9zNOXpIuhCwTyBvl5Oiy9dDIpE1fDxRsQwN+vhSCE\n1pC9zYdBfQKBgQCFRl3d4b+GoVPh623iIVRYOkdmp4HhnwHLHBvUf9XC6JIJOyNZ\nULuSMHbqvnvpaTaRKi/DJT0598IMWGM4qjbSsIY0bIxAYMqGi55xnIp/qGPMf4R8\n9KzPtR5M8rLxOFvMY0kaD+bb1176oG2IhOR3Owo+abPK0/NfKDYZGFQUmQKBgES9\nzYTgZWftGz8WTq/vTJqoI1tFfS90EGaPV1ItZ4//MVOAMoFV67y/rzo3jK31U5bz\nS0octJt6AofUnz3mPv/oD+Ep30JhG8nfzgtHRwqAY61zAdO6R1KmzPMiG9dPD3Q7\nfuZTal1dhPNQhGo44HxbyYQx9RTKeaaew0CMEoTpAoGAc8pBaIr1dqoAV6q4OLw4\n+vXE8YbanY/1lJ2e4YGGoHhcS1JZJ2ULnqfMVVw29vdSVbISWOzSOyV62BSTSilm\nN7s88WfBGMrciF+bAHYPvI9txJrlZ044T6q8m6uQiVqSt20f2foRvjo8WyW5rGxh\nMZgNCYuY+a2LU91qEL7qTYg=\n-----END PRIVATE KEY-----\n","clientEmail":"firebase-adminsdk-y0dmz@urvoice-98254.iam.gserviceaccount.com","httpClient":{"retry":{"maxRetries":4,"statusCodes":[503],"ioErrorCodes":["ECONNRESET","ETIMEDOUT"],"backOffFactor":0.5,"maxDelayInMillis":60000}}},"databaseURL":"https://urvoice-98254-default-rtdb.asia-southeast1.firebasedatabase.app"} {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-helloWorld"},"extension":{},"message":"[runtime-status] [4780] initializeApp(DEFAULT) {\"credential\":{\"implicit\":false,\"projectId\":\"urvoice-98254\",\"privateKey\":\"-----BEGIN PRIVATE KEY-----\\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQCn5CX25fcp6LnI\\nI4vq/HqHdx2CsJsqaoacdAnnZe+lR82TCsu5WOqt+Iq9coGiAXIcvQgRj8tv+0vf\\nN/mhtQ/Z5UFFJxFbVAL/CMbq10t+XsPyA1BiiB3Gu0ry15nhDwteqT3Ax14o3Dm2\\n8MRQq+Ejli28Nfny3p+n458P/R1u0fzWm31rmQedDOEBiu9rLGd5cpHXLHuwnX5k\\nmX2jLxX11in7Y3fNPPp6nRBMZ6kzRD3uXx0lxrB9BtogIwDomYJNsK1RngfHANzW\\nBA7GB6T29zEm9VhNIoxmeWtt6a/w7oPfMUysOfYkSmOtqeUA5HIZyv2ld0FazOME\\nfLvuRd/vAgMBAAECggEACRdsAOAFT67FEYC8Eztp2f6wYxym9ZfAKb+7SF13EGqA\\nSA3ZG1sK/LHAg/xfGoOpulzej3wYbNXdKKP/PIT+bAyKL/4q5ljfZd0dT6ep9GVm\\nuffFxhgpEjmfmBSzX5vkQAa58j/TKjMTj9CfT0XURfLCqXYvNO1eR7kMd4RIfQqc\\nvYclS79WMkKA6OmyIOInvZ/N2pWXVSLibbkT6YiNjMkN46jnatwNvyVJ0fBUaQ7M\\nDhXiqAiL8KfHQ54Zrurn9xuRWj1uUirMzXUkjp5v2Hu8aD2ENpmu+UXnFe0/L0Oo\\nROv4v1ZeUy+cNH2pDMlC1ixOcxLRlO4U2klNQcI93QKBgQDs9mHDKEq7oyyOHysu\\no3ObUBbl2ccAbEH3X5YalXny7nL4LIlhERBFpY2tMffjJMD7XafOI/NwBNybpRkm\\nIA4zx2OSrIX+Qc4Z4PnJIDn62lNSHYKSsM8p/XxjksPhveqkSgvQ8kFBWxzgzE0S\\nC+y/rxzRmw9Ws7quRBl0zqti2wKBgQC1YSzSJ490BLuLV9pM3i29tuI/n0kq08hJ\\ntiPsrASCGZ2eWTx5tPpGvWW01I5KWm1WVrlKEITV9GUGhpja4+m34lByYdYdpWey\\nSFpRudBmplUxuhzOA17vYwC9zNOXpIuhCwTyBvl5Oiy9dDIpE1fDxRsQwN+vhSCE\\n1pC9zYdBfQKBgQCFRl3d4b+GoVPh623iIVRYOkdmp4HhnwHLHBvUf9XC6JIJOyNZ\\nULuSMHbqvnvpaTaRKi/DJT0598IMWGM4qjbSsIY0bIxAYMqGi55xnIp/qGPMf4R8\\n9KzPtR5M8rLxOFvMY0kaD+bb1176oG2IhOR3Owo+abPK0/NfKDYZGFQUmQKBgES9\\nzYTgZWftGz8WTq/vTJqoI1tFfS90EGaPV1ItZ4//MVOAMoFV67y/rzo3jK31U5bz\\nS0octJt6AofUnz3mPv/oD+Ep30JhG8nfzgtHRwqAY61zAdO6R1KmzPMiG9dPD3Q7\\nfuZTal1dhPNQhGo44HxbyYQx9RTKeaaew0CMEoTpAoGAc8pBaIr1dqoAV6q4OLw4\\n+vXE8YbanY/1lJ2e4YGGoHhcS1JZJ2ULnqfMVVw29vdSVbISWOzSOyV62BSTSilm\\nN7s88WfBGMrciF+bAHYPvI9txJrlZ044T6q8m6uQiVqSt20f2foRvjo8WyW5rGxh\\nMZgNCYuY+a2LU91qEL7qTYg=\\n-----END PRIVATE KEY-----\\n\",\"clientEmail\":\"firebase-adminsdk-y0dmz@urvoice-98254.iam.gserviceaccount.com\",\"httpClient\":{\"retry\":{\"maxRetries\":4,\"statusCodes\":[503],\"ioErrorCodes\":[\"ECONNRESET\",\"ETIMEDOUT\"],\"backOffFactor\":0.5,\"maxDelayInMillis\":60000}}},\"databaseURL\":\"https://urvoice-98254-default-rtdb.asia-southeast1.firebasedatabase.app\"}"}}
+[debug] [2024-11-10T15:25:27.929Z] [runtime-status] [4780] Functions runtime initialized. {"cwd":"C:\\Users\\anhtu\\AndroidStudioProjects\\TheVoices\\functions","node_version":"20.5.0"} {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-helloWorld"},"extension":{},"message":"[runtime-status] [4780] Functions runtime initialized. {\"cwd\":\"C:\\\\Users\\\\anhtu\\\\AndroidStudioProjects\\\\TheVoices\\\\functions\",\"node_version\":\"20.5.0\"}"}}
+[debug] [2024-11-10T15:25:27.929Z] [runtime-status] [4780] Listening to port: \\?\pipe\fire_emu_82bd9c961678dc0e {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-helloWorld"},"extension":{},"message":"[runtime-status] [4780] Listening to port: \\\\?\\pipe\\fire_emu_82bd9c961678dc0e"}}
+[debug] [2024-11-10T15:25:28.041Z] [worker-us-central1-helloWorld-7c9e610a-ac15-40a2-8f46-2fe2ba82d29e]: IDLE {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-helloWorld"},"extension":{},"message":"[worker-us-central1-helloWorld-7c9e610a-ac15-40a2-8f46-2fe2ba82d29e]: IDLE"}}
+[debug] [2024-11-10T15:25:28.041Z] [worker-pool] submitRequest(triggerId=us-central1-helloWorld) {"metadata":{"emulator":{"name":"functions"},"message":"[worker-pool] submitRequest(triggerId=us-central1-helloWorld)"}}
+[info] i  functions: Beginning execution of "us-central1-helloWorld" {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-helloWorld"},"extension":{},"message":"Beginning execution of \"us-central1-helloWorld\""}}
+[debug] [2024-11-10T15:25:28.042Z] [worker-us-central1-helloWorld-7c9e610a-ac15-40a2-8f46-2fe2ba82d29e]: BUSY {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-helloWorld"},"extension":{},"message":"[worker-us-central1-helloWorld-7c9e610a-ac15-40a2-8f46-2fe2ba82d29e]: BUSY"}}
+[info] >  TypeError: Cannot read properties of undefined (reading 'auth') {"user":"TypeError: Cannot read properties of undefined (reading 'auth')","metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-helloWorld"},"extension":{},"message":"\u001b[90m> \u001b[39m TypeError: Cannot read properties of undefined (reading 'auth')"}}
+[info] >      at C:\Users\anhtu\AndroidStudioProjects\TheVoices\functions\Token\token.js:7:34 {"user":"    at C:\\Users\\anhtu\\AndroidStudioProjects\\TheVoices\\functions\\Token\\token.js:7:34","metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-helloWorld"},"extension":{},"message":"\u001b[90m> \u001b[39m     at C:\\Users\\anhtu\\AndroidStudioProjects\\TheVoices\\functions\\Token\\token.js:7:34"}}
+[info] >      at new Promise (<anonymous>) {"user":"    at new Promise (<anonymous>)","metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-helloWorld"},"extension":{},"message":"\u001b[90m> \u001b[39m     at new Promise (<anonymous>)"}}
+[info] >      at getAccessToken (C:\Users\anhtu\AndroidStudioProjects\TheVoices\functions\Token\token.js:5:10) {"user":"    at getAccessToken (C:\\Users\\anhtu\\AndroidStudioProjects\\TheVoices\\functions\\Token\\token.js:5:10)","metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-helloWorld"},"extension":{},"message":"\u001b[90m> \u001b[39m     at getAccessToken (C:\\Users\\anhtu\\AndroidStudioProjects\\TheVoices\\functions\\Token\\token.js:5:10)"}}
+[info] >      at C:\Users\anhtu\AndroidStudioProjects\TheVoices\functions\index.js:40:33 {"user":"    at C:\\Users\\anhtu\\AndroidStudioProjects\\TheVoices\\functions\\index.js:40:33","metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-helloWorld"},"extension":{},"message":"\u001b[90m> \u001b[39m     at C:\\Users\\anhtu\\AndroidStudioProjects\\TheVoices\\functions\\index.js:40:33"}}
+[info] >      at C:\Users\anhtu\AndroidStudioProjects\TheVoices\functions\node_modules\firebase-functions\lib\v2\providers\https.js:65:29 {"user":"    at C:\\Users\\anhtu\\AndroidStudioProjects\\TheVoices\\functions\\node_modules\\firebase-functions\\lib\\v2\\providers\\https.js:65:29","metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-helloWorld"},"extension":{},"message":"\u001b[90m> \u001b[39m     at C:\\Users\\anhtu\\AndroidStudioProjects\\TheVoices\\functions\\node_modules\\firebase-functions\\lib\\v2\\providers\\https.js:65:29"}}
+[info] >      at cors (C:\Users\anhtu\AndroidStudioProjects\TheVoices\functions\node_modules\cors\lib\index.js:188:7) {"user":"    at cors (C:\\Users\\anhtu\\AndroidStudioProjects\\TheVoices\\functions\\node_modules\\cors\\lib\\index.js:188:7)","metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-helloWorld"},"extension":{},"message":"\u001b[90m> \u001b[39m     at cors (C:\\Users\\anhtu\\AndroidStudioProjects\\TheVoices\\functions\\node_modules\\cors\\lib\\index.js:188:7)"}}
+[info] >      at C:\Users\anhtu\AndroidStudioProjects\TheVoices\functions\node_modules\cors\lib\index.js:224:17 {"user":"    at C:\\Users\\anhtu\\AndroidStudioProjects\\TheVoices\\functions\\node_modules\\cors\\lib\\index.js:224:17","metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-helloWorld"},"extension":{},"message":"\u001b[90m> \u001b[39m     at C:\\Users\\anhtu\\AndroidStudioProjects\\TheVoices\\functions\\node_modules\\cors\\lib\\index.js:224:17"}}
+[info] >      at originCallback (C:\Users\anhtu\AndroidStudioProjects\TheVoices\functions\node_modules\cors\lib\index.js:214:15) {"user":"    at originCallback (C:\\Users\\anhtu\\AndroidStudioProjects\\TheVoices\\functions\\node_modules\\cors\\lib\\index.js:214:15)","metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-helloWorld"},"extension":{},"message":"\u001b[90m> \u001b[39m     at originCallback (C:\\Users\\anhtu\\AndroidStudioProjects\\TheVoices\\functions\\node_modules\\cors\\lib\\index.js:214:15)"}}
+[info] >      at C:\Users\anhtu\AndroidStudioProjects\TheVoices\functions\node_modules\cors\lib\index.js:219:13 {"user":"    at C:\\Users\\anhtu\\AndroidStudioProjects\\TheVoices\\functions\\node_modules\\cors\\lib\\index.js:219:13","metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-helloWorld"},"extension":{},"message":"\u001b[90m> \u001b[39m     at C:\\Users\\anhtu\\AndroidStudioProjects\\TheVoices\\functions\\node_modules\\cors\\lib\\index.js:219:13"}}
+[info] >      at optionsCallback (C:\Users\anhtu\AndroidStudioProjects\TheVoices\functions\node_modules\cors\lib\index.js:199:9) {"user":"    at optionsCallback (C:\\Users\\anhtu\\AndroidStudioProjects\\TheVoices\\functions\\node_modules\\cors\\lib\\index.js:199:9)","metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-helloWorld"},"extension":{},"message":"\u001b[90m> \u001b[39m     at optionsCallback (C:\\Users\\anhtu\\AndroidStudioProjects\\TheVoices\\functions\\node_modules\\cors\\lib\\index.js:199:9)"}}
+[debug] [2024-11-10T15:25:28.051Z] Finishing up request with event=pause {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-helloWorld"},"extension":{},"message":"Finishing up request with event=pause"}}
+[info] i  functions: Finished "us-central1-helloWorld" in 8.9356ms {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-helloWorld"},"extension":{},"message":"Finished \"us-central1-helloWorld\" in 8.9356ms"}}
+[debug] [2024-11-10T15:25:28.051Z] [worker-us-central1-helloWorld-7c9e610a-ac15-40a2-8f46-2fe2ba82d29e]: IDLE {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-helloWorld"},"extension":{},"message":"[worker-us-central1-helloWorld-7c9e610a-ac15-40a2-8f46-2fe2ba82d29e]: IDLE"}}
+[debug] [2024-11-10T15:25:28.051Z] Finishing up request with event=finish {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-helloWorld"},"extension":{},"message":"Finishing up request with event=finish"}}
+[debug] [2024-11-10T15:25:28.052Z] Finishing up request with event=close {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-helloWorld"},"extension":{},"message":"Finishing up request with event=close"}}
+[debug] [2024-11-10T15:25:28.052Z] [work-queue] {"queuedWork":[],"queueLength":0,"runningWork":[],"workRunningCount":0}
+[debug] [2024-11-10T15:25:51.027Z] File C:\Users\anhtu\AndroidStudioProjects\TheVoices\functions\package-lock.json changed, reloading triggers {"metadata":{"emulator":{"name":"functions"},"message":"File C:\\Users\\anhtu\\AndroidStudioProjects\\TheVoices\\functions\\package-lock.json changed, reloading triggers"}}
+[debug] [2024-11-10T15:25:52.034Z] Validating nodejs source
+[warn] !  functions: package.json indicates an outdated version of firebase-functions. Please upgrade using npm install --save firebase-functions@latest in your functions directory. 
+[warn] !  functions: Please note that there will be breaking changes when you upgrade. 
+[debug] [2024-11-10T15:25:56.006Z] > [functions] package.json contents: {
+  "name": "functions",
+  "description": "Cloud Functions for Firebase",
+  "scripts": {
+    "build": "",
+    "lint": "eslint",
+    "serve": "firebase emulators:start --only functions",
+    "shell": "firebase functions:shell",
+    "start": "npm run shell",
+    "deploy": "firebase deploy --only functions",
+    "logs": "firebase functions:log"
+  },
+  "engines": {
+    "node": "18"
+  },
+  "main": "index.js",
+  "dependencies": {
+    "@google-cloud/pubsub": "^4.8.0",
+    "bad-words": "^3.0.4",
+    "capitalize-sentence": "^0.1.5",
+    "firebase-admin": "^12.7.0",
+    "firebase-functions": "^5.1.1",
+    "functions": "file:",
+    "google-auth-library": "^9.14.2"
+  },
+  "devDependencies": {
+    "eslint": "^8.15.0",
+    "eslint-config-google": "^0.14.0",
+    "firebase-functions-test": "^3.1.0"
+  },
+  "private": true
+}
+[debug] [2024-11-10T15:25:56.006Z] Building nodejs source
+[debug] [2024-11-10T15:25:56.006Z] Failed to find version of module node: reached end of search path C:\Users\anhtu\AndroidStudioProjects\TheVoices\functions\node_modules
+[warn] !  functions: Your requested "node" version "18" doesn't match your global version "20". Using node@20 from host. 
+[debug] [2024-11-10T15:25:56.007Z] Could not find functions.yaml. Must use http discovery
+[debug] [2024-11-10T15:25:56.013Z] Found firebase-functions binary at 'C:\Users\anhtu\AndroidStudioProjects\TheVoices\functions\node_modules\.bin\firebase-functions'
+[info] Serving at port 8935
+
+[debug] [2024-11-10T15:25:57.211Z] Got response from /__/functions.yaml {"endpoints":{"helloWorld":{"availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"concurrency":null,"serviceAccountEmail":null,"vpc":null,"platform":"gcfv2","labels":{},"httpsTrigger":{},"entryPoint":"helloWorld"},"addmessage":{"availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"concurrency":null,"serviceAccountEmail":null,"vpc":null,"platform":"gcfv2","labels":{},"httpsTrigger":{},"entryPoint":"addmessage"},"addmessage2":{"availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"concurrency":null,"serviceAccountEmail":null,"vpc":null,"platform":"gcfv2","labels":{},"callableTrigger":{},"entryPoint":"addmessage2"},"makeuppercase":{"availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"concurrency":null,"serviceAccountEmail":null,"vpc":null,"platform":"gcfv2","labels":{},"eventTrigger":{"eventType":"google.cloud.firestore.document.v1.created","eventFilters":{"database":"(default)","namespace":"(default)"},"eventFilterPathPatterns":{"document":"messages/{documentId}"},"retry":false},"entryPoint":"makeuppercase"}},"specVersion":"v1alpha1","requiredAPIs":[],"extensions":{}}
+[info] +  functions: Loaded functions definitions from source: helloWorld, addmessage, addmessage2, makeuppercase. {"metadata":{"emulator":{"name":"functions"},"message":"Loaded functions definitions from source: helloWorld, addmessage, addmessage2, makeuppercase."}}
+[debug] [2024-11-10T15:26:02.239Z] [worker-pool] Shutting down IDLE worker (us-central1-helloWorld) {"metadata":{"emulator":{"name":"functions"},"message":"[worker-pool] Shutting down IDLE worker (us-central1-helloWorld)"}}
+[debug] [2024-11-10T15:26:02.239Z] [worker-us-central1-helloWorld-7c9e610a-ac15-40a2-8f46-2fe2ba82d29e]: FINISHING {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-helloWorld"},"extension":{},"message":"[worker-us-central1-helloWorld-7c9e610a-ac15-40a2-8f46-2fe2ba82d29e]: FINISHING"}}
+[debug] [2024-11-10T15:26:02.250Z] [worker-us-central1-helloWorld-7c9e610a-ac15-40a2-8f46-2fe2ba82d29e]: exited {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-helloWorld"},"extension":{},"message":"[worker-us-central1-helloWorld-7c9e610a-ac15-40a2-8f46-2fe2ba82d29e]: exited"}}
+[debug] [2024-11-10T15:26:02.250Z] [worker-us-central1-helloWorld-7c9e610a-ac15-40a2-8f46-2fe2ba82d29e]: FINISHED {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-helloWorld"},"extension":{},"message":"[worker-us-central1-helloWorld-7c9e610a-ac15-40a2-8f46-2fe2ba82d29e]: FINISHED"}}
+[debug] [2024-11-10T15:28:01.434Z] File C:\Users\anhtu\AndroidStudioProjects\TheVoices\functions\Token\token.js changed, reloading triggers {"metadata":{"emulator":{"name":"functions"},"message":"File C:\\Users\\anhtu\\AndroidStudioProjects\\TheVoices\\functions\\Token\\token.js changed, reloading triggers"}}
+[debug] [2024-11-10T15:28:02.440Z] Validating nodejs source
+[warn] !  functions: package.json indicates an outdated version of firebase-functions. Please upgrade using npm install --save firebase-functions@latest in your functions directory. 
+[warn] !  functions: Please note that there will be breaking changes when you upgrade. 
+[debug] [2024-11-10T15:28:04.160Z] > [functions] package.json contents: {
+  "name": "functions",
+  "description": "Cloud Functions for Firebase",
+  "scripts": {
+    "build": "",
+    "lint": "eslint",
+    "serve": "firebase emulators:start --only functions",
+    "shell": "firebase functions:shell",
+    "start": "npm run shell",
+    "deploy": "firebase deploy --only functions",
+    "logs": "firebase functions:log"
+  },
+  "engines": {
+    "node": "18"
+  },
+  "main": "index.js",
+  "dependencies": {
+    "@google-cloud/pubsub": "^4.8.0",
+    "bad-words": "^3.0.4",
+    "capitalize-sentence": "^0.1.5",
+    "firebase-admin": "^12.7.0",
+    "firebase-functions": "^5.1.1",
+    "functions": "file:",
+    "google-auth-library": "^9.14.2"
+  },
+  "devDependencies": {
+    "eslint": "^8.15.0",
+    "eslint-config-google": "^0.14.0",
+    "firebase-functions-test": "^3.1.0"
+  },
+  "private": true
+}
+[debug] [2024-11-10T15:28:04.160Z] Building nodejs source
+[debug] [2024-11-10T15:28:04.160Z] Failed to find version of module node: reached end of search path C:\Users\anhtu\AndroidStudioProjects\TheVoices\functions\node_modules
+[warn] !  functions: Your requested "node" version "18" doesn't match your global version "20". Using node@20 from host. 
+[debug] [2024-11-10T15:28:04.161Z] Could not find functions.yaml. Must use http discovery
+[debug] [2024-11-10T15:28:04.167Z] Found firebase-functions binary at 'C:\Users\anhtu\AndroidStudioProjects\TheVoices\functions\node_modules\.bin\firebase-functions'
+[info] Serving at port 8552
+
+[debug] [2024-11-10T15:28:05.101Z] Got response from /__/functions.yaml {"endpoints":{"helloWorld":{"availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"concurrency":null,"serviceAccountEmail":null,"vpc":null,"platform":"gcfv2","labels":{},"httpsTrigger":{},"entryPoint":"helloWorld"},"addmessage":{"availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"concurrency":null,"serviceAccountEmail":null,"vpc":null,"platform":"gcfv2","labels":{},"httpsTrigger":{},"entryPoint":"addmessage"},"addmessage2":{"availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"concurrency":null,"serviceAccountEmail":null,"vpc":null,"platform":"gcfv2","labels":{},"callableTrigger":{},"entryPoint":"addmessage2"},"makeuppercase":{"availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"concurrency":null,"serviceAccountEmail":null,"vpc":null,"platform":"gcfv2","labels":{},"eventTrigger":{"eventType":"google.cloud.firestore.document.v1.created","eventFilters":{"database":"(default)","namespace":"(default)"},"eventFilterPathPatterns":{"document":"messages/{documentId}"},"retry":false},"entryPoint":"makeuppercase"}},"specVersion":"v1alpha1","requiredAPIs":[],"extensions":{}}
+[info] +  functions: Loaded functions definitions from source: helloWorld, addmessage, addmessage2, makeuppercase. {"metadata":{"emulator":{"name":"functions"},"message":"Loaded functions definitions from source: helloWorld, addmessage, addmessage2, makeuppercase."}}
+[debug] [2024-11-10T15:28:12.207Z] [work-queue] {"queuedWork":["/urvoice-98254/us-central1/helloWorld-2024-11-10T15:28:12.206Z"],"queueLength":1,"runningWork":[],"workRunningCount":0}
+[debug] [2024-11-10T15:28:12.207Z] [work-queue] {"queuedWork":[],"queueLength":0,"runningWork":["/urvoice-98254/us-central1/helloWorld-2024-11-10T15:28:12.206Z"],"workRunningCount":1}
+[debug] [2024-11-10T15:28:12.207Z] Accepted request GET /urvoice-98254/us-central1/helloWorld --> us-central1-helloWorld
+[debug] [2024-11-10T15:28:12.210Z] [functions] Runtime ready! Sending request! {"metadata":{"emulator":{"name":"functions"},"message":"[functions] Runtime ready! Sending request!"}}
+[debug] [2024-11-10T15:28:12.210Z] [functions] Got req.url=/urvoice-98254/us-central1/helloWorld, mapping to path=/ {"metadata":{"emulator":{"name":"functions"},"message":"[functions] Got req.url=/urvoice-98254/us-central1/helloWorld, mapping to path=/"}}
+[debug] [2024-11-10T15:28:12.210Z] [worker-pool] Cleaned up workers for us-central1-helloWorld: 1 --> 0 {"metadata":{"emulator":{"name":"functions"},"message":"[worker-pool] Cleaned up workers for us-central1-helloWorld: 1 --> 0"}}
+[debug] [2024-11-10T15:28:12.217Z] [worker-pool] addWorker(us-central1-helloWorld) {"metadata":{"emulator":{"name":"functions"},"message":"[worker-pool] addWorker(us-central1-helloWorld)"}}
+[debug] [2024-11-10T15:28:12.217Z] [worker-pool] Adding worker with key us-central1-helloWorld, total=1 {"metadata":{"emulator":{"name":"functions"},"message":"[worker-pool] Adding worker with key us-central1-helloWorld, total=1"}}
+[debug] [2024-11-10T15:28:13.597Z] [runtime-status] [9484] Resolved module firebase-admin {"declared":true,"installed":true,"version":"12.7.0","resolution":"C:\\Users\\anhtu\\AndroidStudioProjects\\TheVoices\\functions\\node_modules\\firebase-admin\\lib\\index.js"} {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-helloWorld"},"extension":{},"message":"[runtime-status] [9484] Resolved module firebase-admin {\"declared\":true,\"installed\":true,\"version\":\"12.7.0\",\"resolution\":\"C:\\\\Users\\\\anhtu\\\\AndroidStudioProjects\\\\TheVoices\\\\functions\\\\node_modules\\\\firebase-admin\\\\lib\\\\index.js\"}"}}
+[debug] [2024-11-10T15:28:13.600Z] [runtime-status] [9484] Resolved module firebase-functions {"declared":true,"installed":true,"version":"5.1.1","resolution":"C:\\Users\\anhtu\\AndroidStudioProjects\\TheVoices\\functions\\node_modules\\firebase-functions\\lib\\v1\\index.js"} {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-helloWorld"},"extension":{},"message":"[runtime-status] [9484] Resolved module firebase-functions {\"declared\":true,\"installed\":true,\"version\":\"5.1.1\",\"resolution\":\"C:\\\\Users\\\\anhtu\\\\AndroidStudioProjects\\\\TheVoices\\\\functions\\\\node_modules\\\\firebase-functions\\\\lib\\\\v1\\\\index.js\"}"}}
+[debug] [2024-11-10T15:28:13.600Z] [runtime-status] [9484] Outgoing network have been stubbed. [{"name":"http","status":"mocked"},{"name":"http","status":"mocked"},{"name":"https","status":"mocked"},{"name":"https","status":"mocked"},{"name":"net","status":"mocked"}] {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-helloWorld"},"extension":{},"message":"[runtime-status] [9484] Outgoing network have been stubbed. [{\"name\":\"http\",\"status\":\"mocked\"},{\"name\":\"http\",\"status\":\"mocked\"},{\"name\":\"https\",\"status\":\"mocked\"},{\"name\":\"https\",\"status\":\"mocked\"},{\"name\":\"net\",\"status\":\"mocked\"}]"}}
+[debug] [2024-11-10T15:28:13.602Z] [runtime-status] [9484] Resolved module firebase-functions {"declared":true,"installed":true,"version":"5.1.1","resolution":"C:\\Users\\anhtu\\AndroidStudioProjects\\TheVoices\\functions\\node_modules\\firebase-functions\\lib\\v1\\index.js"} {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-helloWorld"},"extension":{},"message":"[runtime-status] [9484] Resolved module firebase-functions {\"declared\":true,\"installed\":true,\"version\":\"5.1.1\",\"resolution\":\"C:\\\\Users\\\\anhtu\\\\AndroidStudioProjects\\\\TheVoices\\\\functions\\\\node_modules\\\\firebase-functions\\\\lib\\\\v1\\\\index.js\"}"}}
+[debug] [2024-11-10T15:28:13.903Z] [runtime-status] [9484] Checked functions.config() {"config":{}} {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-helloWorld"},"extension":{},"message":"[runtime-status] [9484] Checked functions.config() {\"config\":{}}"}}
+[debug] [2024-11-10T15:28:13.904Z] [runtime-status] [9484] firebase-functions has been stubbed. {"functionsResolution":{"declared":true,"installed":true,"version":"5.1.1","resolution":"C:\\Users\\anhtu\\AndroidStudioProjects\\TheVoices\\functions\\node_modules\\firebase-functions\\lib\\v1\\index.js"}} {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-helloWorld"},"extension":{},"message":"[runtime-status] [9484] firebase-functions has been stubbed. {\"functionsResolution\":{\"declared\":true,\"installed\":true,\"version\":\"5.1.1\",\"resolution\":\"C:\\\\Users\\\\anhtu\\\\AndroidStudioProjects\\\\TheVoices\\\\functions\\\\node_modules\\\\firebase-functions\\\\lib\\\\v1\\\\index.js\"}}"}}
+[debug] [2024-11-10T15:28:13.904Z] [runtime-status] [9484] Resolved module firebase-functions {"declared":true,"installed":true,"version":"5.1.1","resolution":"C:\\Users\\anhtu\\AndroidStudioProjects\\TheVoices\\functions\\node_modules\\firebase-functions\\lib\\v1\\index.js"} {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-helloWorld"},"extension":{},"message":"[runtime-status] [9484] Resolved module firebase-functions {\"declared\":true,\"installed\":true,\"version\":\"5.1.1\",\"resolution\":\"C:\\\\Users\\\\anhtu\\\\AndroidStudioProjects\\\\TheVoices\\\\functions\\\\node_modules\\\\firebase-functions\\\\lib\\\\v1\\\\index.js\"}"}}
+[debug] [2024-11-10T15:28:13.906Z] [runtime-status] [9484] Resolved module firebase-admin {"declared":true,"installed":true,"version":"12.7.0","resolution":"C:\\Users\\anhtu\\AndroidStudioProjects\\TheVoices\\functions\\node_modules\\firebase-admin\\lib\\index.js"} {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-helloWorld"},"extension":{},"message":"[runtime-status] [9484] Resolved module firebase-admin {\"declared\":true,\"installed\":true,\"version\":\"12.7.0\",\"resolution\":\"C:\\\\Users\\\\anhtu\\\\AndroidStudioProjects\\\\TheVoices\\\\functions\\\\node_modules\\\\firebase-admin\\\\lib\\\\index.js\"}"}}
+[debug] [2024-11-10T15:28:13.908Z] [runtime-status] [9484] Resolved module firebase-functions {"declared":true,"installed":true,"version":"5.1.1","resolution":"C:\\Users\\anhtu\\AndroidStudioProjects\\TheVoices\\functions\\node_modules\\firebase-functions\\lib\\v1\\index.js"} {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-helloWorld"},"extension":{},"message":"[runtime-status] [9484] Resolved module firebase-functions {\"declared\":true,\"installed\":true,\"version\":\"5.1.1\",\"resolution\":\"C:\\\\Users\\\\anhtu\\\\AndroidStudioProjects\\\\TheVoices\\\\functions\\\\node_modules\\\\firebase-functions\\\\lib\\\\v1\\\\index.js\"}"}}
+[debug] [2024-11-10T15:28:13.909Z] [runtime-status] [9484] firebase-admin has been stubbed. {"adminResolution":{"declared":true,"installed":true,"version":"12.7.0","resolution":"C:\\Users\\anhtu\\AndroidStudioProjects\\TheVoices\\functions\\node_modules\\firebase-admin\\lib\\index.js"}} {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-helloWorld"},"extension":{},"message":"[runtime-status] [9484] firebase-admin has been stubbed. {\"adminResolution\":{\"declared\":true,\"installed\":true,\"version\":\"12.7.0\",\"resolution\":\"C:\\\\Users\\\\anhtu\\\\AndroidStudioProjects\\\\TheVoices\\\\functions\\\\node_modules\\\\firebase-admin\\\\lib\\\\index.js\"}}"}}
+[debug] [2024-11-10T15:28:14.014Z] [runtime-status] [9484] initializeApp(DEFAULT) {"credential":{"implicit":false,"projectId":"urvoice-98254","privateKey":"-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQCn5CX25fcp6LnI\nI4vq/HqHdx2CsJsqaoacdAnnZe+lR82TCsu5WOqt+Iq9coGiAXIcvQgRj8tv+0vf\nN/mhtQ/Z5UFFJxFbVAL/CMbq10t+XsPyA1BiiB3Gu0ry15nhDwteqT3Ax14o3Dm2\n8MRQq+Ejli28Nfny3p+n458P/R1u0fzWm31rmQedDOEBiu9rLGd5cpHXLHuwnX5k\nmX2jLxX11in7Y3fNPPp6nRBMZ6kzRD3uXx0lxrB9BtogIwDomYJNsK1RngfHANzW\nBA7GB6T29zEm9VhNIoxmeWtt6a/w7oPfMUysOfYkSmOtqeUA5HIZyv2ld0FazOME\nfLvuRd/vAgMBAAECggEACRdsAOAFT67FEYC8Eztp2f6wYxym9ZfAKb+7SF13EGqA\nSA3ZG1sK/LHAg/xfGoOpulzej3wYbNXdKKP/PIT+bAyKL/4q5ljfZd0dT6ep9GVm\nuffFxhgpEjmfmBSzX5vkQAa58j/TKjMTj9CfT0XURfLCqXYvNO1eR7kMd4RIfQqc\nvYclS79WMkKA6OmyIOInvZ/N2pWXVSLibbkT6YiNjMkN46jnatwNvyVJ0fBUaQ7M\nDhXiqAiL8KfHQ54Zrurn9xuRWj1uUirMzXUkjp5v2Hu8aD2ENpmu+UXnFe0/L0Oo\nROv4v1ZeUy+cNH2pDMlC1ixOcxLRlO4U2klNQcI93QKBgQDs9mHDKEq7oyyOHysu\no3ObUBbl2ccAbEH3X5YalXny7nL4LIlhERBFpY2tMffjJMD7XafOI/NwBNybpRkm\nIA4zx2OSrIX+Qc4Z4PnJIDn62lNSHYKSsM8p/XxjksPhveqkSgvQ8kFBWxzgzE0S\nC+y/rxzRmw9Ws7quRBl0zqti2wKBgQC1YSzSJ490BLuLV9pM3i29tuI/n0kq08hJ\ntiPsrASCGZ2eWTx5tPpGvWW01I5KWm1WVrlKEITV9GUGhpja4+m34lByYdYdpWey\nSFpRudBmplUxuhzOA17vYwC9zNOXpIuhCwTyBvl5Oiy9dDIpE1fDxRsQwN+vhSCE\n1pC9zYdBfQKBgQCFRl3d4b+GoVPh623iIVRYOkdmp4HhnwHLHBvUf9XC6JIJOyNZ\nULuSMHbqvnvpaTaRKi/DJT0598IMWGM4qjbSsIY0bIxAYMqGi55xnIp/qGPMf4R8\n9KzPtR5M8rLxOFvMY0kaD+bb1176oG2IhOR3Owo+abPK0/NfKDYZGFQUmQKBgES9\nzYTgZWftGz8WTq/vTJqoI1tFfS90EGaPV1ItZ4//MVOAMoFV67y/rzo3jK31U5bz\nS0octJt6AofUnz3mPv/oD+Ep30JhG8nfzgtHRwqAY61zAdO6R1KmzPMiG9dPD3Q7\nfuZTal1dhPNQhGo44HxbyYQx9RTKeaaew0CMEoTpAoGAc8pBaIr1dqoAV6q4OLw4\n+vXE8YbanY/1lJ2e4YGGoHhcS1JZJ2ULnqfMVVw29vdSVbISWOzSOyV62BSTSilm\nN7s88WfBGMrciF+bAHYPvI9txJrlZ044T6q8m6uQiVqSt20f2foRvjo8WyW5rGxh\nMZgNCYuY+a2LU91qEL7qTYg=\n-----END PRIVATE KEY-----\n","clientEmail":"firebase-adminsdk-y0dmz@urvoice-98254.iam.gserviceaccount.com","httpClient":{"retry":{"maxRetries":4,"statusCodes":[503],"ioErrorCodes":["ECONNRESET","ETIMEDOUT"],"backOffFactor":0.5,"maxDelayInMillis":60000}}},"databaseURL":"https://urvoice-98254-default-rtdb.asia-southeast1.firebasedatabase.app"} {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-helloWorld"},"extension":{},"message":"[runtime-status] [9484] initializeApp(DEFAULT) {\"credential\":{\"implicit\":false,\"projectId\":\"urvoice-98254\",\"privateKey\":\"-----BEGIN PRIVATE KEY-----\\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQCn5CX25fcp6LnI\\nI4vq/HqHdx2CsJsqaoacdAnnZe+lR82TCsu5WOqt+Iq9coGiAXIcvQgRj8tv+0vf\\nN/mhtQ/Z5UFFJxFbVAL/CMbq10t+XsPyA1BiiB3Gu0ry15nhDwteqT3Ax14o3Dm2\\n8MRQq+Ejli28Nfny3p+n458P/R1u0fzWm31rmQedDOEBiu9rLGd5cpHXLHuwnX5k\\nmX2jLxX11in7Y3fNPPp6nRBMZ6kzRD3uXx0lxrB9BtogIwDomYJNsK1RngfHANzW\\nBA7GB6T29zEm9VhNIoxmeWtt6a/w7oPfMUysOfYkSmOtqeUA5HIZyv2ld0FazOME\\nfLvuRd/vAgMBAAECggEACRdsAOAFT67FEYC8Eztp2f6wYxym9ZfAKb+7SF13EGqA\\nSA3ZG1sK/LHAg/xfGoOpulzej3wYbNXdKKP/PIT+bAyKL/4q5ljfZd0dT6ep9GVm\\nuffFxhgpEjmfmBSzX5vkQAa58j/TKjMTj9CfT0XURfLCqXYvNO1eR7kMd4RIfQqc\\nvYclS79WMkKA6OmyIOInvZ/N2pWXVSLibbkT6YiNjMkN46jnatwNvyVJ0fBUaQ7M\\nDhXiqAiL8KfHQ54Zrurn9xuRWj1uUirMzXUkjp5v2Hu8aD2ENpmu+UXnFe0/L0Oo\\nROv4v1ZeUy+cNH2pDMlC1ixOcxLRlO4U2klNQcI93QKBgQDs9mHDKEq7oyyOHysu\\no3ObUBbl2ccAbEH3X5YalXny7nL4LIlhERBFpY2tMffjJMD7XafOI/NwBNybpRkm\\nIA4zx2OSrIX+Qc4Z4PnJIDn62lNSHYKSsM8p/XxjksPhveqkSgvQ8kFBWxzgzE0S\\nC+y/rxzRmw9Ws7quRBl0zqti2wKBgQC1YSzSJ490BLuLV9pM3i29tuI/n0kq08hJ\\ntiPsrASCGZ2eWTx5tPpGvWW01I5KWm1WVrlKEITV9GUGhpja4+m34lByYdYdpWey\\nSFpRudBmplUxuhzOA17vYwC9zNOXpIuhCwTyBvl5Oiy9dDIpE1fDxRsQwN+vhSCE\\n1pC9zYdBfQKBgQCFRl3d4b+GoVPh623iIVRYOkdmp4HhnwHLHBvUf9XC6JIJOyNZ\\nULuSMHbqvnvpaTaRKi/DJT0598IMWGM4qjbSsIY0bIxAYMqGi55xnIp/qGPMf4R8\\n9KzPtR5M8rLxOFvMY0kaD+bb1176oG2IhOR3Owo+abPK0/NfKDYZGFQUmQKBgES9\\nzYTgZWftGz8WTq/vTJqoI1tFfS90EGaPV1ItZ4//MVOAMoFV67y/rzo3jK31U5bz\\nS0octJt6AofUnz3mPv/oD+Ep30JhG8nfzgtHRwqAY61zAdO6R1KmzPMiG9dPD3Q7\\nfuZTal1dhPNQhGo44HxbyYQx9RTKeaaew0CMEoTpAoGAc8pBaIr1dqoAV6q4OLw4\\n+vXE8YbanY/1lJ2e4YGGoHhcS1JZJ2ULnqfMVVw29vdSVbISWOzSOyV62BSTSilm\\nN7s88WfBGMrciF+bAHYPvI9txJrlZ044T6q8m6uQiVqSt20f2foRvjo8WyW5rGxh\\nMZgNCYuY+a2LU91qEL7qTYg=\\n-----END PRIVATE KEY-----\\n\",\"clientEmail\":\"firebase-adminsdk-y0dmz@urvoice-98254.iam.gserviceaccount.com\",\"httpClient\":{\"retry\":{\"maxRetries\":4,\"statusCodes\":[503],\"ioErrorCodes\":[\"ECONNRESET\",\"ETIMEDOUT\"],\"backOffFactor\":0.5,\"maxDelayInMillis\":60000}}},\"databaseURL\":\"https://urvoice-98254-default-rtdb.asia-southeast1.firebasedatabase.app\"}"}}
+[debug] [2024-11-10T15:28:14.227Z] [runtime-status] [9484] Functions runtime initialized. {"cwd":"C:\\Users\\anhtu\\AndroidStudioProjects\\TheVoices\\functions","node_version":"20.5.0"} {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-helloWorld"},"extension":{},"message":"[runtime-status] [9484] Functions runtime initialized. {\"cwd\":\"C:\\\\Users\\\\anhtu\\\\AndroidStudioProjects\\\\TheVoices\\\\functions\",\"node_version\":\"20.5.0\"}"}}
+[debug] [2024-11-10T15:28:14.228Z] [runtime-status] [9484] Listening to port: \\?\pipe\fire_emu_69e11a38100d4702 {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-helloWorld"},"extension":{},"message":"[runtime-status] [9484] Listening to port: \\\\?\\pipe\\fire_emu_69e11a38100d4702"}}
+[debug] [2024-11-10T15:28:14.301Z] [worker-us-central1-helloWorld-480d20d4-3fdc-4927-ac87-b4fac4e711d4]: IDLE {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-helloWorld"},"extension":{},"message":"[worker-us-central1-helloWorld-480d20d4-3fdc-4927-ac87-b4fac4e711d4]: IDLE"}}
+[debug] [2024-11-10T15:28:14.301Z] [worker-pool] submitRequest(triggerId=us-central1-helloWorld) {"metadata":{"emulator":{"name":"functions"},"message":"[worker-pool] submitRequest(triggerId=us-central1-helloWorld)"}}
+[info] i  functions: Beginning execution of "us-central1-helloWorld" {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-helloWorld"},"extension":{},"message":"Beginning execution of \"us-central1-helloWorld\""}}
+[debug] [2024-11-10T15:28:14.302Z] [worker-us-central1-helloWorld-480d20d4-3fdc-4927-ac87-b4fac4e711d4]: BUSY {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-helloWorld"},"extension":{},"message":"[worker-us-central1-helloWorld-480d20d4-3fdc-4927-ac87-b4fac4e711d4]: BUSY"}}
+[warn] !  Google API requested!
+   - URL: "https://www.googleapis.com/oauth2/v4/token"
+   - Be careful, this may be a production service. {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-helloWorld"},"extension":{},"message":"Google API requested!\n   - URL: \"https://www.googleapis.com/oauth2/v4/token\"\n   - Be careful, this may be a production service."}}
+[info] >  ya29.c.c0ASRK0GYgwkp4Ww-MgQJrbwDtSSm3XkZy5wi6FRymYfhTBosNKgVBWerxEyqWhzcwyJnElW7fql6D60mhrhggcGJtBPo1YMQFzmD2LEFZadrRZiY148YCdGvh1ss_6B1R74Pm-RCh16h_muHct8uwgUAqu_aagqofNFSZYM0PSAcuhuWidJwycLvOW_ETyj406toeGSR2Pug4EapCAnRTF5ILG0B4TMSkN9feiOTfnbVpps0qnlmLFpvY50IVLa0VoGV3M8F7dsHSh4cM0AnuLrWpc81dCHa54z1XTkNSchf6PJYOMnuITgtD5Qc-9a6lo_eKrobqB0Z6wIIjZkjDlLuN96KiMMXexloc7ypNid5A-saJCpy_SoQH384Cr1_fOUho7uzd65vjSOpyzfUfoRzf_F0oMXBYnqYJnVBFr4gR56ajntaaw0xe45UXYsYaOU4Rzb1Xtt4z2uVU7sStqB_prF8opvykxwvQj7nBtjr2unhJROfQpZtRiyumS1a9oyoFjSU1jzxJiBYk1iBugj4Bd5yIrUvkp4ygMJiUdmefaFiehyd53eFVsZz1h4nBlZleUXzV3lSik3VfrYpIhz25ob3hW8scXz9rXpijIpxmokj50cdQ36Yo-3Uk36huej29rMOy4wuhyI5phFVz43lgIsQsvwR0tR0_e_m3_09jSjJ6Zf-wr4gcpmWbi_2yxW4lyl8z2J3ccJcJnwQp2rZUxbbywpoOf3Zixl62hYxSyvb-WznuVkhb0jFBMmWmrx4v5uc531YJrkkUoj2f20ZIjuedyzJZ52bMs78bXxyntru9iFk36swch550-aR-Xc9F0gdt_jmjjg4pkS_qIZhWfZO3yRjF9fqyW8ViBO3qSZpgwmYUl7zpilb9vbyUebSMxUdgJfZqqgn2ix9ox0tORwcJQvmRt-MUenyJ5QJas08y2vlFdsgUuunyy2a97s_h16W2QmoVWdqJce8sIcmj2qhJUbpXBOr6Bz6UeOo3FwuRkWlShi1 {"user":"ya29.c.c0ASRK0GYgwkp4Ww-MgQJrbwDtSSm3XkZy5wi6FRymYfhTBosNKgVBWerxEyqWhzcwyJnElW7fql6D60mhrhggcGJtBPo1YMQFzmD2LEFZadrRZiY148YCdGvh1ss_6B1R74Pm-RCh16h_muHct8uwgUAqu_aagqofNFSZYM0PSAcuhuWidJwycLvOW_ETyj406toeGSR2Pug4EapCAnRTF5ILG0B4TMSkN9feiOTfnbVpps0qnlmLFpvY50IVLa0VoGV3M8F7dsHSh4cM0AnuLrWpc81dCHa54z1XTkNSchf6PJYOMnuITgtD5Qc-9a6lo_eKrobqB0Z6wIIjZkjDlLuN96KiMMXexloc7ypNid5A-saJCpy_SoQH384Cr1_fOUho7uzd65vjSOpyzfUfoRzf_F0oMXBYnqYJnVBFr4gR56ajntaaw0xe45UXYsYaOU4Rzb1Xtt4z2uVU7sStqB_prF8opvykxwvQj7nBtjr2unhJROfQpZtRiyumS1a9oyoFjSU1jzxJiBYk1iBugj4Bd5yIrUvkp4ygMJiUdmefaFiehyd53eFVsZz1h4nBlZleUXzV3lSik3VfrYpIhz25ob3hW8scXz9rXpijIpxmokj50cdQ36Yo-3Uk36huej29rMOy4wuhyI5phFVz43lgIsQsvwR0tR0_e_m3_09jSjJ6Zf-wr4gcpmWbi_2yxW4lyl8z2J3ccJcJnwQp2rZUxbbywpoOf3Zixl62hYxSyvb-WznuVkhb0jFBMmWmrx4v5uc531YJrkkUoj2f20ZIjuedyzJZ52bMs78bXxyntru9iFk36swch550-aR-Xc9F0gdt_jmjjg4pkS_qIZhWfZO3yRjF9fqyW8ViBO3qSZpgwmYUl7zpilb9vbyUebSMxUdgJfZqqgn2ix9ox0tORwcJQvmRt-MUenyJ5QJas08y2vlFdsgUuunyy2a97s_h16W2QmoVWdqJce8sIcmj2qhJUbpXBOr6Bz6UeOo3FwuRkWlShi1","metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-helloWorld"},"extension":{},"message":"\u001b[90m> \u001b[39m ya29.c.c0ASRK0GYgwkp4Ww-MgQJrbwDtSSm3XkZy5wi6FRymYfhTBosNKgVBWerxEyqWhzcwyJnElW7fql6D60mhrhggcGJtBPo1YMQFzmD2LEFZadrRZiY148YCdGvh1ss_6B1R74Pm-RCh16h_muHct8uwgUAqu_aagqofNFSZYM0PSAcuhuWidJwycLvOW_ETyj406toeGSR2Pug4EapCAnRTF5ILG0B4TMSkN9feiOTfnbVpps0qnlmLFpvY50IVLa0VoGV3M8F7dsHSh4cM0AnuLrWpc81dCHa54z1XTkNSchf6PJYOMnuITgtD5Qc-9a6lo_eKrobqB0Z6wIIjZkjDlLuN96KiMMXexloc7ypNid5A-saJCpy_SoQH384Cr1_fOUho7uzd65vjSOpyzfUfoRzf_F0oMXBYnqYJnVBFr4gR56ajntaaw0xe45UXYsYaOU4Rzb1Xtt4z2uVU7sStqB_prF8opvykxwvQj7nBtjr2unhJROfQpZtRiyumS1a9oyoFjSU1jzxJiBYk1iBugj4Bd5yIrUvkp4ygMJiUdmefaFiehyd53eFVsZz1h4nBlZleUXzV3lSik3VfrYpIhz25ob3hW8scXz9rXpijIpxmokj50cdQ36Yo-3Uk36huej29rMOy4wuhyI5phFVz43lgIsQsvwR0tR0_e_m3_09jSjJ6Zf-wr4gcpmWbi_2yxW4lyl8z2J3ccJcJnwQp2rZUxbbywpoOf3Zixl62hYxSyvb-WznuVkhb0jFBMmWmrx4v5uc531YJrkkUoj2f20ZIjuedyzJZ52bMs78bXxyntru9iFk36swch550-aR-Xc9F0gdt_jmjjg4pkS_qIZhWfZO3yRjF9fqyW8ViBO3qSZpgwmYUl7zpilb9vbyUebSMxUdgJfZqqgn2ix9ox0tORwcJQvmRt-MUenyJ5QJas08y2vlFdsgUuunyy2a97s_h16W2QmoVWdqJce8sIcmj2qhJUbpXBOr6Bz6UeOo3FwuRkWlShi1"}}
+[debug] [2024-11-10T15:28:14.526Z] Finishing up request with event=pause {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-helloWorld"},"extension":{},"message":"Finishing up request with event=pause"}}
+[info] i  functions: Finished "us-central1-helloWorld" in 224.1087ms {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-helloWorld"},"extension":{},"message":"Finished \"us-central1-helloWorld\" in 224.1087ms"}}
+[debug] [2024-11-10T15:28:14.526Z] [worker-us-central1-helloWorld-480d20d4-3fdc-4927-ac87-b4fac4e711d4]: IDLE {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-helloWorld"},"extension":{},"message":"[worker-us-central1-helloWorld-480d20d4-3fdc-4927-ac87-b4fac4e711d4]: IDLE"}}
+[debug] [2024-11-10T15:28:14.526Z] Finishing up request with event=finish {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-helloWorld"},"extension":{},"message":"Finishing up request with event=finish"}}
+[debug] [2024-11-10T15:28:14.526Z] Finishing up request with event=close {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-helloWorld"},"extension":{},"message":"Finishing up request with event=close"}}
+[debug] [2024-11-10T15:28:14.526Z] [work-queue] {"queuedWork":[],"queueLength":0,"runningWork":[],"workRunningCount":0}
+[debug] [2024-11-10T15:32:27.335Z] File C:\Users\anhtu\AndroidStudioProjects\TheVoices\functions\index.js changed, reloading triggers {"metadata":{"emulator":{"name":"functions"},"message":"File C:\\Users\\anhtu\\AndroidStudioProjects\\TheVoices\\functions\\index.js changed, reloading triggers"}}
+[debug] [2024-11-10T15:32:28.337Z] Validating nodejs source
+[warn] !  functions: package.json indicates an outdated version of firebase-functions. Please upgrade using npm install --save firebase-functions@latest in your functions directory. 
+[warn] !  functions: Please note that there will be breaking changes when you upgrade. 
+[debug] [2024-11-10T15:32:30.065Z] > [functions] package.json contents: {
+  "name": "functions",
+  "description": "Cloud Functions for Firebase",
+  "scripts": {
+    "build": "",
+    "lint": "eslint",
+    "serve": "firebase emulators:start --only functions",
+    "shell": "firebase functions:shell",
+    "start": "npm run shell",
+    "deploy": "firebase deploy --only functions",
+    "logs": "firebase functions:log"
+  },
+  "engines": {
+    "node": "18"
+  },
+  "main": "index.js",
+  "dependencies": {
+    "@google-cloud/pubsub": "^4.8.0",
+    "bad-words": "^3.0.4",
+    "capitalize-sentence": "^0.1.5",
+    "firebase-admin": "^12.7.0",
+    "firebase-functions": "^5.1.1",
+    "functions": "file:",
+    "google-auth-library": "^9.14.2"
+  },
+  "devDependencies": {
+    "eslint": "^8.15.0",
+    "eslint-config-google": "^0.14.0",
+    "firebase-functions-test": "^3.1.0"
+  },
+  "private": true
+}
+[debug] [2024-11-10T15:32:30.065Z] Building nodejs source
+[debug] [2024-11-10T15:32:30.066Z] Failed to find version of module node: reached end of search path C:\Users\anhtu\AndroidStudioProjects\TheVoices\functions\node_modules
+[warn] !  functions: Your requested "node" version "18" doesn't match your global version "20". Using node@20 from host. 
+[debug] [2024-11-10T15:32:30.067Z] Could not find functions.yaml. Must use http discovery
+[debug] [2024-11-10T15:32:30.072Z] Found firebase-functions binary at 'C:\Users\anhtu\AndroidStudioProjects\TheVoices\functions\node_modules\.bin\firebase-functions'
+[info] Serving at port 8953
+
+[debug] [2024-11-10T15:32:31.002Z] Got response from /__/functions.yaml {"endpoints":{"helloWorld":{"availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"concurrency":null,"serviceAccountEmail":null,"vpc":null,"platform":"gcfv2","labels":{},"httpsTrigger":{},"entryPoint":"helloWorld"},"addmessage":{"availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"concurrency":null,"serviceAccountEmail":null,"vpc":null,"platform":"gcfv2","labels":{},"httpsTrigger":{},"entryPoint":"addmessage"},"addmessage2":{"availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"concurrency":null,"serviceAccountEmail":null,"vpc":null,"platform":"gcfv2","labels":{},"callableTrigger":{},"entryPoint":"addmessage2"},"makeuppercase":{"availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"concurrency":null,"serviceAccountEmail":null,"vpc":null,"platform":"gcfv2","labels":{},"eventTrigger":{"eventType":"google.cloud.firestore.document.v1.created","eventFilters":{"database":"(default)","namespace":"(default)"},"eventFilterPathPatterns":{"document":"messages/{documentId}"},"retry":false},"entryPoint":"makeuppercase"}},"specVersion":"v1alpha1","requiredAPIs":[],"extensions":{}}
+[info] +  functions: Loaded functions definitions from source: helloWorld, addmessage, addmessage2, makeuppercase. {"metadata":{"emulator":{"name":"functions"},"message":"Loaded functions definitions from source: helloWorld, addmessage, addmessage2, makeuppercase."}}
+[debug] [2024-11-10T15:32:36.022Z] [worker-pool] Shutting down IDLE worker (us-central1-helloWorld) {"metadata":{"emulator":{"name":"functions"},"message":"[worker-pool] Shutting down IDLE worker (us-central1-helloWorld)"}}
+[debug] [2024-11-10T15:32:36.022Z] [worker-us-central1-helloWorld-480d20d4-3fdc-4927-ac87-b4fac4e711d4]: FINISHING {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-helloWorld"},"extension":{},"message":"[worker-us-central1-helloWorld-480d20d4-3fdc-4927-ac87-b4fac4e711d4]: FINISHING"}}
+[debug] [2024-11-10T15:32:36.031Z] [worker-us-central1-helloWorld-480d20d4-3fdc-4927-ac87-b4fac4e711d4]: exited {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-helloWorld"},"extension":{},"message":"[worker-us-central1-helloWorld-480d20d4-3fdc-4927-ac87-b4fac4e711d4]: exited"}}
+[debug] [2024-11-10T15:32:36.031Z] [worker-us-central1-helloWorld-480d20d4-3fdc-4927-ac87-b4fac4e711d4]: FINISHED {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-helloWorld"},"extension":{},"message":"[worker-us-central1-helloWorld-480d20d4-3fdc-4927-ac87-b4fac4e711d4]: FINISHED"}}
+[debug] [2024-11-10T15:56:46.809Z] File C:\Users\anhtu\AndroidStudioProjects\TheVoices\functions\notifications\likeNoti.js changed, reloading triggers {"metadata":{"emulator":{"name":"functions"},"message":"File C:\\Users\\anhtu\\AndroidStudioProjects\\TheVoices\\functions\\notifications\\likeNoti.js changed, reloading triggers"}}
+[debug] [2024-11-10T15:56:47.823Z] Validating nodejs source
+[warn] !  functions: package.json indicates an outdated version of firebase-functions. Please upgrade using npm install --save firebase-functions@latest in your functions directory. 
+[warn] !  functions: Please note that there will be breaking changes when you upgrade. 
+[debug] [2024-11-10T15:56:50.131Z] > [functions] package.json contents: {
+  "name": "functions",
+  "description": "Cloud Functions for Firebase",
+  "scripts": {
+    "build": "",
+    "lint": "eslint",
+    "serve": "firebase emulators:start --only functions",
+    "shell": "firebase functions:shell",
+    "start": "npm run shell",
+    "deploy": "firebase deploy --only functions",
+    "logs": "firebase functions:log"
+  },
+  "engines": {
+    "node": "18"
+  },
+  "main": "index.js",
+  "dependencies": {
+    "@google-cloud/pubsub": "^4.8.0",
+    "bad-words": "^3.0.4",
+    "capitalize-sentence": "^0.1.5",
+    "firebase-admin": "^12.7.0",
+    "firebase-functions": "^5.1.1",
+    "functions": "file:",
+    "google-auth-library": "^9.14.2"
+  },
+  "devDependencies": {
+    "eslint": "^8.15.0",
+    "eslint-config-google": "^0.14.0",
+    "firebase-functions-test": "^3.1.0"
+  },
+  "private": true
+}
+[debug] [2024-11-10T15:56:50.132Z] Building nodejs source
+[debug] [2024-11-10T15:56:50.132Z] Failed to find version of module node: reached end of search path C:\Users\anhtu\AndroidStudioProjects\TheVoices\functions\node_modules
+[warn] !  functions: Your requested "node" version "18" doesn't match your global version "20". Using node@20 from host. 
+[debug] [2024-11-10T15:56:50.133Z] Could not find functions.yaml. Must use http discovery
+[debug] [2024-11-10T15:56:50.139Z] Found firebase-functions binary at 'C:\Users\anhtu\AndroidStudioProjects\TheVoices\functions\node_modules\.bin\firebase-functions'
+[info] Serving at port 8888
+
+[debug] [2024-11-10T15:56:51.108Z] Got response from /__/functions.yaml {"endpoints":{"helloWorld":{"availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"concurrency":null,"serviceAccountEmail":null,"vpc":null,"platform":"gcfv2","labels":{},"httpsTrigger":{},"entryPoint":"helloWorld"},"addmessage":{"availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"concurrency":null,"serviceAccountEmail":null,"vpc":null,"platform":"gcfv2","labels":{},"httpsTrigger":{},"entryPoint":"addmessage"},"addmessage2":{"availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"concurrency":null,"serviceAccountEmail":null,"vpc":null,"platform":"gcfv2","labels":{},"callableTrigger":{},"entryPoint":"addmessage2"},"makeuppercase":{"availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"concurrency":null,"serviceAccountEmail":null,"vpc":null,"platform":"gcfv2","labels":{},"eventTrigger":{"eventType":"google.cloud.firestore.document.v1.created","eventFilters":{"database":"(default)","namespace":"(default)"},"eventFilterPathPatterns":{"document":"messages/{documentId}"},"retry":false},"entryPoint":"makeuppercase"}},"specVersion":"v1alpha1","requiredAPIs":[],"extensions":{}}
+[info] +  functions: Loaded functions definitions from source: helloWorld, addmessage, addmessage2, makeuppercase. {"metadata":{"emulator":{"name":"functions"},"message":"Loaded functions definitions from source: helloWorld, addmessage, addmessage2, makeuppercase."}}
+[debug] [2024-11-10T16:06:26.536Z] File C:\Users\anhtu\AndroidStudioProjects\TheVoices\functions\package.json changed, reloading triggers {"metadata":{"emulator":{"name":"functions"},"message":"File C:\\Users\\anhtu\\AndroidStudioProjects\\TheVoices\\functions\\package.json changed, reloading triggers"}}
+[debug] [2024-11-10T16:06:26.911Z] File C:\Users\anhtu\AndroidStudioProjects\TheVoices\functions\package-lock.json changed, reloading triggers {"metadata":{"emulator":{"name":"functions"},"message":"File C:\\Users\\anhtu\\AndroidStudioProjects\\TheVoices\\functions\\package-lock.json changed, reloading triggers"}}
+[debug] [2024-11-10T16:06:27.914Z] Validating nodejs source
+[warn] !  functions: package.json indicates an outdated version of firebase-functions. Please upgrade using npm install --save firebase-functions@latest in your functions directory. 
+[warn] !  functions: Please note that there will be breaking changes when you upgrade. 
+[debug] [2024-11-10T16:06:29.541Z] > [functions] package.json contents: {
+  "name": "functions",
+  "description": "Cloud Functions for Firebase",
+  "scripts": {
+    "build": "",
+    "lint": "eslint",
+    "serve": "firebase emulators:start --only functions",
+    "shell": "firebase functions:shell",
+    "start": "npm run shell",
+    "deploy": "firebase deploy --only functions",
+    "logs": "firebase functions:log"
+  },
+  "engines": {
+    "node": "18"
+  },
+  "main": "index.js",
+  "dependencies": {
+    "@google-cloud/pubsub": "^4.8.0",
+    "algoliasearch": "^5.13.0",
+    "bad-words": "^3.0.4",
+    "capitalize-sentence": "^0.1.5",
+    "firebase-admin": "^12.7.0",
+    "firebase-functions": "^5.1.1",
+    "functions": "file:",
+    "google-auth-library": "^9.14.2"
+  },
+  "devDependencies": {
+    "eslint": "^8.15.0",
+    "eslint-config-google": "^0.14.0",
+    "firebase-functions-test": "^3.1.0"
+  },
+  "private": true
+}
+[debug] [2024-11-10T16:06:29.541Z] Building nodejs source
+[debug] [2024-11-10T16:06:29.541Z] Failed to find version of module node: reached end of search path C:\Users\anhtu\AndroidStudioProjects\TheVoices\functions\node_modules
+[warn] !  functions: Your requested "node" version "18" doesn't match your global version "20". Using node@20 from host. 
+[debug] [2024-11-10T16:06:29.542Z] Could not find functions.yaml. Must use http discovery
+[debug] [2024-11-10T16:06:29.549Z] Found firebase-functions binary at 'C:\Users\anhtu\AndroidStudioProjects\TheVoices\functions\node_modules\.bin\firebase-functions'
+[info] Serving at port 8836
+
+[debug] [2024-11-10T16:06:30.840Z] Got response from /__/functions.yaml {"endpoints":{"helloWorld":{"availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"concurrency":null,"serviceAccountEmail":null,"vpc":null,"platform":"gcfv2","labels":{},"httpsTrigger":{},"entryPoint":"helloWorld"},"addmessage":{"availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"concurrency":null,"serviceAccountEmail":null,"vpc":null,"platform":"gcfv2","labels":{},"httpsTrigger":{},"entryPoint":"addmessage"},"addmessage2":{"availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"concurrency":null,"serviceAccountEmail":null,"vpc":null,"platform":"gcfv2","labels":{},"callableTrigger":{},"entryPoint":"addmessage2"},"makeuppercase":{"availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"concurrency":null,"serviceAccountEmail":null,"vpc":null,"platform":"gcfv2","labels":{},"eventTrigger":{"eventType":"google.cloud.firestore.document.v1.created","eventFilters":{"database":"(default)","namespace":"(default)"},"eventFilterPathPatterns":{"document":"messages/{documentId}"},"retry":false},"entryPoint":"makeuppercase"}},"specVersion":"v1alpha1","requiredAPIs":[],"extensions":{}}
+[info] +  functions: Loaded functions definitions from source: helloWorld, addmessage, addmessage2, makeuppercase. {"metadata":{"emulator":{"name":"functions"},"message":"Loaded functions definitions from source: helloWorld, addmessage, addmessage2, makeuppercase."}}
+[debug] [2024-11-10T16:17:05.786Z] File C:\Users\anhtu\AndroidStudioProjects\TheVoices\functions\aglolia\aglolia.js changed, reloading triggers {"metadata":{"emulator":{"name":"functions"},"message":"File C:\\Users\\anhtu\\AndroidStudioProjects\\TheVoices\\functions\\aglolia\\aglolia.js changed, reloading triggers"}}
+[debug] [2024-11-10T16:17:06.791Z] Validating nodejs source
+[warn] !  functions: package.json indicates an outdated version of firebase-functions. Please upgrade using npm install --save firebase-functions@latest in your functions directory. 
+[warn] !  functions: Please note that there will be breaking changes when you upgrade. 
+[debug] [2024-11-10T16:17:08.446Z] > [functions] package.json contents: {
+  "name": "functions",
+  "description": "Cloud Functions for Firebase",
+  "scripts": {
+    "build": "",
+    "lint": "eslint",
+    "serve": "firebase emulators:start --only functions",
+    "shell": "firebase functions:shell",
+    "start": "npm run shell",
+    "deploy": "firebase deploy --only functions",
+    "logs": "firebase functions:log"
+  },
+  "engines": {
+    "node": "18"
+  },
+  "main": "index.js",
+  "dependencies": {
+    "@google-cloud/pubsub": "^4.8.0",
+    "algoliasearch": "^5.13.0",
+    "bad-words": "^3.0.4",
+    "capitalize-sentence": "^0.1.5",
+    "firebase-admin": "^12.7.0",
+    "firebase-functions": "^5.1.1",
+    "functions": "file:",
+    "google-auth-library": "^9.14.2"
+  },
+  "devDependencies": {
+    "eslint": "^8.15.0",
+    "eslint-config-google": "^0.14.0",
+    "firebase-functions-test": "^3.1.0"
+  },
+  "private": true
+}
+[debug] [2024-11-10T16:17:08.446Z] Building nodejs source
+[debug] [2024-11-10T16:17:08.446Z] Failed to find version of module node: reached end of search path C:\Users\anhtu\AndroidStudioProjects\TheVoices\functions\node_modules
+[warn] !  functions: Your requested "node" version "18" doesn't match your global version "20". Using node@20 from host. 
+[info] i  functions: Loaded environment variables from .env. 
+[debug] [2024-11-10T16:17:08.454Z] Could not find functions.yaml. Must use http discovery
+[debug] [2024-11-10T16:17:08.459Z] Found firebase-functions binary at 'C:\Users\anhtu\AndroidStudioProjects\TheVoices\functions\node_modules\.bin\firebase-functions'
+[info] Serving at port 8902
+
+[debug] [2024-11-10T16:17:09.403Z] Got response from /__/functions.yaml {"endpoints":{"helloWorld":{"availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"concurrency":null,"serviceAccountEmail":null,"vpc":null,"platform":"gcfv2","labels":{},"httpsTrigger":{},"entryPoint":"helloWorld"},"addmessage":{"availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"concurrency":null,"serviceAccountEmail":null,"vpc":null,"platform":"gcfv2","labels":{},"httpsTrigger":{},"entryPoint":"addmessage"},"addmessage2":{"availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"concurrency":null,"serviceAccountEmail":null,"vpc":null,"platform":"gcfv2","labels":{},"callableTrigger":{},"entryPoint":"addmessage2"},"makeuppercase":{"availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"concurrency":null,"serviceAccountEmail":null,"vpc":null,"platform":"gcfv2","labels":{},"eventTrigger":{"eventType":"google.cloud.firestore.document.v1.created","eventFilters":{"database":"(default)","namespace":"(default)"},"eventFilterPathPatterns":{"document":"messages/{documentId}"},"retry":false},"entryPoint":"makeuppercase"}},"specVersion":"v1alpha1","requiredAPIs":[],"extensions":{}}
+[info] +  functions: Loaded functions definitions from source: helloWorld, addmessage, addmessage2, makeuppercase. {"metadata":{"emulator":{"name":"functions"},"message":"Loaded functions definitions from source: helloWorld, addmessage, addmessage2, makeuppercase."}}
+[debug] [2024-11-10T16:17:31.580Z] File C:\Users\anhtu\AndroidStudioProjects\TheVoices\functions\aglolia\aglolia.js changed, reloading triggers {"metadata":{"emulator":{"name":"functions"},"message":"File C:\\Users\\anhtu\\AndroidStudioProjects\\TheVoices\\functions\\aglolia\\aglolia.js changed, reloading triggers"}}
+[debug] [2024-11-10T16:17:32.581Z] Validating nodejs source
+[warn] !  functions: package.json indicates an outdated version of firebase-functions. Please upgrade using npm install --save firebase-functions@latest in your functions directory. 
+[warn] !  functions: Please note that there will be breaking changes when you upgrade. 
+[debug] [2024-11-10T16:17:34.194Z] > [functions] package.json contents: {
+  "name": "functions",
+  "description": "Cloud Functions for Firebase",
+  "scripts": {
+    "build": "",
+    "lint": "eslint",
+    "serve": "firebase emulators:start --only functions",
+    "shell": "firebase functions:shell",
+    "start": "npm run shell",
+    "deploy": "firebase deploy --only functions",
+    "logs": "firebase functions:log"
+  },
+  "engines": {
+    "node": "18"
+  },
+  "main": "index.js",
+  "dependencies": {
+    "@google-cloud/pubsub": "^4.8.0",
+    "algoliasearch": "^5.13.0",
+    "bad-words": "^3.0.4",
+    "capitalize-sentence": "^0.1.5",
+    "firebase-admin": "^12.7.0",
+    "firebase-functions": "^5.1.1",
+    "functions": "file:",
+    "google-auth-library": "^9.14.2"
+  },
+  "devDependencies": {
+    "eslint": "^8.15.0",
+    "eslint-config-google": "^0.14.0",
+    "firebase-functions-test": "^3.1.0"
+  },
+  "private": true
+}
+[debug] [2024-11-10T16:17:34.195Z] Building nodejs source
+[debug] [2024-11-10T16:17:34.195Z] Failed to find version of module node: reached end of search path C:\Users\anhtu\AndroidStudioProjects\TheVoices\functions\node_modules
+[warn] !  functions: Your requested "node" version "18" doesn't match your global version "20". Using node@20 from host. 
+[info] i  functions: Loaded environment variables from .env. 
+[debug] [2024-11-10T16:17:34.196Z] Could not find functions.yaml. Must use http discovery
+[debug] [2024-11-10T16:17:34.201Z] Found firebase-functions binary at 'C:\Users\anhtu\AndroidStudioProjects\TheVoices\functions\node_modules\.bin\firebase-functions'
+[info] Serving at port 8648
+
+[debug] [2024-11-10T16:17:35.196Z] Got response from /__/functions.yaml {"endpoints":{"helloWorld":{"availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"concurrency":null,"serviceAccountEmail":null,"vpc":null,"platform":"gcfv2","labels":{},"httpsTrigger":{},"entryPoint":"helloWorld"},"addmessage":{"availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"concurrency":null,"serviceAccountEmail":null,"vpc":null,"platform":"gcfv2","labels":{},"httpsTrigger":{},"entryPoint":"addmessage"},"addmessage2":{"availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"concurrency":null,"serviceAccountEmail":null,"vpc":null,"platform":"gcfv2","labels":{},"callableTrigger":{},"entryPoint":"addmessage2"},"makeuppercase":{"availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"concurrency":null,"serviceAccountEmail":null,"vpc":null,"platform":"gcfv2","labels":{},"eventTrigger":{"eventType":"google.cloud.firestore.document.v1.created","eventFilters":{"database":"(default)","namespace":"(default)"},"eventFilterPathPatterns":{"document":"messages/{documentId}"},"retry":false},"entryPoint":"makeuppercase"}},"specVersion":"v1alpha1","requiredAPIs":[],"extensions":{}}
+[info] +  functions: Loaded functions definitions from source: helloWorld, addmessage, addmessage2, makeuppercase. {"metadata":{"emulator":{"name":"functions"},"message":"Loaded functions definitions from source: helloWorld, addmessage, addmessage2, makeuppercase."}}
+[debug] [2024-11-10T16:17:59.547Z] File C:\Users\anhtu\AndroidStudioProjects\TheVoices\functions\aglolia\aglolia.js changed, reloading triggers {"metadata":{"emulator":{"name":"functions"},"message":"File C:\\Users\\anhtu\\AndroidStudioProjects\\TheVoices\\functions\\aglolia\\aglolia.js changed, reloading triggers"}}
+[debug] [2024-11-10T16:18:00.559Z] Validating nodejs source
+[warn] !  functions: package.json indicates an outdated version of firebase-functions. Please upgrade using npm install --save firebase-functions@latest in your functions directory. 
+[warn] !  functions: Please note that there will be breaking changes when you upgrade. 
+[debug] [2024-11-10T16:18:02.555Z] > [functions] package.json contents: {
+  "name": "functions",
+  "description": "Cloud Functions for Firebase",
+  "scripts": {
+    "build": "",
+    "lint": "eslint",
+    "serve": "firebase emulators:start --only functions",
+    "shell": "firebase functions:shell",
+    "start": "npm run shell",
+    "deploy": "firebase deploy --only functions",
+    "logs": "firebase functions:log"
+  },
+  "engines": {
+    "node": "18"
+  },
+  "main": "index.js",
+  "dependencies": {
+    "@google-cloud/pubsub": "^4.8.0",
+    "algoliasearch": "^5.13.0",
+    "bad-words": "^3.0.4",
+    "capitalize-sentence": "^0.1.5",
+    "firebase-admin": "^12.7.0",
+    "firebase-functions": "^5.1.1",
+    "functions": "file:",
+    "google-auth-library": "^9.14.2"
+  },
+  "devDependencies": {
+    "eslint": "^8.15.0",
+    "eslint-config-google": "^0.14.0",
+    "firebase-functions-test": "^3.1.0"
+  },
+  "private": true
+}
+[debug] [2024-11-10T16:18:02.555Z] Building nodejs source
+[debug] [2024-11-10T16:18:02.556Z] Failed to find version of module node: reached end of search path C:\Users\anhtu\AndroidStudioProjects\TheVoices\functions\node_modules
+[warn] !  functions: Your requested "node" version "18" doesn't match your global version "20". Using node@20 from host. 
+[info] i  functions: Loaded environment variables from .env. 
+[debug] [2024-11-10T16:18:02.557Z] Could not find functions.yaml. Must use http discovery
+[debug] [2024-11-10T16:18:02.562Z] Found firebase-functions binary at 'C:\Users\anhtu\AndroidStudioProjects\TheVoices\functions\node_modules\.bin\firebase-functions'
+[info] Serving at port 8290
+
+[debug] [2024-11-10T16:18:03.530Z] Got response from /__/functions.yaml {"endpoints":{"helloWorld":{"availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"concurrency":null,"serviceAccountEmail":null,"vpc":null,"platform":"gcfv2","labels":{},"httpsTrigger":{},"entryPoint":"helloWorld"},"addmessage":{"availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"concurrency":null,"serviceAccountEmail":null,"vpc":null,"platform":"gcfv2","labels":{},"httpsTrigger":{},"entryPoint":"addmessage"},"addmessage2":{"availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"concurrency":null,"serviceAccountEmail":null,"vpc":null,"platform":"gcfv2","labels":{},"callableTrigger":{},"entryPoint":"addmessage2"},"makeuppercase":{"availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"concurrency":null,"serviceAccountEmail":null,"vpc":null,"platform":"gcfv2","labels":{},"eventTrigger":{"eventType":"google.cloud.firestore.document.v1.created","eventFilters":{"database":"(default)","namespace":"(default)"},"eventFilterPathPatterns":{"document":"messages/{documentId}"},"retry":false},"entryPoint":"makeuppercase"}},"specVersion":"v1alpha1","requiredAPIs":[],"extensions":{}}
+[info] +  functions: Loaded functions definitions from source: helloWorld, addmessage, addmessage2, makeuppercase. {"metadata":{"emulator":{"name":"functions"},"message":"Loaded functions definitions from source: helloWorld, addmessage, addmessage2, makeuppercase."}}
+[debug] [2024-11-10T16:19:07.280Z] File C:\Users\anhtu\AndroidStudioProjects\TheVoices\functions\index.js changed, reloading triggers {"metadata":{"emulator":{"name":"functions"},"message":"File C:\\Users\\anhtu\\AndroidStudioProjects\\TheVoices\\functions\\index.js changed, reloading triggers"}}
+[debug] [2024-11-10T16:19:08.282Z] Validating nodejs source
+[warn] !  functions: package.json indicates an outdated version of firebase-functions. Please upgrade using npm install --save firebase-functions@latest in your functions directory. 
+[warn] !  functions: Please note that there will be breaking changes when you upgrade. 
+[debug] [2024-11-10T16:19:09.956Z] > [functions] package.json contents: {
+  "name": "functions",
+  "description": "Cloud Functions for Firebase",
+  "scripts": {
+    "build": "",
+    "lint": "eslint",
+    "serve": "firebase emulators:start --only functions",
+    "shell": "firebase functions:shell",
+    "start": "npm run shell",
+    "deploy": "firebase deploy --only functions",
+    "logs": "firebase functions:log"
+  },
+  "engines": {
+    "node": "18"
+  },
+  "main": "index.js",
+  "dependencies": {
+    "@google-cloud/pubsub": "^4.8.0",
+    "algoliasearch": "^5.13.0",
+    "bad-words": "^3.0.4",
+    "capitalize-sentence": "^0.1.5",
+    "firebase-admin": "^12.7.0",
+    "firebase-functions": "^5.1.1",
+    "functions": "file:",
+    "google-auth-library": "^9.14.2"
+  },
+  "devDependencies": {
+    "eslint": "^8.15.0",
+    "eslint-config-google": "^0.14.0",
+    "firebase-functions-test": "^3.1.0"
+  },
+  "private": true
+}
+[debug] [2024-11-10T16:19:09.956Z] Building nodejs source
+[debug] [2024-11-10T16:19:09.956Z] Failed to find version of module node: reached end of search path C:\Users\anhtu\AndroidStudioProjects\TheVoices\functions\node_modules
+[warn] !  functions: Your requested "node" version "18" doesn't match your global version "20". Using node@20 from host. 
+[info] i  functions: Loaded environment variables from .env. 
+[debug] [2024-11-10T16:19:09.958Z] Could not find functions.yaml. Must use http discovery
+[debug] [2024-11-10T16:19:09.963Z] Found firebase-functions binary at 'C:\Users\anhtu\AndroidStudioProjects\TheVoices\functions\node_modules\.bin\firebase-functions'
+[info] Serving at port 8196
+
+[error] ReferenceError: functions is not defined
+    at Object.<anonymous> (C:\Users\anhtu\AndroidStudioProjects\TheVoices\functions\index.js:58:27)
+    at Module._compile (node:internal/modules/cjs/loader:1233:14)
+    at Module._extensions..js (node:internal/modules/cjs/loader:1287:10)
+    at Module.load (node:internal/modules/cjs/loader:1091:32)
+    at Module._load (node:internal/modules/cjs/loader:938:12)
+    at Module.require (node:internal/modules/cjs/loader:1115:19)
+    at require (node:internal/modules/helpers:119:18)
+    at loadModule (C:\Users\anhtu\AndroidStudioProjects\TheVoices\functions\node_modules\firebase-functions\lib\runtime\loader.js:40:16)
+    at loadStack (C:\Users\anhtu\AndroidStudioProjects\TheVoices\functions\node_modules\firebase-functions\lib\runtime\loader.js:157:23)
+    at C:\Users\anhtu\AndroidStudioProjects\TheVoices\functions\node_modules\firebase-functions\lib\bin\firebase-functions.js:56:56
+
+[debug] [2024-11-10T16:19:10.960Z] Got response code 400; body Failed to generate manifest from function source: ReferenceError: functions is not defined
+[error] !!  functions: Failed to load function definition from source: FirebaseError: Functions codebase could not be analyzed successfully. It may have a syntax or runtime error {"metadata":{"emulator":{"name":"functions"},"message":"Failed to load function definition from source: FirebaseError: Functions codebase could not be analyzed successfully. It may have a syntax or runtime error"}}
+[debug] [2024-11-10T16:19:23.076Z] File C:\Users\anhtu\AndroidStudioProjects\TheVoices\functions\index.js changed, reloading triggers {"metadata":{"emulator":{"name":"functions"},"message":"File C:\\Users\\anhtu\\AndroidStudioProjects\\TheVoices\\functions\\index.js changed, reloading triggers"}}
+[debug] [2024-11-10T16:19:24.087Z] Validating nodejs source
+[warn] !  functions: package.json indicates an outdated version of firebase-functions. Please upgrade using npm install --save firebase-functions@latest in your functions directory. 
+[warn] !  functions: Please note that there will be breaking changes when you upgrade. 
+[debug] [2024-11-10T16:19:25.877Z] > [functions] package.json contents: {
+  "name": "functions",
+  "description": "Cloud Functions for Firebase",
+  "scripts": {
+    "build": "",
+    "lint": "eslint",
+    "serve": "firebase emulators:start --only functions",
+    "shell": "firebase functions:shell",
+    "start": "npm run shell",
+    "deploy": "firebase deploy --only functions",
+    "logs": "firebase functions:log"
+  },
+  "engines": {
+    "node": "18"
+  },
+  "main": "index.js",
+  "dependencies": {
+    "@google-cloud/pubsub": "^4.8.0",
+    "algoliasearch": "^5.13.0",
+    "bad-words": "^3.0.4",
+    "capitalize-sentence": "^0.1.5",
+    "firebase-admin": "^12.7.0",
+    "firebase-functions": "^5.1.1",
+    "functions": "file:",
+    "google-auth-library": "^9.14.2"
+  },
+  "devDependencies": {
+    "eslint": "^8.15.0",
+    "eslint-config-google": "^0.14.0",
+    "firebase-functions-test": "^3.1.0"
+  },
+  "private": true
+}
+[debug] [2024-11-10T16:19:25.878Z] Building nodejs source
+[debug] [2024-11-10T16:19:25.878Z] Failed to find version of module node: reached end of search path C:\Users\anhtu\AndroidStudioProjects\TheVoices\functions\node_modules
+[warn] !  functions: Your requested "node" version "18" doesn't match your global version "20". Using node@20 from host. 
+[info] i  functions: Loaded environment variables from .env. 
+[debug] [2024-11-10T16:19:25.880Z] Could not find functions.yaml. Must use http discovery
+[debug] [2024-11-10T16:19:25.888Z] Found firebase-functions binary at 'C:\Users\anhtu\AndroidStudioProjects\TheVoices\functions\node_modules\.bin\firebase-functions'
+[info] Serving at port 8641
+
+[debug] [2024-11-10T16:19:26.902Z] Got response from /__/functions.yaml {"endpoints":{"helloWorld_v2":{"availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"concurrency":null,"serviceAccountEmail":null,"vpc":null,"platform":"gcfv2","labels":{},"httpsTrigger":{},"entryPoint":"helloWorld_v2"},"helloWorld_v1":{"platform":"gcfv1","availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"serviceAccountEmail":null,"vpc":null,"httpsTrigger":{},"entryPoint":"helloWorld_v1"},"addmessage":{"availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"concurrency":null,"serviceAccountEmail":null,"vpc":null,"platform":"gcfv2","labels":{},"httpsTrigger":{},"entryPoint":"addmessage"},"addmessage2":{"availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"concurrency":null,"serviceAccountEmail":null,"vpc":null,"platform":"gcfv2","labels":{},"callableTrigger":{},"entryPoint":"addmessage2"},"makeuppercase":{"availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"concurrency":null,"serviceAccountEmail":null,"vpc":null,"platform":"gcfv2","labels":{},"eventTrigger":{"eventType":"google.cloud.firestore.document.v1.created","eventFilters":{"database":"(default)","namespace":"(default)"},"eventFilterPathPatterns":{"document":"messages/{documentId}"},"retry":false},"entryPoint":"makeuppercase"}},"specVersion":"v1alpha1","requiredAPIs":[],"extensions":{}}
+[info] +  functions: Loaded functions definitions from source: helloWorld_v2, helloWorld_v1, addmessage, addmessage2, makeuppercase. {"metadata":{"emulator":{"name":"functions"},"message":"Loaded functions definitions from source: helloWorld_v2, helloWorld_v1, addmessage, addmessage2, makeuppercase."}}
+[info] +  functions[us-central1-helloWorld_v2]: http function initialized (http://127.0.0.1:5001/urvoice-98254/us-central1/helloWorld_v2). {"metadata":{"emulator":{"name":"functions"},"message":"\u001b[1mhttp\u001b[22m function initialized (http://127.0.0.1:5001/urvoice-98254/us-central1/helloWorld_v2)."}}
+[info] +  functions[us-central1-helloWorld_v1]: http function initialized (http://127.0.0.1:5001/urvoice-98254/us-central1/helloWorld_v1). {"metadata":{"emulator":{"name":"functions"},"message":"\u001b[1mhttp\u001b[22m function initialized (http://127.0.0.1:5001/urvoice-98254/us-central1/helloWorld_v1)."}}
+[debug] [2024-11-10T16:20:23.105Z] File C:\Users\anhtu\AndroidStudioProjects\TheVoices\functions\index.js changed, reloading triggers {"metadata":{"emulator":{"name":"functions"},"message":"File C:\\Users\\anhtu\\AndroidStudioProjects\\TheVoices\\functions\\index.js changed, reloading triggers"}}
+[debug] [2024-11-10T16:20:24.117Z] Validating nodejs source
+[warn] !  functions: package.json indicates an outdated version of firebase-functions. Please upgrade using npm install --save firebase-functions@latest in your functions directory. 
+[warn] !  functions: Please note that there will be breaking changes when you upgrade. 
+[debug] [2024-11-10T16:20:25.804Z] > [functions] package.json contents: {
+  "name": "functions",
+  "description": "Cloud Functions for Firebase",
+  "scripts": {
+    "build": "",
+    "lint": "eslint",
+    "serve": "firebase emulators:start --only functions",
+    "shell": "firebase functions:shell",
+    "start": "npm run shell",
+    "deploy": "firebase deploy --only functions",
+    "logs": "firebase functions:log"
+  },
+  "engines": {
+    "node": "18"
+  },
+  "main": "index.js",
+  "dependencies": {
+    "@google-cloud/pubsub": "^4.8.0",
+    "algoliasearch": "^5.13.0",
+    "bad-words": "^3.0.4",
+    "capitalize-sentence": "^0.1.5",
+    "firebase-admin": "^12.7.0",
+    "firebase-functions": "^5.1.1",
+    "functions": "file:",
+    "google-auth-library": "^9.14.2"
+  },
+  "devDependencies": {
+    "eslint": "^8.15.0",
+    "eslint-config-google": "^0.14.0",
+    "firebase-functions-test": "^3.1.0"
+  },
+  "private": true
+}
+[debug] [2024-11-10T16:20:25.805Z] Building nodejs source
+[debug] [2024-11-10T16:20:25.805Z] Failed to find version of module node: reached end of search path C:\Users\anhtu\AndroidStudioProjects\TheVoices\functions\node_modules
+[warn] !  functions: Your requested "node" version "18" doesn't match your global version "20". Using node@20 from host. 
+[info] i  functions: Loaded environment variables from .env. 
+[debug] [2024-11-10T16:20:25.807Z] Could not find functions.yaml. Must use http discovery
+[debug] [2024-11-10T16:20:25.814Z] Found firebase-functions binary at 'C:\Users\anhtu\AndroidStudioProjects\TheVoices\functions\node_modules\.bin\firebase-functions'
+[info] Serving at port 8840
+
+[debug] [2024-11-10T16:20:26.804Z] Got response from /__/functions.yaml {"endpoints":{"helloWorld_v2":{"availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"concurrency":null,"serviceAccountEmail":null,"vpc":null,"platform":"gcfv2","labels":{},"httpsTrigger":{},"entryPoint":"helloWorld_v2"},"helloWorld_v1":{"platform":"gcfv1","availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"serviceAccountEmail":null,"vpc":null,"region":["asia-east2"],"httpsTrigger":{},"entryPoint":"helloWorld_v1"},"addmessage":{"availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"concurrency":null,"serviceAccountEmail":null,"vpc":null,"platform":"gcfv2","labels":{},"httpsTrigger":{},"entryPoint":"addmessage"},"addmessage2":{"availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"concurrency":null,"serviceAccountEmail":null,"vpc":null,"platform":"gcfv2","labels":{},"callableTrigger":{},"entryPoint":"addmessage2"},"makeuppercase":{"availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"concurrency":null,"serviceAccountEmail":null,"vpc":null,"platform":"gcfv2","labels":{},"eventTrigger":{"eventType":"google.cloud.firestore.document.v1.created","eventFilters":{"database":"(default)","namespace":"(default)"},"eventFilterPathPatterns":{"document":"messages/{documentId}"},"retry":false},"entryPoint":"makeuppercase"}},"specVersion":"v1alpha1","requiredAPIs":[],"extensions":{}}
+[info] +  functions: Loaded functions definitions from source: helloWorld_v2, addmessage, addmessage2, makeuppercase, helloWorld_v1. {"metadata":{"emulator":{"name":"functions"},"message":"Loaded functions definitions from source: helloWorld_v2, addmessage, addmessage2, makeuppercase, helloWorld_v1."}}

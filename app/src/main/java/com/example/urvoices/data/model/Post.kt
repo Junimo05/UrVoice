@@ -1,7 +1,8 @@
 package com.example.urvoices.data.model
 
 import android.os.Parcelable
-import com.example.urvoices.data.db.Entity.PostEntity
+import com.algolia.search.model.ObjectID
+import com.algolia.search.model.indexing.Indexable
 import kotlinx.parcelize.Parcelize
 import kotlinx.serialization.Serializable
 
@@ -17,7 +18,7 @@ data class Post(
     val description: String,
     var likes: Int? = 0,
     var comments: Int? = 0,
-    val tag: List<String>?,
+    val _tags: List<String>?,
     val createdAt: Long,
     val updatedAt: Long?,
     val deletedAt: Long?,
@@ -31,17 +32,18 @@ data class Post(
         description = "",
         likes = 0,
         comments = 0,
-        tag = listOf(),
+        _tags = listOf(),
         createdAt = 0,
         updatedAt = null,
         deletedAt = null
     )
+
     fun toMap(): Map<String, Any?> {
         return mapOf(
             "userId" to userId,
             "audioName" to audioName,
             "description" to description,
-            "tag" to tag,
+            "_tags" to _tags,
             "createdAt" to createdAt,
             "updatedAt" to updatedAt,
             "deletedAt" to deletedAt,

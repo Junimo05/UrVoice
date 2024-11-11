@@ -48,50 +48,6 @@ class HomeViewModel @Inject constructor(
        }
     }
 
-    fun blockUser(targetID: String): String {
-        _homeState.value = HomeState.Working
-        var resultMsg = ""
-        try {
-            viewModelScope.launch {
-                val result = blockService.blockUser(targetID)
-                if (result.isNotEmpty()) {
-                    _homeState.value = HomeState.Successful
-                    resultMsg = "User blocked successfully"
-                } else {
-                    _homeState.value = HomeState.Error("Failed to block user")
-                    resultMsg = "Something went wrong"
-                }
-            }
-        } catch (e: Exception) {
-            e.printStackTrace()
-            _homeState.value = HomeState.Error("Error blocking user")
-            resultMsg = "Something went wrong"
-        }
-        return resultMsg
-    }
-
-    fun unblockUser(targetID: String): String {
-        _homeState.value = HomeState.Working
-        var resultMsg = ""
-        try {
-            viewModelScope.launch {
-                val result = blockService.unblockUser(targetID)
-                if (result.isNotEmpty()) {
-                    _homeState.value = HomeState.Successful
-                    resultMsg = "User unblocked successfully"
-                } else {
-                    _homeState.value = HomeState.Error("Failed to unblock user")
-                    resultMsg = "Something went wrong"
-                }
-            }
-        } catch (e: Exception) {
-            e.printStackTrace()
-            _homeState.value = HomeState.Error("Error unblocking user")
-            resultMsg = "Something went wrong"
-        }
-        return resultMsg
-    }
-
     suspend fun getUserInfo(userID: String): Map<String, String> {
         val result = postRepository.getUserBaseInfo(userID)
         return result

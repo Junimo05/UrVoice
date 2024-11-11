@@ -1,17 +1,13 @@
 package com.example.urvoices.ui._component.PostComponent
 
 import android.annotation.SuppressLint
-import android.util.Log
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -25,21 +21,16 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.State
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -50,27 +41,20 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.example.urvoices.R
 import com.example.urvoices.data.model.Comment
-import com.example.urvoices.presentations.theme.MyTheme
 import com.example.urvoices.ui._component.InteractionColumn
 import com.example.urvoices.utils.Comment_Interactions
 import com.example.urvoices.utils.getTimeElapsed
-import com.example.urvoices.viewmodel.CommentState
 import com.example.urvoices.viewmodel.CommentViewModel
-import com.example.urvoices.viewmodel.InteractionRowViewModel
+import com.example.urvoices.viewmodel.InteractionViewModel
 import com.example.urvoices.viewmodel.PostDetailState
 import com.example.urvoices.viewmodel.PostDetailViewModel
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.runBlocking
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter", "UnrememberedMutableState",
@@ -81,24 +65,15 @@ fun CommentItem(
     navController: NavController,
     uiState: State<PostDetailState>,
     comment: Comment,
-    parentCmtUsername: String = "",
-    index: Int,
-    lastParentCommentID: MutableState<String>,
     postDetailViewModel: PostDetailViewModel,
-    interactionViewModel: InteractionRowViewModel,
+    interactionViewModel: InteractionViewModel,
     commentViewModel: CommentViewModel,
-    loadReply: (String) -> Unit,
     replyAct: (Comment, String) -> Unit,
     depth: Int = 0
-    //comment data
-
-    //interactions data
 ){
     val TAG = "CommentItem"
 
-    var isLove by remember {
-        mutableStateOf(false)
-    }
+    val isLove = rememberSaveable { mutableStateOf(false) }
 
     var replies by remember(comment.id) {
         mutableStateOf(emptyList<Comment>())
@@ -122,7 +97,7 @@ fun CommentItem(
 
     LaunchedEffect(Unit) {
         interactionViewModel.getLoveStatus(commentID = comment.id!!) {
-            isLove = it
+            isLove.value = it
         }
     }
 
@@ -222,7 +197,7 @@ fun CommentItem(
                                 text = contentString,
                                 modifier = Modifier
                                     .padding(bottom = 8.dp)
-                                    //TODO: Add click listener to tag
+                                    //TODO: Add click listener to tag -> redirect to profile
                                     .clickable {
                                         isExpandedComment.value = !isExpandedComment.value
                                     }, // Toggle expanded status on click
@@ -235,26 +210,39 @@ fun CommentItem(
                             )
                         }
                         InteractionColumn(interactions = Comment_Interactions(
-                            isLove = isLove,
+                            isLove = isLove.value,
                             loveCounts = comment.likes,
                             love_act = {
-                                   //TODO: "Implement love action"
-//                                interactionViewModel.loveAction(
-//                                    isLove = it,
-//                                    targetUserID = comment.userId,
-//                                    commentID = comment.id!!,
-//                                    postID = comment.postId
-//                                )
+                                interactionViewModel.loveAction(
+                                    isLove = it,
+                                    targetUserID = comment.userId,
+                                    commentID = comment.id!!,
+                                    postID = comment.postId,
+                                    callback = {result ->
+                                        //get isLove input then update UI if result = true
+//                                        Log.e(TAG, "love_act: $result")
+                                        if(result){
+                                            isLove.value = it
+                                            if(isLove.value){
+                                                comment.likes += 1
+                                            } else {
+                                                comment.likes -= 1
+                                            }
+                                        }
+                                    }
+                                )
                             },
                             commentCounts = comment.replyComments,
                             comment_act = {
                                   if(comment.replyComments > 0){
                                       isExpandedReply.value = !isExpandedReply.value
-                                      commentViewModel.loadMoreReplyComments(comment.id!!) { result ->
-                                          Log.e(TAG, "loadMoreReplyComments: ${result.size}")
-                                          replies = result
-                                      }
-//                                      loadReply(comment.id!!)
+                                      loadMoreReply(
+                                          commentID = comment.id!!,
+                                          commentViewModel = commentViewModel,
+                                          callback = { result ->
+                                              replies = result
+                                          }
+                                      )
                                   }
                             },
                             reply_act = {
@@ -273,16 +261,10 @@ fun CommentItem(
                             navController = navController,
                             uiState = uiState,
                             comment = reply,
-                            parentCmtUsername = userInfo["username"]!!, //ten user cua comment cha
-                            index = index,
-                            lastParentCommentID = lastParentCommentID,
                             postDetailViewModel = postDetailViewModel,
                             interactionViewModel = interactionViewModel,
                             commentViewModel = commentViewModel,
                             depth = depth + 1,
-                            loadReply = {
-                                loadReply(it)
-                            },
                             replyAct = {comment, parentCmtUsername ->
                                 replyAct(comment, parentCmtUsername)
                             }
@@ -292,7 +274,13 @@ fun CommentItem(
                         Text(
                             text = "Load more",
                             modifier = Modifier.clickable {
-                                loadReply(comment.id!!)
+                                loadMoreReply(
+                                    commentID = comment.id!!,
+                                    commentViewModel = commentViewModel,
+                                    callback = { result ->
+                                        replies = result
+                                    }
+                                )
                             }
                         )
                     }
@@ -308,42 +296,9 @@ fun CommentItem(
     }
 }
 
-@Composable
-fun ConnectionLine(
-    isLast: Boolean,
-    lineColor: Color = MaterialTheme.colorScheme.onPrimaryContainer
-) {
-    Canvas(
-        modifier = Modifier
-            .fillMaxHeight()
-            .width(40.dp)
-            .padding(start = 20.dp)
-    ) {
-        val canvasWidth = size.width
-        val canvasHeight = size.height
-
-        // Draw vertical line
-        drawLine(
-            color = lineColor,
-            start = Offset(0f, 0f),
-            end = Offset(0f, canvasHeight),
-            strokeWidth = 2f
-        )
-
-        // Draw horizontal line for non-last items
-//        if (!isLast) {
-//            drawLine(
-//                color = lineColor,
-//                startRecording = Offset(0f, 20.dp.toPx()),
-//                end = Offset(canvasWidth, 20.dp.toPx()),
-//                strokeWidth = 2f
-//            )
-//        }
-        drawLine(
-            color = lineColor,
-            start = Offset(0f, 20.dp.toPx()),
-            end = Offset(canvasWidth, 20.dp.toPx()),
-            strokeWidth = 2f
-        )
+fun loadMoreReply(commentID: String, commentViewModel: CommentViewModel, callback: (List<Comment>) -> Unit){
+    commentViewModel.loadMoreReplyComments(commentID) { result ->
+        callback(result)
     }
 }
+

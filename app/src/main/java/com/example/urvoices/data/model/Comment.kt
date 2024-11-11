@@ -10,7 +10,7 @@ data class Comment(
     val parentId : String?,
     val postId: String,
     val content: String,
-    val likes: Int = 0,
+    var likes: Int = 0,
     val replyComments: Int = 0,
     val createdAt: Long,
     val updatedAt: Long?,

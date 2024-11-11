@@ -40,11 +40,12 @@ import com.example.urvoices.ui._component.BottomBar
 import com.example.urvoices.ui._component.MediaPlayer
 import com.example.urvoices.viewmodel.AuthViewModel
 import com.example.urvoices.viewmodel.HomeViewModel
-import com.example.urvoices.viewmodel.InteractionRowViewModel
+import com.example.urvoices.viewmodel.InteractionViewModel
 import com.example.urvoices.viewmodel.MediaPlayerVM
 import com.example.urvoices.viewmodel.MediaRecorderVM
 import com.example.urvoices.viewmodel.PostDetailViewModel
 import com.example.urvoices.viewmodel.ProfileViewModel
+import com.example.urvoices.viewmodel.SearchViewModel
 import com.example.urvoices.viewmodel.UIEvents
 import com.example.urvoices.viewmodel.UploadViewModel
 
@@ -58,7 +59,7 @@ fun Navigator(authViewModel: AuthViewModel) {
     val isVisibleMediaBar = rememberSaveable { mutableStateOf(false) }
     //ViewModel instance
 
-
+    val searchVM: SearchViewModel = hiltViewModel()
     val postDetailViewModel: PostDetailViewModel = hiltViewModel()
     val homeViewModel: HomeViewModel = hiltViewModel()
     val uploadViewModel: UploadViewModel = hiltViewModel()
@@ -68,7 +69,7 @@ fun Navigator(authViewModel: AuthViewModel) {
     val playerViewModel: MediaPlayerVM = hiltViewModel()
     val mediaRecorderVM = hiltViewModel<MediaRecorderVM>()
 
-    val interactionRowViewModel = hiltViewModel<InteractionRowViewModel>()
+    val interactionViewModel = hiltViewModel<InteractionViewModel>()
 
     //BottomSheet for Media
     val sheetState = rememberModalBottomSheetState()
@@ -211,7 +212,8 @@ fun Navigator(authViewModel: AuthViewModel) {
                     homeViewModel = homeViewModel,
                     uploadViewModel = uploadViewModel,
                     profileViewModel = profileViewModel,
-                    mediaRecorderVM = mediaRecorderVM
+                    mediaRecorderVM = mediaRecorderVM,
+                    searchViewModel = searchVM
                 ) //home nav
                 specifyGraph(
                     navController,

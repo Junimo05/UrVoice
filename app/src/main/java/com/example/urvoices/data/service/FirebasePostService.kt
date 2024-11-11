@@ -7,6 +7,7 @@ import com.example.urvoices.data.AudioManager
 import com.example.urvoices.data.model.Comment
 import com.example.urvoices.data.model.Like
 import com.example.urvoices.data.model.Post
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.AggregateSource
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.FirebaseFirestoreException
@@ -16,12 +17,15 @@ import com.google.firebase.storage.StorageReference
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 class FirebasePostService @Inject constructor(
     private val audioManager: AudioManager,
+    private val auth: FirebaseAuth,
     private val firebaseFirestore: FirebaseFirestore,
     private val storage: StorageReference
 ){
@@ -140,7 +144,7 @@ class FirebasePostService @Inject constructor(
                 deletedAt = deleteAt,
                 likes = likes,
                 comments = comments,
-                tag = tag?.map { it as String },
+                _tags = tag?.map { it as String },
                 amplitudes = amplitudes
             )
         }catch (e: Exception){
@@ -223,15 +227,126 @@ class FirebasePostService @Inject constructor(
         return posts
     }
 
+    /*
+        Save Posts Feature
+    */
+    suspend fun savePosts(postID: String): Boolean? {
+        val currentUser = auth.currentUser ?: return null
+        try {
+            //find if the post is saved
+            val relaSavePosts = firebaseFirestore.collection("rela_savePosts").document(currentUser.uid)
+                .get().await()
+                //check array
+            val savedPosts = relaSavePosts.get("savedPosts") as List<*>?
+            if (savedPosts != null) {
+                if(savedPosts.contains(postID)){ //remove Saved Post
+                    val updatedSavedPosts = savedPosts.toMutableList().apply {
+                        remove(postID)
+                    }
+                    firebaseFirestore.collection("rela_savePosts").document(currentUser.uid)
+                        .update("savedPosts", updatedSavedPosts)
+                        .await()
+                    //Removed
+                    return false
+                } else { //add Saved Post
+                    val updatedSavedPosts = savedPosts.toMutableList().apply {
+                        add(postID)
+                    }
+                    firebaseFirestore.collection("rela_savePosts").document(currentUser.uid)
+                        .update("savedPosts", updatedSavedPosts)
+                        .await()
+                    //Saved
+                    return true
+                }
+            } else {
+                //create new savedPosts for first time
+                val newSavedPosts = listOf(postID)
+                val rela = mapOf(
+                    "ID" to currentUser.uid,
+                    "savedPosts" to newSavedPosts
+                )
+                firebaseFirestore.collection("rela_savePosts")
+                    .document(currentUser.uid)
+                    .set(rela)
+                //Saved
+                return true
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            Log.e(TAG, "savePosts: ${e.message}")
+        }
+        return null
+    }
+
+    suspend fun getSaveStatus(postID :String): Boolean{
+        val currentUser = auth.currentUser ?: return false
+        try {
+            val relaSavePosts = firebaseFirestore.collection("rela_savePosts").document(currentUser.uid)
+                .get().await()
+            val savedPosts = relaSavePosts.get("savedPosts") as List<*>?
+            if (savedPosts != null) {
+                return savedPosts.contains(postID)
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            Log.e(TAG, "getSaveStatus: ${e.message}")
+        }
+        return false
+    }
+
     suspend fun getAllSavedPostFromUser(
         page: Int,
         userID: String,
         lastVisiblePost: MutableState<String>,
         lastvisiblePage: MutableState<Int>
     ): List<Post> {
-        val limit = 3L
+        val limit = 5L
         val posts = mutableListOf<Post>()
+        //get limit 5 posts from savedPosts Array
+        try {
+            val refSavedPosts = firebaseFirestore.collection("rela_savePosts").document(userID).get().await()
+            val savedPosts = refSavedPosts.get("savedPosts") as List<*>?
+//            Log.e(TAG, "getAllSavedPostFromUser Data: ${savedPosts!!.size}")
+            if (savedPosts != null) {
+                // get posts from posts collection
+                var postQuery = firebaseFirestore.collection("posts")
+                    .orderBy("createdAt", Query.Direction.DESCENDING)
+                    .whereIn("ID", savedPosts)
+                    .limit(limit)
 
+                if (lastVisiblePost.value != "" && page > lastvisiblePage.value) {
+                    val lastVisiblePostRef = firebaseFirestore.collection("posts").document(lastVisiblePost.value).get().await()
+                    postQuery = postQuery.startAfter(lastVisiblePostRef)
+                    lastvisiblePage.value = page
+                }
+
+                val postRefs = postQuery.get().await()
+                val lastVisible = postRefs.documents.lastOrNull()
+                if (lastVisible != null) {
+                    lastVisiblePost.value = lastVisible.id
+                } else {
+                    lastVisiblePost.value = ""
+                }
+
+                // for each post, get the details
+                postRefs.documents.forEach { document ->
+                    val deleteAt = document.getLong("deletedAt")
+                    if (deleteAt != null) {
+                        return@forEach
+                    }
+                    val post = document.toObject(Post::class.java)
+                    if (post != null) {
+                        posts.add(post)
+                    } else {
+                        // Error
+                    }
+                }
+            }
+
+        } catch (e: Exception) {
+            e.printStackTrace()
+            Log.e(TAG, "getAllSavedPostFromUser: ${e.message}")
+        }
         return posts
     }
 
@@ -271,28 +386,11 @@ class FirebasePostService @Inject constructor(
         }
     }
 
-    suspend fun updatePost(post: Post): Boolean {
-        // update post
-        try {
-            post.ID?.let {
-                firebaseFirestore.collection("posts").document(it).update(post.toMap())
-                    .await()
-            }
-            return true
-
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
-        return false
-    }
-
-    suspend fun deletePost(post: Post): Boolean {
+    suspend fun deletePost(postID: String): Boolean {
         // delete post
         try {
-            post.ID?.let {
-                firebaseFirestore.collection("posts").document(it).update("deletedAt", System.currentTimeMillis())
-                    .await()
-            }
+            firebaseFirestore.collection("posts").document(postID).update("deletedAt", System.currentTimeMillis())
+                .await()
             return true
         } catch (e: Exception) {
             e.printStackTrace()
@@ -300,17 +398,33 @@ class FirebasePostService @Inject constructor(
         return false
     }
 
-    suspend fun deletePermanentlyPost(post: Post): Boolean {
-        // delete post
-        try {
-            post.ID?.let { firebaseFirestore.collection("posts").document(it).delete().await() }
-            //delete rela_posts_users
-            firebaseFirestore.collection("rela_posts_users").document("${post.userId}_${post.ID}").delete().await()
-            return true
+    suspend fun deletePermanentlyPost(postID: String): Boolean {
+        return try {
+            coroutineScope {
+                val deletePost = async {
+                    firebaseFirestore.collection("posts").document(postID).delete().await()
+                }
+                val deleteRelaPostsUsers = async {
+                    firebaseFirestore.collection("rela_posts_users").document(postID).delete().await()
+                }
+                val deleteComments = async {
+                    val comments = firebaseFirestore.collection("rela_comments_users_posts")
+                        .whereEqualTo("postID", postID)
+                        .get()
+                        .await()
+                    comments.documents.map { document ->
+                        async {
+                            firebaseFirestore.collection("rela_comments_users_posts").document(document.id).delete().await()
+                        }
+                    }.awaitAll()
+                }
+                awaitAll(deletePost, deleteRelaPostsUsers, deleteComments)
+                true
+            }
         } catch (e: Exception) {
             e.printStackTrace()
+            false
         }
-        return false
     }
 
     suspend fun updateDescription(postId: String, description: String): Boolean{
@@ -347,8 +461,7 @@ class FirebasePostService @Inject constructor(
 
 
     //Post Interaction Events
-    suspend fun likePost(postId: String, userID: String): String{
-        // like post
+    suspend fun likePost(postId: String, userID: String): String {
         var relaID = ""
         try {
             val like = Like(
@@ -358,15 +471,13 @@ class FirebasePostService @Inject constructor(
                 userID = userID,
                 createdAt = System.currentTimeMillis().toString()
             )
-            firebaseFirestore.collection("likes").add(like.toMap()).addOnCompleteListener {
-                firebaseFirestore.collection("likes").document(it.result?.id!!).update("ID", it.result?.id!!)
-                relaID = it.result?.id!!
-            }.await()
-
-            return relaID
-        }catch (e: Exception){
+            val likeRef = firebaseFirestore.collection("likes").add(like.toMap()).await()
+            relaID = likeRef.id
+            firebaseFirestore.collection("likes").document(relaID).update("ID", relaID).await()
+            Log.e(TAG, "likePost Done: $relaID")
+        } catch (e: Exception) {
             e.printStackTrace()
-//            Log.e(TAG, "likePost: ${e.message}")
+            Log.e(TAG, "likePost: ${e.message}")
         }
         return relaID
     }
@@ -382,14 +493,12 @@ class FirebasePostService @Inject constructor(
                 userID = userID,
                 createdAt = System.currentTimeMillis().toString()
             )
-            firebaseFirestore.collection("likes").add(like.toMap()).addOnCompleteListener {
-                firebaseFirestore.collection("likes").document(it.result?.id!!).update("ID", it.result?.id!!)
-                relaID = it.result?.id!!
-            }.await()
-            return relaID
-        }catch (e: Exception){
+            val likeRef = firebaseFirestore.collection("likes").add(like.toMap()).await()
+            relaID = likeRef.id
+            firebaseFirestore.collection("likes").document(relaID).update("ID", relaID).await()
+        } catch (e: Exception) {
             e.printStackTrace()
-//            Log.e(TAG, "likeComment: ${e.message}")
+            Log.e(TAG, "likeComment: ${e.message}")
         }
         return relaID
     }

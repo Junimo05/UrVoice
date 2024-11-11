@@ -35,6 +35,7 @@ import androidx.navigation.compose.rememberNavController
 import com.example.urvoices.R
 import com.example.urvoices.presentations.theme.MyTheme
 import com.example.urvoices.ui._component.MessageItem
+import com.example.urvoices.ui._component.SearchBar
 import com.example.urvoices.ui._component.TopBarBackButton
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
@@ -80,44 +81,6 @@ fun MessageScreen(
         }
     }
 
-}
-
-@Composable
-fun SearchBar(
-
-    searchMech: () -> Unit = {}
-){
-    var text by remember { mutableStateOf("") }
-
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(MaterialTheme.colorScheme.background)
-            ,
-    ) {
-        TextField(
-            value = text,
-            onValueChange = { text = it },
-            maxLines = 1,
-            placeholder = {
-                Text("Search...")
-            },
-            trailingIcon = {
-                if (text.isNotEmpty()) {
-                    IconButton(onClick = { text = "" }) {
-                        Icon(
-                            painter = painterResource(id = R.drawable.ic_actions_close),
-                            contentDescription = "Clear"
-                        )
-                    }
-                }
-            },
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(MaterialTheme.colorScheme.background)
-                .padding(16.dp)
-        )
-    }
 }
 
 @Preview(showBackground = true)

@@ -1,7 +1,6 @@
 package com.example.urvoices.ui._component.PostComponent
 
 import android.annotation.SuppressLint
-import android.util.Log
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -30,7 +29,7 @@ import com.example.urvoices.data.model.Post
 import com.example.urvoices.ui._component.InteractionRow
 import com.example.urvoices.utils.Post_Interactions
 import com.example.urvoices.utils.getTimeElapsed
-import com.example.urvoices.viewmodel.InteractionRowViewModel
+import com.example.urvoices.viewmodel.InteractionViewModel
 import com.example.urvoices.viewmodel.MediaPlayerVM
 import com.example.urvoices.viewmodel.UIEvents
 import kotlinx.coroutines.CoroutineScope
@@ -42,7 +41,7 @@ fun ProfilePostItem(
     navController: NavController,
     post: Post,
     playerViewModel: MediaPlayerVM,
-    interactionViewModel: InteractionRowViewModel,
+    interactionViewModel: InteractionViewModel,
     modifier: Modifier = Modifier
 ){
     val TAG = "ProfilePostItem"
@@ -52,7 +51,6 @@ fun ProfilePostItem(
 
     //State
     val isLove = rememberSaveable { mutableStateOf(false) }
-    val loadedWaveForm = rememberSaveable { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
         interactionViewModel.getLoveStatus(postID = post.ID!!) {result ->
@@ -60,7 +58,7 @@ fun ProfilePostItem(
         }
     }
 
-    Log.e(TAG, "Post in ${TAG}: ${post.ID} - ${post.amplitudes}")
+//    Log.e(TAG, "Post in ${TAG}: ${post.ID} - ${post.amplitudes}")
 
     val isExpandedContext = mutableStateOf(false)
     Box(
@@ -114,13 +112,20 @@ fun ProfilePostItem(
                         loveCounts = post.likes!!,
                         commentCounts = post.comments!!,
                         love_act = {
-                            isLove.value = it
                             interactionViewModel.loveAction(
                                 isLove = it,
                                 postID = post.ID!!,
                                 targetUserID = post.userId
                             ){ result ->
-                                if(result) post.likes = post.likes!! + 1
+                                //get isLove input then update UI if result = true
+                                if(result){
+                                    isLove.value = it
+                                    if(isLove.value){
+                                        post.likes = post.likes!! + 1
+                                    } else {
+                                        post.likes = post.likes!! - 1
+                                    }
+                                }
                             }
                         },
                         comment_act = {

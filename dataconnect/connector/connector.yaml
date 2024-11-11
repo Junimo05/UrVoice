@@ -1,5 +1,0 @@
-connectorId: default
-generate:
-  kotlinSdk:
-    outputDir: ..\..\app\src\main\java
-    package: connectors.default

@@ -66,6 +66,7 @@ class FirebaseNotificationService @Inject constructor(
                Log.e(TAG, "likePost: ${it.message}")
             }
             .await()
+        Log.e(TAG, "likePost Check: $result")
         return result != null
     }
 

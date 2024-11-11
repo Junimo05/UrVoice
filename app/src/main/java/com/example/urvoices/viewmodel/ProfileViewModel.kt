@@ -4,7 +4,6 @@ import android.net.Uri
 import android.util.Log
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -20,12 +19,10 @@ import com.example.urvoices.data.repository.NotificationRepository
 import com.example.urvoices.data.repository.PostRepository
 import com.example.urvoices.data.repository.UserRepository
 import com.example.urvoices.utils.UserPreferences
-import com.example.urvoices.utils.deleteOldImageFile
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -33,14 +30,12 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 val userTemp = User(
-    id = "empty",
+    ID = "empty",
     username = "empty",
-    displayname = "empty",
     email = "empty",
     country = "empty",
     avatarUrl = "empty",
@@ -107,6 +102,7 @@ class ProfileViewModel @Inject constructor(
         postRepository.getAllSavedPostFromUser(displayuserID, lastVisibleSavedPost, lastVisibleSavedPage)
     }.flow.cachedIn(viewModelScope)
 
+
     fun loadData(userID: String){
         if(displayuserID != userID){
             this.displayuserID = userID
@@ -150,6 +146,11 @@ class ProfileViewModel @Inject constructor(
             _uiState.value = ProfileState.Error("Error when loading user data")
             Log.e(TAG, "loadbaseUserData: Error")
         }
+    }
+
+    suspend fun loadUserBaseInfo(userID: String): Map<String, String>{
+        val result = postRepository.getUserBaseInfo(userID)
+        return result
     }
 
     fun followUser(){

@@ -1,7 +1,6 @@
 package com.example.urvoices.ui.MainScreen
 
 import android.annotation.SuppressLint
-import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -64,7 +63,7 @@ import com.example.urvoices.ui._component.SavedItems
 import com.example.urvoices.ui._component.PostComponent.ProfilePostItem
 import com.example.urvoices.utils.Navigator.MainScreen
 import com.example.urvoices.utils.processUsername
-import com.example.urvoices.viewmodel.InteractionRowViewModel
+import com.example.urvoices.viewmodel.InteractionViewModel
 import com.example.urvoices.viewmodel.MediaPlayerVM
 import com.example.urvoices.viewmodel.ProfileState
 import com.example.urvoices.viewmodel.ProfileViewModel
@@ -84,11 +83,12 @@ fun ProfileScreen(
     val scope = CoroutineScope(Dispatchers.Main)
 
     //interactionVM init
-    val interactionViewModel = hiltViewModel<InteractionRowViewModel>()
+    val interactionViewModel = hiltViewModel<InteractionViewModel>()
 
     //State & Data
     val uiState = profileViewModel.uiState.collectAsState()
     val postList = profileViewModel.posts.collectAsLazyPagingItems()
+    val savedPostsList = profileViewModel.savedPosts.collectAsLazyPagingItems()
 
     val isUser by lazy {
         mutableStateOf(
@@ -219,7 +219,7 @@ fun ProfileScreen(
                         }
                 ) {
                     Text(
-                        text = "Playlists",
+                        text = "Urvoice Loving",
                         style = TextStyle(
                             fontWeight = FontWeight.Normal,
                             fontSize = 16.sp
@@ -256,7 +256,7 @@ fun ProfileScreen(
                                 playerViewModel = playerViewModel,
                                 interactionViewModel = interactionViewModel
                             )
-                            Log.e(TAG, "PostItem: ${postList[index]!!.ID} && ${postList[index]!!.amplitudes}")
+//                            Log.e(TAG, "PostItem: ${postList[index]!!.ID} && ${postList[index]!!.amplitudes}")
                         }
 
                         postList.apply {
@@ -293,11 +293,40 @@ fun ProfileScreen(
                         verticalArrangement = Arrangement.spacedBy(8.dp),
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
                     ) {
-                        items(10){
-//                            SavedItems(
-//                                title = "Title",
-//                                duration = "3:24"
-//                            )
+                        items(savedPostsList.itemCount) { index ->
+                            SavedItems(
+                                navController = navController,
+                                post = savedPostsList[index]!!,
+                                playerVM = playerViewModel,
+                                profileVM = profileViewModel
+                            )
+                        }
+
+                        savedPostsList.apply {
+                            when {
+                                loadState.refresh is LoadState.Loading -> {
+                                    item {
+                                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
+                                            CircularProgressIndicator()
+                                        }
+                                    }
+                                }
+                                loadState.append is LoadState.Loading -> {
+                                    item {
+                                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
+                                            CircularProgressIndicator()
+                                        }
+                                    }
+                                }
+                                loadState.refresh is LoadState.Error -> {
+                                    val e = savedPostsList.loadState.refresh as LoadState.Error
+                                    item { Text(text = e.error.localizedMessage ?: "Unknown Error") }
+                                }
+                                loadState.append is LoadState.Error -> {
+                                    val e = savedPostsList.loadState.append as LoadState.Error
+                                    item { Text(text = e.error.localizedMessage ?: "Unknown Error") }
+                                }
+                            }
                         }
                     }
                 }
@@ -382,7 +411,7 @@ fun UserInfo(
             ) {
                 Text(
                     //Link tag
-                    text = user.value.username,
+                    text = user.value.country,
                     style = TextStyle(
                         fontWeight = FontWeight.Normal,
                         fontSize = 14.sp,

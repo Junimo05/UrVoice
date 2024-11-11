@@ -65,10 +65,10 @@ object Firebase {
         audioManager: AudioManager,
         firestore: FirebaseFirestore,
         storage: StorageReference,
+        auth: FirebaseAuth,
         firebaseAudioService: FirebaseAudioService,
-        sharedPref: SharedPreferencesHelper
     ): FirebasePostService {
-        return FirebasePostService(audioManager, firestore, storage)
+        return FirebasePostService(audioManager, auth, firestore, storage)
     }
 
     @Provides

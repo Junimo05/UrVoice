@@ -34,7 +34,7 @@ class UploadViewModel @Inject constructor(
                 audioName = audioName,
                 description = description,
                 createdAt = System.currentTimeMillis(),
-                tag = tags,
+                _tags = tags,
                 url = null,
                 comments = 0,
                 likes = 0,
