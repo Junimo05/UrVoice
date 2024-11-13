@@ -68,6 +68,7 @@ android {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
         }
     }
+
 }
 
 dependencies {
@@ -148,6 +149,10 @@ dependencies {
     //Waveform
     implementation("com.github.lincollincol:amplituda:2.2.2")
     implementation("com.github.lincollincol:compose-audiowaveform:1.1.1")
+
+    //
+    implementation("com.github.wseemann:FFmpegMediaMetadataRetriever-core:1.0.19")
+    implementation("com.github.wseemann:FFmpegMediaMetadataRetriever-native:1.0.19")
 
     //FireBase
     implementation(platform("com.google.firebase:firebase-bom:33.2.0"))

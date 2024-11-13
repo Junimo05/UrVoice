@@ -4,12 +4,10 @@ import android.util.Log
 import com.example.urvoices.data.model.BlockList
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.storage.StorageReference
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 
 class FirebaseBlockService @Inject constructor(
-    private val storage: StorageReference,
     private val firebaseFirestore: FirebaseFirestore,
     private val auth: FirebaseAuth
 ){
@@ -20,19 +18,17 @@ class FirebaseBlockService @Inject constructor(
         if(user != null){
             try {
                 val query = firebaseFirestore.collection("rela_blocks")
-                    .whereEqualTo("actionID", user.uid)
+                    .document(user.uid)
                     .get().await()
-                if (!query.isEmpty) {
-                    for (doc in query) {
-                        return doc.toObject(BlockList::class.java)
-                    }
+                if(query.exists()){
+                    return query.toObject(BlockList::class.java)
                 }
             } catch (e: Exception){
                 e.printStackTrace()
                 Log.e(TAG, "getAllBlockList: ${e.message}")
             }
         }
-        return null
+        return BlockList()
     }
 
     suspend fun getBlockStatus(targetID: String): Boolean {
@@ -41,7 +37,7 @@ class FirebaseBlockService @Inject constructor(
         if(user != null){
             try {
                 val query = firebaseFirestore.collection("rela_blocks")
-                    .whereEqualTo("actionID", user.uid)
+                    .whereEqualTo("ID", user.uid)
                     .get().await()
                 if (!query.isEmpty) {
                     for (doc in query) {
@@ -79,7 +75,6 @@ class FirebaseBlockService @Inject constructor(
                     } else {
                         val blockList = BlockList(
                             id = user.uid,
-                            actionID = user.uid,
                             targetID = listOf(targetID)
                         )
                         transaction.set(documentRef, blockList)
@@ -100,7 +95,7 @@ class FirebaseBlockService @Inject constructor(
         if(user != null){
             try {
                 val query = firebaseFirestore.collection("rela_blocks")
-                    .whereEqualTo("actionID", user.uid)
+                    .whereEqualTo("ID", user.uid)
                     .get().await()
                 if (!query.isEmpty) {
                     for (doc in query) {

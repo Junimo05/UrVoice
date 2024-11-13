@@ -3,6 +3,7 @@ package com.example.urvoices.ui._component
 import android.graphics.drawable.Drawable
 import android.graphics.drawable.Icon
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -33,7 +34,8 @@ fun TopBarBackButton(
     title : String = "",
     endIcon: Int? = null,
     endIconAction: () -> Unit = {},
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    child: @Composable () -> Unit = {}
 ) {
     Box(
         modifier = Modifier.fillMaxWidth().then(modifier)
@@ -76,16 +78,21 @@ fun TopBarBackButton(
 
         // End Icon
         endIcon?.let {
-            IconButton(
-                onClick = {
-                    endIconAction()
-                },
-                modifier = Modifier.align(Alignment.CenterEnd).size(36.dp).padding(end = 8.dp)
-            ) {
-                Icon(
-                    painter = painterResource(id = endIcon),
-                    contentDescription = "End Icon"
-                )
+            Row(
+                modifier = Modifier.align(Alignment.CenterEnd)
+            ){
+                IconButton(
+                    onClick = {
+                        endIconAction()
+                    },
+                    modifier = Modifier.size(36.dp).padding(end = 8.dp)
+                ) {
+                    Icon(
+                        painter = painterResource(id = endIcon),
+                        contentDescription = "End Icon"
+                    )
+                }
+                child()
             }
         }
     }

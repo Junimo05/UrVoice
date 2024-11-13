@@ -79,7 +79,7 @@ import com.example.urvoices.ui._component.TagInputField
 import com.example.urvoices.ui._component.waveform.AudioWaveformLive
 import com.example.urvoices.utils.Navigator.MainScreen
 import com.example.urvoices.utils.formatFileSize
-import com.example.urvoices.utils.timeStampToDuration
+import com.example.urvoices.utils.formatToMinSecFromMillisec
 import com.example.urvoices.viewmodel.MediaPlayerVM
 import com.example.urvoices.viewmodel.MediaRecorderVM
 import com.example.urvoices.viewmodel.RecorderState
@@ -450,9 +450,9 @@ fun Record(
     val context = LocalContext.current
     val activity = LocalContext.current as MainActivity
 
-    LaunchedEffect(mediaRecorderVM.amplitudesLive) {
-        Log.e("RecordScreen", "RecordScreen: ${mediaRecorderVM.amplitudesLive}")
-    }
+//    LaunchedEffect(mediaRecorderVM.amplitudesLive) {
+//        Log.e("RecordScreen", "RecordScreen: ${mediaRecorderVM.amplitudesLive}")
+//    }
 
     Scaffold(
         content = {
@@ -465,7 +465,7 @@ fun Record(
                     verticalArrangement = Arrangement.Center
                 ) {
                     Text(
-                        text = timeStampToDuration(mediaRecorderVM.recordingTime.longValue),
+                        text = formatToMinSecFromMillisec(mediaRecorderVM.recordingTime.longValue),
                         style = TextStyle(
                             fontSize = 24.sp,
                             fontWeight = FontWeight.Bold

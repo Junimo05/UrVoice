@@ -1,23 +1,28 @@
 package com.example.urvoices.utils.Navigator
 
 import android.annotation.SuppressLint
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.slideInVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FabPosition
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -25,14 +30,15 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
@@ -71,11 +77,8 @@ fun Navigator(authViewModel: AuthViewModel) {
 
     val interactionViewModel = hiltViewModel<InteractionViewModel>()
 
-    //BottomSheet for Media
-    val sheetState = rememberModalBottomSheetState()
-    val scope = rememberCoroutineScope()
-    var showBottomSheet by remember { mutableStateOf(false) }
-
+    //Bar for Media
+    var expandOptionBar = remember { mutableStateOf(false) }
 
     LaunchedEffect(navController) {
         navController.addOnDestinationChangedListener { _, destination, _ ->
@@ -91,7 +94,7 @@ fun Navigator(authViewModel: AuthViewModel) {
                 Graph.SPECIFY -> {
                     isVisibleBottomBar.value = true
                     if(destination.route?.startsWith("post/") == true){
-                        isVisibleMediaBar.value = false
+                        isVisibleMediaBar.value = true
                         isVisibleBottomBar.value = false
                     }
                 }
@@ -102,130 +105,182 @@ fun Navigator(authViewModel: AuthViewModel) {
             }
         }
     }
-    
-    Scaffold(
-        bottomBar = {
-            if (isVisibleBottomBar.value) {
-                BottomBar(
-                    selectedPage = selectedPage,
-                    navController = navController
-                )
+
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .pointerInput(Unit) {
+                detectTapGestures {
+                    if (expandOptionBar.value) {
+                        expandOptionBar.value = false
+                    }
+                }
             }
-        },
-    ) {paddingValues ->
+    ){
         Scaffold(
-            modifier = Modifier.padding(bottom = paddingValues.calculateBottomPadding()),
             bottomBar = {
-                if(isVisibleMediaBar.value){
-                    if(!playerViewModel.isStop.collectAsState().value){
-                        MediaPlayer(
-                            navController = navController,
-                            progress = playerViewModel.progress,
-                            isAudioPlaying = playerViewModel.isPlaying,
-                            currentPlayingAudio = playerViewModel.currentPlayingAudio,
-                            duration = playerViewModel.duration,
-                            onProgress = {
-                                playerViewModel.onUIEvents(UIEvents.SeekTo(it))
-                            },
-                            onStartPlayer = {
-                                playerViewModel.onUIEvents(UIEvents.PlayingAudio(it))
-                            },
-                            onPlayPause = {
-                                playerViewModel.onUIEvents(UIEvents.PlayPause)
-                            },
-                            onStop = {
-                                playerViewModel.onUIEvents(UIEvents.Stop)
-                            },
-                            isStop = playerViewModel.isStop.value,
-                            onForward = {
-                                playerViewModel.onUIEvents(UIEvents.Forward)
-                            },
-                            onBackward = {
-                                playerViewModel.onUIEvents(UIEvents.Backward)
-                            },
-                            onSeekToNext = {
-                                playerViewModel.onUIEvents(UIEvents.SeekToNext)
-                            },
-                            onLoopModeChange = {
-                                playerViewModel.onUIEvents(UIEvents.LoopModeChange)
-                            },
-                            modifier = Modifier.clickable {
-                                showBottomSheet = true
-                            }
-                        )
-                    } else {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.Center
+                if (isVisibleBottomBar.value) {
+                    BottomBar(
+                        selectedPage = selectedPage,
+                        navController = navController
+                    )
+                }
+            },
+        ) {paddingValues ->
+            Scaffold(
+                modifier = Modifier.padding(bottom = paddingValues.calculateBottomPadding()),
+                floatingActionButtonPosition = FabPosition.Center,
+                floatingActionButton = {
+                    if(isVisibleMediaBar.value){
+                        AnimatedVisibility(
+                            visible = !playerViewModel.isStop.collectAsState().value,
+                            enter = slideInVertically(
+                                initialOffsetY = { it }, // Slide in from the bottom
+                                animationSpec = tween(durationMillis = 300) // Animation duration
+                            )
                         ) {
-                            val shimmerColors = listOf(
-                                Color(0xFFFFDBDB),
-                                Color(0xFFFFDCDC),
-                                Color(0xFFFFF0F0),
-                                Color(0xFFFFEDED),
-                                Color(0xFFFFF5F5)
-                            )
-                            val transition = rememberInfiniteTransition(label = "")
-                            val translateAnim by transition.animateFloat(
-                                initialValue = 0f,
-                                targetValue = 1500f,
-                                animationSpec = infiniteRepeatable(
-                                    animation = tween(durationMillis = 2000, easing = FastOutSlowInEasing),
-                                    repeatMode = RepeatMode.Reverse
-                                ), label = ""
-                            )
-                            Row(
+                            Box(
                                 modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(16.dp)
                                     .background(
-                                        brush = Brush.linearGradient(
-                                            colors = shimmerColors,
-                                            start = Offset(translateAnim, 0f),
-                                            end = Offset(translateAnim + 500f, 500f)
-                                        )
+                                        color = Color.Transparent
                                     )
-                                    .fillMaxWidth(),
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.Center
+                                    .shadow(8.dp, shape = MaterialTheme.shapes.medium)
+                                    .align(Alignment.BottomCenter)
                             ) {
-                                Text(
-                                    "No audio playing",
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                MediaPlayer(
+                                    navController = navController,
+                                    playlist = playerViewModel.playlist,
+                                    progress = playerViewModel.progress,
+                                    isAudioPlaying = playerViewModel.isPlaying,
+                                    currentPlayingIndex = playerViewModel.currentPlayingIndex,
+                                    currentPlayingAudio = playerViewModel.currentAudio.value.url,
+                                    duration = playerViewModel.duration,
+                                    isStop = playerViewModel.isStop.value,
+                                    onProgress = {
+                                        playerViewModel.onUIEvents(UIEvents.SeekTo(it))
+                                    },
+                                    onStartPlayer = {
+                                        playerViewModel.onUIEvents(UIEvents.PlayingAudio(it))
+                                    },
+                                    onPlayPause = {
+                                        playerViewModel.onUIEvents(UIEvents.PlayPause)
+                                    },
+                                    onStop = {
+                                        playerViewModel.onUIEvents(UIEvents.Stop)
+                                    },
+                                    onForward = {
+                                        playerViewModel.onUIEvents(UIEvents.Forward)
+                                    },
+                                    onBackward = {
+                                        playerViewModel.onUIEvents(UIEvents.Backward)
+                                    },
+                                    onNext = {
+                                        playerViewModel.onUIEvents(UIEvents.NextAudio)
+                                    },
+                                    onPrevious = {
+                                        playerViewModel.onUIEvents(UIEvents.PreviousAudio)
+                                    },
+                                    onRemoveFromPlaylist = {
+                                        playerViewModel.onUIEvents(UIEvents.RemoveFromPlaylist(it))
+                                    },
+                                    onPlayFromList = {
+                                        playerViewModel.onUIEvents(UIEvents.PlaySelectedFromList(it))
+                                    },
+                                    onLoopModeChange = {
+                                        playerViewModel.onUIEvents(UIEvents.LoopModeChange)
+                                    },
+                                    expandOptionBar = expandOptionBar.value,
+                                    setExpandOptionBar = {
+                                        expandOptionBar.value = it
+                                    },
+                                    modifier = Modifier.clickable {
+                                        expandOptionBar.value = !expandOptionBar.value
+                                    }
                                 )
                             }
                         }
                     }
+                },
+                bottomBar = {
+                    if(isVisibleMediaBar.value){
+                        if(playerViewModel.isStop.collectAsState().value){
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.Center
+                            ) {
+                                val shimmerColors = listOf(
+                                    Color(0xFFFFDBDB),
+                                    Color(0xFFFFDCDC),
+                                    Color(0xFFFFF0F0),
+                                    Color(0xFFFFEDED),
+                                    Color(0xFFFFF5F5)
+                                )
+                                val transition = rememberInfiniteTransition(label = "")
+                                val translateAnim by transition.animateFloat(
+                                    initialValue = 0f,
+                                    targetValue = 1500f,
+                                    animationSpec = infiniteRepeatable(
+                                        animation = tween(durationMillis = 2000, easing = FastOutSlowInEasing),
+                                        repeatMode = RepeatMode.Reverse
+                                    ), label = ""
+                                )
+                                Row(
+                                    modifier = Modifier
+                                        .background(
+                                            brush = Brush.linearGradient(
+                                                colors = shimmerColors,
+                                                start = Offset(translateAnim, 0f),
+                                                end = Offset(translateAnim + 500f, 500f)
+                                            )
+                                        )
+                                        .fillMaxWidth(),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.Center
+                                ) {
+                                    Text(
+                                        "No audio playing",
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
+                            }
+                        }
+                    }
                 }
-            },
-        ) {
-            NavHost(
-                navController = navController,
-                startDestination = Graph.AUTHENTICATION,
-                route = Graph.ROOT,
-                modifier = Modifier.padding(it)
-            ){
-                authGraph(navController, authViewModel) //authentication nav
-                mainGraph(
-                    navController,
-                    authViewModel,
-                    playerViewModel = playerViewModel,
-                    homeViewModel = homeViewModel,
-                    uploadViewModel = uploadViewModel,
-                    profileViewModel = profileViewModel,
-                    mediaRecorderVM = mediaRecorderVM,
-                    searchViewModel = searchVM
-                ) //home nav
-                specifyGraph(
-                    navController,
-                    authViewModel,
-                    playerViewModel = playerViewModel,
-                    postDetailViewModel = postDetailViewModel,
-                    profileViewModel = profileViewModel
-                ) //specify nav
-                notiMsgGraph(navController) //notification nav
+            ) {
+                NavHost(
+                    navController = navController,
+                    startDestination = Graph.AUTHENTICATION,
+                    route = Graph.ROOT,
+                    modifier = Modifier.padding(it)
+                ){
+                    authGraph(navController, authViewModel) //authentication nav
+                    mainGraph(
+                        navController,
+                        authViewModel,
+                        playerViewModel = playerViewModel,
+                        homeViewModel = homeViewModel,
+                        uploadViewModel = uploadViewModel,
+                        profileViewModel = profileViewModel,
+                        mediaRecorderVM = mediaRecorderVM,
+                        searchViewModel = searchVM
+                    ) //home nav
+                    specifyGraph(
+                        navController,
+                        authViewModel,
+                        playerViewModel = playerViewModel,
+                        postDetailViewModel = postDetailViewModel,
+                        profileViewModel = profileViewModel
+                    ) //specify nav
+                    notiMsgGraph(navController) //notification nav
+                }
             }
         }
     }
+
 }
 
 object Graph {

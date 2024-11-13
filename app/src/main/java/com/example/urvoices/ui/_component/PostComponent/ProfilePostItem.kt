@@ -25,7 +25,9 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.example.urvoices.data.model.Audio
 import com.example.urvoices.data.model.Post
+import com.example.urvoices.data.model.User
 import com.example.urvoices.ui._component.InteractionRow
 import com.example.urvoices.utils.Post_Interactions
 import com.example.urvoices.utils.getTimeElapsed
@@ -40,6 +42,7 @@ import kotlinx.coroutines.Dispatchers
 fun ProfilePostItem(
     navController: NavController,
     post: Post,
+    user: User,
     playerViewModel: MediaPlayerVM,
     interactionViewModel: InteractionViewModel,
     modifier: Modifier = Modifier
@@ -140,18 +143,23 @@ fun ProfilePostItem(
             id = post.ID!!,
             audioUrl = post.url!!,
             audioAmplitudes = post.amplitudes,
-            currentPlayingAudio = playerViewModel.currentPlayingAudio,
-            currentPlayingPost = playerViewModel.currentPlayingPost,
-            duration = playerViewModel.duration, //fix Duration each Post
+            currentPlayingAudio = playerViewModel.currentAudio.value.url,
+            currentPlayingPost = playerViewModel.currentAudio.value.id,
+            duration = playerViewModel.duration,
             isPlaying = playerViewModel.isPlaying,
             isStop = playerViewModel.isStop.value,
             onPlayStart = {
                 if(post.url.isNotEmpty()){
                     playerViewModel.onUIEvents(
                         UIEvents.PlayingAudio(
-                            post.url
+                            Audio(
+                                id = post.ID,
+                                url = post.url,
+                                title = post.audioName!!,
+                                duration = post.duration,
+                                author = user.username
+                            )
                         ))
-                    playerViewModel.updateCurrentPlayingPost(post.ID)
                 }
             },
             onPlayPause = {

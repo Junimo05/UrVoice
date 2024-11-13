@@ -21,6 +21,7 @@ import com.google.firebase.auth.FirebaseAuth
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -52,6 +53,9 @@ class PostDetailViewModel @Inject constructor(
 
     private val _uiState = MutableStateFlow<PostDetailState>(PostDetailState.Initial)
     val uiState = _uiState.asStateFlow()
+
+    private val _isLoadingCmt = MutableStateFlow(false)
+    val isLoadingCmt: StateFlow<Boolean> = _isLoadingCmt.asStateFlow()
 
     private var postID = ""
     var currentPost = mutableStateOf(emptyPost)
@@ -117,6 +121,7 @@ class PostDetailViewModel @Inject constructor(
             _commentFlow.value = PagingData.empty()
         }
         viewModelScope.launch {
+            _isLoadingCmt.value = true
             Pager(pagingConfig) {
                 postRepository.getCommentsPosts(
                     postID = postID,
@@ -126,7 +131,9 @@ class PostDetailViewModel @Inject constructor(
             }.flow.cachedIn(viewModelScope)
                 .collect{
                     _commentFlow.value = it
+                    _isLoadingCmt.value = false
                 }
+
         }
     }
     suspend fun sendComment(message: String, parentID: String = "") {

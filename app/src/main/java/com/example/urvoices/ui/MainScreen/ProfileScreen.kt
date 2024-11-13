@@ -253,6 +253,7 @@ fun ProfileScreen(
                             ProfilePostItem(
                                 navController = navController,
                                 post = postList[index]!!,
+                                user = user.value,
                                 playerViewModel = playerViewModel,
                                 interactionViewModel = interactionViewModel
                             )
