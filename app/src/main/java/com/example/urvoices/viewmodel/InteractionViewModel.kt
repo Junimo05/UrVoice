@@ -7,6 +7,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.SavedStateHandleSaveableApi
 import androidx.lifecycle.viewmodel.compose.saveable
+import com.example.urvoices.data.repository.BlockRepository
 import com.example.urvoices.data.repository.NotificationRepository
 import com.example.urvoices.data.repository.PostRepository
 import com.example.urvoices.data.service.FirebaseBlockService
@@ -30,7 +31,7 @@ class InteractionViewModel @Inject constructor(
     private val postRepository: PostRepository,
     private val auth: FirebaseAuth,
     private val userRef: UserPreferences,
-    private val blockService: FirebaseBlockService,
+    private val blockRepository: BlockRepository,
     private val firebaseFirestore: FirebaseFirestore,
     savedStateHandle: SavedStateHandle
 ): ViewModel(){
@@ -65,7 +66,7 @@ class InteractionViewModel @Inject constructor(
     fun getBlockStatus(targetUserID: String, callback: (Boolean) -> Unit){
         try {
             viewModelScope.launch {
-                val result = blockService.getBlockStatus(
+                val result = blockRepository.getBlockStatus(
                     targetID = targetUserID,
                 )
                 callback(result)
@@ -93,7 +94,7 @@ class InteractionViewModel @Inject constructor(
         var resultMsg = ""
         try {
             viewModelScope.launch {
-                val result = blockService.blockUser(targetID)
+                val result = blockRepository.blockUser(targetID)
                 if (result.isNotEmpty()) {
                     _uiState.value = InteractionRowState.Success
                     resultMsg = "User blocked successfully"
@@ -115,7 +116,7 @@ class InteractionViewModel @Inject constructor(
         var resultMsg = ""
         try {
             viewModelScope.launch {
-                val result = blockService.unblockUser(targetID)
+                val result = blockRepository.unblockUser(targetID)
                 if (result.isNotEmpty()) {
                     _uiState.value = InteractionRowState.Success
                     resultMsg = "User unblocked successfully"

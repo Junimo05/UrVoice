@@ -3,7 +3,6 @@ package com.example.urvoices.viewmodel
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
-import android.os.Build
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableLongStateOf
@@ -14,6 +13,7 @@ import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.SavedStateHandleSaveableApi
 import androidx.lifecycle.viewmodel.compose.saveable
 import androidx.media3.common.Player
+import com.example.urvoices.data.model.Audio
 import com.example.urvoices.utils.audio_player.services.AudioService
 import com.example.urvoices.utils.audio_player.services.AudioServiceHandler
 import com.example.urvoices.utils.audio_player.services.AudioState
@@ -29,6 +29,7 @@ import kotlinx.coroutines.launch
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
+@SuppressLint("MutableCollectionMutableState")
 @HiltViewModel
 class MediaPlayerVM @Inject constructor(
     @ApplicationContext private val context: Context,
@@ -37,6 +38,21 @@ class MediaPlayerVM @Inject constructor(
 ): ViewModel(){
     val TAG = "MediaPlayerViewModel"
 
+
+
+    val currentAudio = mutableStateOf(
+        Audio(
+            id = "", //post id
+            title = "", //audio name
+            url = "",  //audio url
+            author = "", //username
+            duration = 0L //audio duration
+    ))
+
+    @OptIn(SavedStateHandleSaveableApi::class)
+    var playlist by saveStateHandle.saveable{mutableStateOf(mutableListOf<Audio>())}
+    @OptIn(SavedStateHandleSaveableApi::class)
+    var currentPlayingIndex by saveStateHandle.saveable{mutableIntStateOf(0)}
     @OptIn(SavedStateHandleSaveableApi::class)
     var duration by saveStateHandle.saveable { mutableLongStateOf(0L) }
     @OptIn(SavedStateHandleSaveableApi::class)
@@ -46,10 +62,6 @@ class MediaPlayerVM @Inject constructor(
     val isStop: StateFlow<Boolean> = audioService.isStop.asStateFlow()
     @OptIn(SavedStateHandleSaveableApi::class)
     var isPlaying by saveStateHandle.saveable { mutableStateOf(false) }
-    @OptIn(SavedStateHandleSaveableApi::class)
-    var currentPlayingAudio by saveStateHandle.saveable { mutableIntStateOf(0) }
-    @OptIn(SavedStateHandleSaveableApi::class)
-    var currentPlayingPost by saveStateHandle.saveable { mutableStateOf("") }
     @OptIn(SavedStateHandleSaveableApi::class)
     var repeatMode by saveStateHandle.saveable { mutableIntStateOf(Player.REPEAT_MODE_OFF) }
     var isServiceRunning = false
@@ -67,11 +79,19 @@ class MediaPlayerVM @Inject constructor(
                     is AudioState.Playing -> isPlaying = state.isPlaying
                     is AudioState.Progress -> setProgressValue(state.progress)
                     is AudioState.CurrentPlaying -> {
-                        currentPlayingAudio = state.mediaItemIndex
+                          currentAudio.value = state.audio
+//                        Log.e(TAG, "Current Playing: $currentPlayingAudio")
                     }
                     is AudioState.Ready -> {
                         duration = state.duration
                         _uiState.value = UIStates.Ready
+                    }
+
+                    is AudioState.PlaylistIndex -> {
+                        currentPlayingIndex = state.index
+                    }
+                    is AudioState.PlaylistUpdated -> {
+                        playlist = state.list
                     }
                 }
                 AppGlobalState.mediaState.value = _uiState.value
@@ -92,31 +112,17 @@ class MediaPlayerVM @Inject constructor(
                 startBackGroundService()
                 audioService.onPlayerEvents(
                     PlayerEvent.StartPlaying,
-                    url = uiEvents.url
+                    audio = uiEvents.audio
                 )
+                //add Audio Current
+                currentAudio.value = uiEvents.audio
             }
             UIEvents.Stop -> {
                 audioService.onPlayerEvents(
                     PlayerEvent.Stop
                 )
-            }
-            is UIEvents.PlayingAudioChange -> {
-                audioService.onPlayerEvents(
-                    PlayerEvent.SelectedAudioChange,
-                    selectedAudioIndex = uiEvents.index
-                )
-            }
-            is UIEvents.AddMediaItemToQueue -> {
-                audioService.onPlayerEvents(
-                    PlayerEvent.AddToQueue,
-                    url = uiEvents.uri
-                )
-            }
-            is UIEvents.DeleteMediaItemFromQueue -> {
-                audioService.onPlayerEvents(
-                    PlayerEvent.DeleteFromQueue,
-                    index = uiEvents.index
-                )
+                //reset all data to initial
+                clearAllVMData()
             }
             is UIEvents.SeekTo -> {
                 audioService.onPlayerEvents(
@@ -124,7 +130,6 @@ class MediaPlayerVM @Inject constructor(
                     seekPosition = (duration * uiEvents.position).toLong()
                 )
             }
-            UIEvents.SeekToNext -> audioService.onPlayerEvents(PlayerEvent.SeekToNext)
             is UIEvents.UpdateProgress -> {
                 audioService.onPlayerEvents(
                     PlayerEvent.UpdateProgress(
@@ -143,21 +148,41 @@ class MediaPlayerVM @Inject constructor(
             UIEvents.Forward -> {
                 audioService.onPlayerEvents(PlayerEvent.Forward)
             }
-        }
-    }
+            is UIEvents.PlaySelectedFromList -> {
+                val index = uiEvents.index
+                audioService.onPlayerEvents(
+                    PlayerEvent.PlayFromPlaylist,
+                    index = index
+                )
+            }
+            is UIEvents.AddToPlaylist -> {
+                val audio = uiEvents.audio
+                audioService.onPlayerEvents(
+                    PlayerEvent.AddToPlaylist,
+                    audio = audio
+                )
+            }
+            is UIEvents.RemoveFromPlaylist -> {
+                val audio = uiEvents.audio
+                audioService.onPlayerEvents(
+                    PlayerEvent.RemoveFromPlayList,
+                    audio = audio
+                )
+            }
+            UIEvents.NextAudio -> {
+                audioService.onPlayerEvents(PlayerEvent.NextTrack)
 
-    fun updateCurrentPlayingPost(post: String){
-        currentPlayingPost = post
+            }
+            UIEvents.PreviousAudio -> {
+                audioService.onPlayerEvents(PlayerEvent.PreviousTrack)
+            }
+        }
     }
 
     private fun startBackGroundService() {
         if (!isServiceRunning) {
             val intent = Intent(context, AudioService::class.java)
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                context.startForegroundService(intent)
-            } else {
-                context.startService(intent)
-            }
+            context.startForegroundService(intent)
             isServiceRunning = true
         }
     }
@@ -168,6 +193,25 @@ class MediaPlayerVM @Inject constructor(
             else 0f
         progressString = formatDurationString(currentProgress)
     }
+
+    fun clearAllVMData(){
+        currentAudio.value = Audio(
+            id = "", //post id
+            title = "", //audio name
+            url = "",  //audio url
+            author = "", //username
+            duration = 0L //audio duration
+        )
+        playlist.clear()
+        currentPlayingIndex = 0
+        duration = 0L
+        progress = 0f
+        progressString = "00:00"
+        isPlaying = false
+        repeatMode = Player.REPEAT_MODE_OFF
+        isServiceRunning = false
+    }
+
     @SuppressLint("DefaultLocale")
     fun formatDurationString(duration: Long): String {
         val minute = TimeUnit.MINUTES.convert(duration, TimeUnit.MILLISECONDS)
@@ -177,17 +221,18 @@ class MediaPlayerVM @Inject constructor(
 }
 
 sealed class UIEvents {
-    data class PlayingAudio(val url: String): UIEvents()
-    data class PlayingAudioChange(val index: Int): UIEvents()
+    data class PlayingAudio(val audio: Audio): UIEvents()
+    data class PlaySelectedFromList(val index: Int): UIEvents()
+    data class AddToPlaylist(val audio: Audio): UIEvents()
+    data class RemoveFromPlaylist(val audio: Audio): UIEvents()
+    object NextAudio: UIEvents()
+    object PreviousAudio: UIEvents()
     object Forward: UIEvents()
     object Backward: UIEvents()
     data class SeekTo(val position: Float): UIEvents()
-    object SeekToNext: UIEvents()
     object PlayPause: UIEvents()
     object Stop: UIEvents()
     object LoopModeChange: UIEvents()
-    data class AddMediaItemToQueue(val uri: String): UIEvents()
-    data class DeleteMediaItemFromQueue(val index: Int): UIEvents()
     data class UpdateProgress(val newProgress: Float): UIEvents()
 }
 

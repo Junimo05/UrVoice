@@ -84,8 +84,9 @@ fun Home(
 
     val userPreferences = UserPreferences(LocalContext.current)
 
-    val isPlayingAudio by rememberSaveable {
-        mutableStateOf(false)
+    //Run when start app
+    LaunchedEffect(Unit) {
+        homeViewModel.syncBlockData()
     }
 
     LaunchedEffect(authState.value) {
@@ -245,16 +246,5 @@ fun Home(
                 }
             }
         }
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun HomePreview() {
-    val context = LocalContext.current
-    val authViewModel: AuthViewModel = hiltViewModel()
-    val homeViewModel: HomeViewModel = hiltViewModel()
-    MyTheme {
-        Home(navController = NavController(context = context), authViewModel = authViewModel, homeViewModel = homeViewModel, playerViewModel = hiltViewModel())
     }
 }

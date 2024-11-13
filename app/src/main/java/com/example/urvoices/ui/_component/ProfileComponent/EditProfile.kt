@@ -107,7 +107,7 @@ fun ProfileEditScreen(
     var email by remember { mutableStateOf(currentUser!!.email) }
     val downloadAvatarUrl by remember { mutableStateOf(currentUser!!.avatarUrl) }
     var imgUri by remember { mutableStateOf(Uri.EMPTY) }
-    var updating by remember {mutableStateOf(false)}
+    var updating by mutableStateOf(false)
 
 
     //Image Handle
@@ -116,7 +116,7 @@ fun ProfileEditScreen(
 
     val imagePicker = rememberImagePicker(onImage = { uri ->
         scope.launch {
-            deleteOldImageFile(context, imgUri)
+            deleteOldImageFile(imgUri)
             val result = imageCropper.crop(uri = uri, context = context)
             when (result) {
                 CropResult.Cancelled -> {
@@ -146,7 +146,7 @@ fun ProfileEditScreen(
         contract = ActivityResultContracts.TakePicturePreview()
     ) { bitmap: Bitmap? ->
         bitmap?.let {
-            deleteOldImageFile(context, imgUri)
+            deleteOldImageFile(imgUri)
             val fileName = generateUniqueFileName()
             val uri = saveBitmapToUri(context, it, fileName)
             uri?.let { imageUri ->
@@ -193,7 +193,9 @@ fun ProfileEditScreen(
     ) {
         if (updating) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator()
+                CircularProgressIndicator(
+                    color = MaterialTheme.colorScheme.secondary,
+                )
             }
         }
         if(currentUser != null){
@@ -326,15 +328,16 @@ fun ProfileEditScreen(
 
                                 if (result) {
                                     // Delete image after update
-                                    deleteOldImageFile(context, imgUri)
+                                    deleteOldImageFile(imgUri)
                                     imgUri = Uri.EMPTY
                                     //Reload Data
                                     profileViewModel?.loadData(profileViewModel.currentUserID)
+                                    updating = false
                                     navController.navigate(MainScreen.ProfileScreen.MainProfileScreen.route)
                                 } else {
                                     Toast.makeText(context, "Error when updating profile", Toast.LENGTH_SHORT).show()
+                                    updating = false
                                 }
-                                updating = false
                             }
                         }
                     },
@@ -361,10 +364,6 @@ fun ProfileEditScreen(
                     )
                 }
 
-            }
-        } else {
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator()
             }
         }
     }

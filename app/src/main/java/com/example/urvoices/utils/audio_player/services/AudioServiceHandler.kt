@@ -12,6 +12,7 @@ import androidx.media3.common.Player
 import androidx.media3.common.util.Log
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
+import com.example.urvoices.data.model.Audio
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
@@ -33,40 +34,58 @@ class AudioServiceHandler @Inject constructor(
     var isStop: MutableStateFlow<Boolean> = MutableStateFlow(true)
     private var job: Job? = null
 
+    //Playlist Management
+    val playlist = mutableListOf<Audio>()
+    private val _currentIndex = MutableStateFlow(0)
+    val currentIndex: StateFlow<Int> = _currentIndex.asStateFlow()
+
     init {
         exoPlayer.addListener(this)
     }
 
-    fun addMediaItemFromUrl(url: String){
-        val mediaItem = MediaItem.fromUri(url)
-        exoPlayer.setMediaItem(mediaItem)
-        exoPlayer.prepare()
-    }
-
-    fun addMediaItemToQueue(audioUrl: String){
-        val mediaItem = MediaItem.fromUri(audioUrl)
+    fun addToPlaylist(audio: Audio) {
+        // Check for duplicates
+        if (playlist.any { it.url == audio.url }) {
+            return
+        }
+        playlist.add(audio)
+        // Add to ExoPlayer's queue
+        val mediaItem = MediaItem.fromUri(audio.url)
         exoPlayer.addMediaItem(mediaItem)
+        _audioState.value = AudioState.PlaylistUpdated(playlist)
+//        exoPlayer.prepare()
     }
 
-    fun addMediaItemLocal(mediaItem: MediaItem){
+    fun removeFromPlaylist(audio: Audio) {
+        val index = playlist.indexOf(audio)
+        if (index != -1) {
+            playlist.removeAt(index)
+            exoPlayer.removeMediaItem(index)
+            _audioState.value = AudioState.PlaylistUpdated(playlist)
+        }
+    }
+
+    fun addMediaItemFromUrl(audio: Audio){
+        val mediaItem = MediaItem.fromUri(audio.url)
+        playlist.add(audio)
         exoPlayer.setMediaItem(mediaItem)
         exoPlayer.prepare()
     }
-
-//    fun setMediaItemListLocal(mediaItems: List<MediaItem>){
-//        exoPlayer.setMediaItems(mediaItems)
-//        exoPlayer.prepare()
-//    }
 
     @androidx.annotation.OptIn(UnstableApi::class)
     suspend fun onPlayerEvents(
         playerEvent: PlayerEvent,
-        selectedAudioIndex: Int = -1,
         index : Int = -1,
-        url: String = "",
+        audio: Audio = Audio(
+            id = "",
+            title = "",
+            url = "",
+            author = "",
+            duration = 0L
+        ),
         seekPosition: Long = 0,
 
-        ){
+    ){
         when(playerEvent){
             //seek forward the audio
             PlayerEvent.Forward -> exoPlayer.seekForward()
@@ -78,7 +97,8 @@ class AudioServiceHandler @Inject constructor(
                     exoPlayer.stop()
                     stopProgressUpdate()
                 }
-                addMediaItemFromUrl(url)
+                addMediaItemFromUrl(audio)
+                //start playing first
                 _audioState.value = AudioState.Playing(true)
                 isStop.value = false
                 exoPlayer.playWhenReady = true
@@ -87,44 +107,80 @@ class AudioServiceHandler @Inject constructor(
             PlayerEvent.PlayPause -> playOrPause()
             //seek to the selected position
             PlayerEvent.SeekTo -> exoPlayer.seekTo(seekPosition)
-            //change the audio to the selected audio
-            PlayerEvent.SelectedAudioChange -> {
-                when(selectedAudioIndex){
-                    exoPlayer.currentMediaItemIndex -> {
-                        exoPlayer.seekToDefaultPosition()
-                        playOrPause()
-                    }
-                    else -> {
-                        exoPlayer.seekToDefaultPosition(selectedAudioIndex)
-                        _audioState.value = AudioState.Playing(true)
-                        exoPlayer.playWhenReady = true
-                        startProgressUpdate()
-                    }
-                }
-            }
-            PlayerEvent.AddToQueue -> {
-                if(url != ""){
-                    addMediaItemToQueue(url)
-                }
-            }
-            PlayerEvent.DeleteFromQueue -> {
-                exoPlayer.removeMediaItem(index)
-            }
+
             PlayerEvent.Stop -> {
+                //Stop
                 exoPlayer.stop()
                 isStop.value = true
                 stopProgressUpdate()
+                //clear all
+                exoPlayer.clearMediaItems()
+                playlist.clear()
+                _audioState.value = AudioState.PlaylistUpdated(playlist)
             }
+
             is PlayerEvent.UpdateProgress -> {
                 exoPlayer.seekTo((exoPlayer.duration * playerEvent.newProgress).toLong())
             }
-            PlayerEvent.SeekToNext -> exoPlayer.seekToNext()
+
             PlayerEvent.LoopModeChange -> {
                 exoPlayer.repeatMode = when(exoPlayer.repeatMode) {
                     Player.REPEAT_MODE_OFF -> Player.REPEAT_MODE_ONE
                     Player.REPEAT_MODE_ONE -> Player.REPEAT_MODE_ALL
                     else -> Player.REPEAT_MODE_OFF
                 }
+            }
+
+            is PlayerEvent.AddToPlaylist -> {
+                //check if no audio playing or audio is playing -> if no audio add to list and play
+//                Log.e(TAG, "${isStop.value} && ${playlist}")
+                if(isStop.value && playlist.isEmpty()){ //add to playlist and playing this audio
+                    addMediaItemFromUrl(audio)
+                    //start playing first
+                    _audioState.value = AudioState.Playing(true)
+                    isStop.value = false
+                    exoPlayer.playWhenReady = true
+                    startProgressUpdate()
+                } else { //add to playlist only
+                    addToPlaylist(audio)
+                }
+            }
+
+            is PlayerEvent.RemoveFromPlayList -> {
+                removeFromPlaylist(audio)
+            }
+
+            is PlayerEvent.PlayFromPlaylist -> {
+                when(index){
+                    exoPlayer.currentMediaItemIndex -> {
+                        exoPlayer.seekToDefaultPosition()
+                        playOrPause()
+                    }
+                    else -> {
+                        exoPlayer.seekToDefaultPosition(index)
+                        _audioState.value = AudioState.Playing(true)
+                        exoPlayer.playWhenReady = true
+                        startProgressUpdate()
+                    }
+                }
+            }
+            PlayerEvent.ClearPlaylist -> { //clear playlist and stop playing
+                exoPlayer.stop()
+                playlist.clear()
+                exoPlayer.clearMediaItems()
+                _audioState.value = AudioState.PlaylistUpdated(playlist)
+                isStop.value = true
+                stopProgressUpdate()
+            }
+            PlayerEvent.NextTrack -> {
+                //seekToNext
+                exoPlayer.seekToNext()
+                //update Index
+                _audioState.value = AudioState.PlaylistIndex(exoPlayer.currentMediaItemIndex)
+            }
+            PlayerEvent.PreviousTrack -> {
+                exoPlayer.seekToPrevious()
+                _audioState.value = AudioState.PlaylistIndex(exoPlayer.currentMediaItemIndex)
             }
         }
     }
@@ -150,7 +206,8 @@ class AudioServiceHandler @Inject constructor(
         super.onMediaItemTransition(mediaItem, reason)
         if(reason == Player.MEDIA_ITEM_TRANSITION_REASON_AUTO){
             exoPlayer.seekToDefaultPosition(exoPlayer.currentMediaItemIndex)
-            _audioState.value = AudioState.CurrentPlaying(exoPlayer.currentMediaItemIndex)
+            _audioState.value = AudioState.PlaylistIndex(exoPlayer.currentMediaItemIndex)
+            _audioState.value = AudioState.CurrentPlaying(playlist[exoPlayer.currentMediaItemIndex])
         }
     }
 
@@ -158,7 +215,8 @@ class AudioServiceHandler @Inject constructor(
     @OptIn(DelicateCoroutinesApi::class)
     override fun onIsPlayingChanged(isPlaying: Boolean) {
         _audioState.value = AudioState.Playing(isPlaying = isPlaying)
-        _audioState.value = AudioState.CurrentPlaying(exoPlayer.currentMediaItemIndex)
+        _audioState.value = AudioState.PlaylistIndex(exoPlayer.currentMediaItemIndex)
+        _audioState.value = AudioState.CurrentPlaying(playlist[exoPlayer.currentMediaItemIndex])
         if(isPlaying){
             GlobalScope.launch(Dispatchers.Main){
                 startProgressUpdate()
@@ -201,24 +259,31 @@ class AudioServiceHandler @Inject constructor(
 sealed class PlayerEvent {
     object StartPlaying: PlayerEvent()
     object PlayPause: PlayerEvent()
-    object SelectedAudioChange: PlayerEvent()
-    object AddToQueue: PlayerEvent()
-    object DeleteFromQueue: PlayerEvent()
     object Forward: PlayerEvent()
     object Backward: PlayerEvent()
-    object SeekToNext: PlayerEvent()
     object SeekTo: PlayerEvent()
     object Stop: PlayerEvent()
     object LoopModeChange: PlayerEvent()
     data class UpdateProgress(val newProgress: Float): PlayerEvent()
+
+    //Playlist
+
+    object NextTrack: PlayerEvent()
+    object PreviousTrack: PlayerEvent()
+    object AddToPlaylist: PlayerEvent()
+    object RemoveFromPlayList: PlayerEvent()
+    object PlayFromPlaylist: PlayerEvent()
+    object ClearPlaylist: PlayerEvent()
 }
 
 //sealed class for the audio state
 sealed class AudioState {
     object Initial: AudioState()
+    data class PlaylistUpdated(val list: MutableList<Audio>): AudioState()
+    data class PlaylistIndex(val index: Int): AudioState()
     data class Ready(val duration: Long): AudioState()
     data class Progress(val progress: Long): AudioState()
     data class Buffering(val progress: Long): AudioState()
     data class Playing(val isPlaying: Boolean): AudioState()
-    data class CurrentPlaying(val mediaItemIndex: Int): AudioState()
+    data class CurrentPlaying(val audio: Audio): AudioState()
 }

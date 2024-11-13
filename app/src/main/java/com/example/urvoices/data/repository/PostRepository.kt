@@ -1,12 +1,10 @@
 package com.example.urvoices.data.repository
 
 import android.net.Uri
-import android.util.Log
 import androidx.compose.runtime.MutableState
 import androidx.paging.PagingSource
 import androidx.paging.PagingState
 import com.example.urvoices.data.AudioManager
-import com.example.urvoices.data.db.Dao.PostDao
 import com.example.urvoices.data.model.Comment
 import com.example.urvoices.data.model.Post
 import com.example.urvoices.data.service.FirebaseNotificationService
@@ -19,7 +17,6 @@ class PostRepository @Inject constructor(
     private val manager: AudioManager,
     private val firestorePostService: FirebasePostService,
     private val firestoreNotiService: FirebaseNotificationService,
-    private val postDao: PostDao,
 ){
     val TAG = "PostRepository"
     val scope = CoroutineScope(Dispatchers.Main)

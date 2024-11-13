@@ -14,6 +14,7 @@ data class Block (
 
 data class BlockList(
     val id: String?,
-    val actionID: String,
     val targetID: List<String>
-)
+){
+    constructor(): this("", emptyList())
+}
