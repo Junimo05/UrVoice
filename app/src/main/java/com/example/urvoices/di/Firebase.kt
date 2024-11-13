@@ -6,7 +6,6 @@ import com.example.urvoices.data.service.FirebaseBlockService
 import com.example.urvoices.data.service.FirebaseNotificationService
 import com.example.urvoices.data.service.FirebasePostService
 import com.example.urvoices.data.service.FirebaseUserService
-import com.example.urvoices.utils.SharedPreferencesHelper
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.storage.FirebaseStorage
@@ -51,7 +50,6 @@ object Firebase {
     @Provides
     @Singleton
     fun provideFirebaseUserService(
-        audioManager: AudioManager,
         storage: StorageReference,
         firebaseFirestore: FirebaseFirestore,
         auth: FirebaseAuth
@@ -66,7 +64,6 @@ object Firebase {
         firestore: FirebaseFirestore,
         storage: StorageReference,
         auth: FirebaseAuth,
-        firebaseAudioService: FirebaseAudioService,
     ): FirebasePostService {
         return FirebasePostService(audioManager, auth, firestore, storage)
     }
@@ -74,7 +71,6 @@ object Firebase {
     @Provides
     @Singleton
     fun provideFirebaseNotificationService(
-        storage: StorageReference,
         firestore: FirebaseFirestore
     ): FirebaseNotificationService {
         return FirebaseNotificationService(firestore)
@@ -83,10 +79,9 @@ object Firebase {
     @Provides
     @Singleton
     fun provideFirebaseBlockService(
-        storage: StorageReference,
         firebaseFirestore: FirebaseFirestore,
         auth: FirebaseAuth
     ): FirebaseBlockService {
-        return FirebaseBlockService(storage, firebaseFirestore, auth)
+        return FirebaseBlockService(firebaseFirestore, auth)
     }
 }

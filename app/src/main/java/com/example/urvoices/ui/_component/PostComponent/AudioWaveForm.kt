@@ -45,7 +45,7 @@ fun AudioWaveformItem(
     id: String,
     audioUrl: String,
     audioAmplitudes: List<Int>?,
-    currentPlayingAudio: Int,
+    currentPlayingAudio: String,
     currentPlayingPost: String,
     onPlayStart: () -> Unit,
     onPlayPause: () -> Unit,

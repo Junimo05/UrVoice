@@ -58,6 +58,7 @@ import androidx.paging.compose.collectAsLazyPagingItems
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.example.urvoices.R
+import com.example.urvoices.data.model.Audio
 import com.example.urvoices.data.model.Comment
 import com.example.urvoices.data.model.Post
 import com.example.urvoices.data.model.User
@@ -121,6 +122,7 @@ fun PostDetail(
 
     val currentPost by postDetailViewModel.currentPost
     val userPost = postDetailViewModel.userPost
+    val isLoadingCmt = postDetailViewModel.isLoadingCmt.collectAsState()
     val commentLists = postDetailViewModel.commentFlow.collectAsLazyPagingItems()
 
     // UI States
@@ -150,52 +152,69 @@ fun PostDetail(
                     endIconAction = {
                         expandMoreAction.value = !expandMoreAction.value
                     },
-                    modifier = Modifier.background(MaterialTheme.colorScheme.surfaceVariant)
-                )
-                DropDownMenu(
-                    expand = expandMoreAction,
-                    actions = PostAction(
-                        isCurrentUserPost = userID == currentUser?.uid,
-                        goToPost = {
-                            navController.navigate("post/${userID}/${postID}")
-                            expandMoreAction.value = false
-                        },
-                        goToUser = {
-                            navController.navigate("profile/${userID}")
-                            expandMoreAction.value = false
-                        },
-                        copyLink = {
-                            val clip = ClipData.newPlainText("PostLink", "$BASE_URL/post/${userID}/${postID}")
-                            clipboardManager.setPrimaryClip(clip)
-                            Toast.makeText(context, "Link Copied", Toast.LENGTH_SHORT).show()
-                            expandMoreAction.value = false
-                        },
-                        savePost = {
-                            interactionViewModel.savePost(postID){result ->
-                                if(result != null){
-                                    if(result){
-                                        Toast.makeText(context, "Saved", Toast.LENGTH_SHORT).show()
-                                    } else {
-                                        Toast.makeText(context, "Unsaved", Toast.LENGTH_SHORT).show()
+                    modifier = Modifier.background(MaterialTheme.colorScheme.surfaceVariant),
+                    child = {
+                        DropDownMenu(
+                            expand = expandMoreAction,
+                            actions = PostAction(
+                                isCurrentUserPost = userID == currentUser?.uid,
+                                addToPlaylist = {
+                                    playerViewModel.onUIEvents(
+                                        UIEvents.AddToPlaylist(
+                                            Audio(
+                                                id = postID,
+                                                url = currentPost.url!!,
+                                                title = currentPost.audioName!!,
+                                                author = userPost.username,
+                                                duration = currentPost.duration
+                                            )
+                                        )
+                                    )
+                                    expandMoreAction.value = false
+
+                                },
+                                goToPost = {
+                                    navController.navigate("post/${userID}/${postID}")
+                                    expandMoreAction.value = false
+                                },
+                                goToUser = {
+                                    navController.navigate("profile/${userID}")
+                                    expandMoreAction.value = false
+                                },
+                                copyLink = {
+                                    val clip = ClipData.newPlainText("PostLink", "$BASE_URL/post/${userID}/${postID}")
+                                    clipboardManager.setPrimaryClip(clip)
+                                    Toast.makeText(context, "Link Copied", Toast.LENGTH_SHORT).show()
+                                    expandMoreAction.value = false
+                                },
+                                savePost = {
+                                    interactionViewModel.savePost(postID){result ->
+                                        if(result != null){
+                                            if(result){
+                                                Toast.makeText(context, "Saved", Toast.LENGTH_SHORT).show()
+                                            } else {
+                                                Toast.makeText(context, "Unsaved", Toast.LENGTH_SHORT).show()
+                                            }
+                                        }
+                                        expandMoreAction.value = false
                                     }
+                                },
+                                isBlock = isBlock,
+                                blockUser = {
+                                    if(isBlock.value){
+                                        val result = interactionViewModel.unblockUser(userID)
+                                        Toast.makeText(context, result, Toast.LENGTH_SHORT).show()
+                                        isBlock.value = false
+                                    } else {
+                                        val result = interactionViewModel.blockUser(userID)
+                                        Toast.makeText(context, result, Toast.LENGTH_SHORT).show()
+                                        isBlock.value = true
+                                    }
+                                    expandMoreAction.value = false
                                 }
-                                expandMoreAction.value = false
-                            }
-                        },
-                        isBlock = isBlock,
-                        blockUser = {
-                            if(isBlock.value){
-                                val result = interactionViewModel.unblockUser(userID)
-                                Toast.makeText(context, result, Toast.LENGTH_SHORT).show()
-                                isBlock.value = false
-                            } else {
-                                val result = interactionViewModel.blockUser(userID)
-                                Toast.makeText(context, result, Toast.LENGTH_SHORT).show()
-                                isBlock.value = true
-                            }
-                            expandMoreAction.value = false
-                        }
-                    )
+                            ),
+                        )
+                    }
                 )
             }
         },
@@ -245,7 +264,8 @@ fun PostDetail(
                         postDetailViewModel = postDetailViewModel,
                         scrollThroughContentDetail = scrollThroughContentDetail,
                         playerViewModel = playerViewModel,
-                        post = currentPost
+                        post = currentPost,
+                        user = userPost
                     )
                 } else {
                     CircularProgressIndicator(
@@ -255,6 +275,28 @@ fun PostDetail(
                     )
                 }
                 Spacer(modifier = Modifier.height(30.dp))
+            }
+
+            item{
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                ){
+                    Text(
+                        text = "Comments",
+                        style = TextStyle(
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 24.sp
+                        ),
+                        modifier = Modifier.padding(16.dp)
+                    )
+                    if(isLoadingCmt.value){
+                        CircularProgressIndicator(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .wrapContentSize(Alignment.Center)
+                        )
+                    }
+                }
             }
 
             // Comments section
@@ -375,6 +417,7 @@ fun ContentDetail(
     postDetailViewModel: PostDetailViewModel,
     playerViewModel: MediaPlayerVM,
     post: Post,
+    user: User,
     scrollThroughContentDetail: MutableState<Boolean>,
 ){
     val transitionVisible = remember {
@@ -429,8 +472,8 @@ fun ContentDetail(
             id = post.ID!!,
             audioUrl = post.url!!,
             audioAmplitudes = post.amplitudes,
-            currentPlayingAudio = playerViewModel.currentPlayingAudio,
-            currentPlayingPost = playerViewModel.currentPlayingPost,
+            currentPlayingAudio = playerViewModel.currentAudio.value.url,
+            currentPlayingPost = playerViewModel.currentAudio.value.id,
             duration = playerViewModel.duration,
             isPlaying = playerViewModel.isPlaying,
             isStop = playerViewModel.isStop.value,
@@ -438,9 +481,14 @@ fun ContentDetail(
                 if(post.url.isNotEmpty()){
                     playerViewModel.onUIEvents(
                         UIEvents.PlayingAudio(
-                            post.url
+                            Audio(
+                                id = post.ID,
+                                url = post.url,
+                                title = post.audioName!!,
+                                author = user.username,
+                                duration = post.duration,
+                            )
                         ))
-                    playerViewModel.updateCurrentPlayingPost(post.ID)
                 }
             },
             onPlayPause = {

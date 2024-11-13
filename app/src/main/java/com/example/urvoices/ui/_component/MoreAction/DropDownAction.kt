@@ -1,8 +1,7 @@
 package com.example.urvoices.ui._component.MoreAction
 
-import android.annotation.SuppressLint
-import android.content.ClipboardManager
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -12,23 +11,33 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import com.example.urvoices.R
-import com.google.firebase.auth.FirebaseUser
-import com.google.firebase.firestore.auth.User
+
 @Composable
 fun DropDownMenu(
     expand: MutableState<Boolean>,
-    actions: List<DropDownAction>
+    actions: List<DropDownAction>,
+    offset: DpOffset = DpOffset(0.dp, 0.dp),
+    modifier: Modifier = Modifier
 ) {
     DropdownMenu(
         expanded = expand.value,
         onDismissRequest = {
             expand.value = false
         },
+        offset = offset,
         modifier = Modifier.background(MaterialTheme.colorScheme.surfaceVariant)
+            .border(
+                width = 1.dp,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                shape = MaterialTheme.shapes.small
+            )
+            .shadow(1.dp, shape = MaterialTheme.shapes.small)
     ) {
         for (action in actions) {
             DropdownMenuItem(
@@ -58,6 +67,7 @@ fun DropDownMenu(
 
 fun PostAction(
     isCurrentUserPost: Boolean,
+    addToPlaylist: () -> Unit,
     goToPost: () -> Unit,
     goToUser: () -> Unit,
     copyLink: () -> Unit,
@@ -85,6 +95,13 @@ fun PostAction(
         )
     } else {
         val actions = mutableListOf(
+            DropDownAction(
+                icon = R.drawable.playlist_add_svgrepo_com,
+                title = "Add To Playlist",
+                action = {
+                    addToPlaylist()
+                }
+            ),
             DropDownAction(
                 icon = R.drawable.ic_actions_new_window,
                 title = "Go to Post",

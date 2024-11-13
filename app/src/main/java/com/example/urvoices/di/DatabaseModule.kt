@@ -3,7 +3,7 @@ package com.example.urvoices.di
 import android.content.Context
 import com.example.urvoices.data.AudioManager
 import com.example.urvoices.data.db.AppDatabase
-import com.example.urvoices.data.db.Dao.PostDao
+import com.example.urvoices.data.db.Dao.BlockedUserDao
 import com.example.urvoices.data.repository.NotificationRepository
 import com.example.urvoices.data.repository.PostRepository
 import com.example.urvoices.data.repository.UserRepository
@@ -21,6 +21,9 @@ import javax.inject.Singleton
 @Module
 @InstallIn(SingletonComponent::class)
 object DatabaseModule {
+    /*
+        Local Data
+    */
     @Provides
     @Singleton
     fun provideDatabase(
@@ -31,18 +34,16 @@ object DatabaseModule {
 
     @Provides
     @Singleton
-    fun providePostDao(
+    fun provideBlockDao(
+        @ApplicationContext context: Context,
         database: AppDatabase
-    ): PostDao = database.postDao()
+    ): BlockedUserDao {
+        return database.blockedUserDao()
+    }
 
-    @Provides
-    @Singleton
-    fun providePostRepo(
-        manager: AudioManager,
-        firestorePostService: FirebasePostService,
-        firestoreNotiService: FirebaseNotificationService,
-        postDao: PostDao
-    ): PostRepository = PostRepository(manager, firestorePostService, firestoreNotiService, postDao)
+    /*
+        Repository
+    */
 
     @Provides
     @Singleton

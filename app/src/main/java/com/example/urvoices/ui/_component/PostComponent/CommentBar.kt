@@ -78,7 +78,6 @@ fun CommentBar(
     }
 
     Surface(
-        color = MaterialTheme.colorScheme.primaryContainer,
         modifier = Modifier.fillMaxWidth()
     ) {
         Row(

@@ -3,12 +3,7 @@ package com.example.urvoices.utils
 import android.content.Context
 import android.graphics.Bitmap
 import android.net.Uri
-import android.provider.MediaStore
-import android.util.Log
-import androidx.compose.foundation.lazy.LazyListState
-import com.google.firebase.storage.FirebaseStorage
-import kotlinx.coroutines.tasks.await
-import java.io.ByteArrayOutputStream
+import wseemann.media.FFmpegMediaMetadataRetriever
 import java.io.File
 import java.io.FileOutputStream
 import java.text.SimpleDateFormat
@@ -31,6 +26,19 @@ fun formatFileSize(size: Long): String {
     }
 }
 
+fun getDurationFromUrl(url: String): Long{
+    val mediaMetadataRetriever = FFmpegMediaMetadataRetriever()
+    try {
+        mediaMetadataRetriever.setDataSource(url)
+        if (mediaMetadataRetriever.extractMetadata(FFmpegMediaMetadataRetriever.METADATA_KEY_DURATION) == null) return 0L
+        return mediaMetadataRetriever.extractMetadata(FFmpegMediaMetadataRetriever.METADATA_KEY_DURATION).toLong()
+    } catch (e: Exception) {
+        e.printStackTrace()
+    } finally {
+        mediaMetadataRetriever.release()
+    }
+    return 0L
+}
 
 fun getTimeElapsed(createdAt: Long): String {
     val currentTime = System.currentTimeMillis()
@@ -56,7 +64,7 @@ fun getTimeElapsed(createdAt: Long): String {
     }
 }
 
-fun timeStampToDuration(position: Long): String{
+fun formatToMinSecFromMillisec(position: Long): String{
     val totalSec = floor(position / 1E3).toInt()
     val minutes = totalSec / 60
     val remainingSec = totalSec - minutes * 60
@@ -68,12 +76,6 @@ fun timeStampToDuration(position: Long): String{
 fun processUsername(username: String): String {
     return username.replace(" ", "").lowercase()
 }
-
-data class Time(
-    val hours: Long,
-    val minutes: Long,
-    val seconds: Long
-)
 
 fun generateUniqueFileName(): String {
     val timeStamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
@@ -88,7 +90,7 @@ fun saveBitmapToUri(context: Context, bitmap: Bitmap, fileName: String): Uri? {
     return Uri.fromFile(file)
 }
 
-fun deleteOldImageFile(context: Context, uri: Uri) {
+fun deleteOldImageFile(uri: Uri) {
     val file = File(uri.path!!)
 //    Log.e("MediaUtil", "deleteOldImageFile: ${file.path}")
     if (file.exists()) {

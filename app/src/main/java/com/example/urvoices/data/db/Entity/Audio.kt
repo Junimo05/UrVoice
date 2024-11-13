@@ -19,16 +19,3 @@ data class AudioDes(
     @ColumnInfo(name = "audio_waveform_processed") var audioWaveformProcessed: Boolean,
     @ColumnInfo(name = "audio_bookmarked") var audioFavorite: Boolean,
 )
-
-fun AudioDes.toAudio(): Audio {
-    return Audio(
-        id = this.id,
-        url = this.audioPath,
-        displayName = this.audioName,
-        duration = this.audioDuration,
-        audioCreated = this.audioCreated,
-        audioSize = this.audioSize,
-        type = this.audioType,
-        amplitudes = emptyList(),
-    )
-}

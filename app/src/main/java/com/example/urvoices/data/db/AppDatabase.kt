@@ -5,27 +5,22 @@ import androidx.room.AutoMigration
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
-import androidx.room.TypeConverter
 import androidx.room.TypeConverters
 import com.example.urvoices.data.Converters
-import com.example.urvoices.data.db.Dao.PostDao
-import com.example.urvoices.data.db.Dao.UserLoginDAO
-import com.example.urvoices.data.db.Entity.PostEntity
-import com.example.urvoices.data.db.Entity.UserLogin
+import com.example.urvoices.data.db.Dao.BlockedUserDao
+import com.example.urvoices.data.db.Entity.BlockedUser
 
 @Database(
-    entities = [UserLogin::class, PostEntity::class],
-    version = 2,
+    entities = [BlockedUser::class],
+    version = 1,
     exportSchema = true,
     autoMigrations = [
-        AutoMigration(from = 1, to = 2)
+
     ]
 )
 @TypeConverters(Converters::class)
 abstract class AppDatabase : RoomDatabase() {
-    abstract fun userDao(): UserLoginDAO
-
-    abstract fun postDao(): PostDao
+    abstract fun blockedUserDao(): BlockedUserDao
     companion object {
         @Volatile
         private var INSTANCE: AppDatabase? = null
@@ -35,7 +30,7 @@ abstract class AppDatabase : RoomDatabase() {
                     val instance = Room.databaseBuilder(
                         context.applicationContext,
                         AppDatabase::class.java,
-                        "user_database"
+                        "database"
                     )
                         .fallbackToDestructiveMigration()
                         .build()

@@ -149,8 +149,18 @@ class ProfileViewModel @Inject constructor(
     }
 
     suspend fun loadUserBaseInfo(userID: String): Map<String, String>{
-        val result = postRepository.getUserBaseInfo(userID)
-        return result
+        _uiState.value = ProfileState.Loading
+        return withContext(Dispatchers.IO){
+            try {
+                val result = postRepository.getUserBaseInfo(userID)
+                _uiState.value = ProfileState.Successful
+                result
+            } catch (e: Exception) {
+                _uiState.value = ProfileState.Error("Error when loading user base info")
+                Log.e(TAG, "loadUserBaseInfo: Error")
+                emptyMap()
+            }
+        }
     }
 
     fun followUser(){
@@ -286,6 +296,8 @@ class ProfileViewModel @Inject constructor(
             Log.e(TAG, "getFollowingCount: Error")
         }
     }
+
+
 
     //override onCleared
     override fun onCleared() {

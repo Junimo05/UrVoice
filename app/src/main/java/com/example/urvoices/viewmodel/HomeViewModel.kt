@@ -10,8 +10,8 @@ import androidx.lifecycle.viewModelScope
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.cachedIn
+import com.example.urvoices.data.repository.BlockRepository
 import com.example.urvoices.data.repository.PostRepository
-import com.example.urvoices.data.service.FirebaseBlockService
 import com.google.firebase.firestore.FirebaseFirestore
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -25,7 +25,7 @@ import javax.inject.Inject
 class HomeViewModel @Inject constructor(
     private val firestore: FirebaseFirestore,
     private val postRepository: PostRepository,
-    private val blockService: FirebaseBlockService,
+    private val  blockRepository: BlockRepository,
     savedStateHandle: SavedStateHandle
 ): ViewModel(){
 
@@ -36,23 +36,22 @@ class HomeViewModel @Inject constructor(
     private val lastVisiblePost = mutableStateOf<String>("")
     private val lastVisiblePage = mutableIntStateOf(1)
 
-    val postsPaging3 = Pager(PagingConfig(pageSize = 3)){
+    val postsPaging3 = Pager(PagingConfig(pageSize = 2)){
 //        Log.e(TAG, "PagingConfig")
         postRepository.getNewFeed(lastVisiblePage, lastVisiblePost)
     }.flow.cachedIn(viewModelScope)
 
-
-    init {
-       viewModelScope.launch {
-//           loadingData()
-       }
-    }
 
     suspend fun getUserInfo(userID: String): Map<String, String> {
         val result = postRepository.getUserBaseInfo(userID)
         return result
     }
 
+    fun syncBlockData(){
+        viewModelScope.launch {
+            blockRepository.syncBlockUsers()
+        }
+    }
 }
 
 sealed class HomeState {
