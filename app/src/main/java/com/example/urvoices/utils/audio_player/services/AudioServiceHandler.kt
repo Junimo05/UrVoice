@@ -1,27 +1,24 @@
 package com.example.urvoices.utils.audio_player.services
 
-import android.net.Uri
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
-import androidx.lifecycle.SavedStateHandle
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
-import androidx.media3.common.util.Log
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
 import com.example.urvoices.data.model.Audio
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import javax.inject.Inject
 
 class AudioServiceHandler @Inject constructor(
@@ -33,43 +30,60 @@ class AudioServiceHandler @Inject constructor(
     val audioState: StateFlow<AudioState> = _audioState.asStateFlow()
     var isStop: MutableStateFlow<Boolean> = MutableStateFlow(true)
     private var job: Job? = null
+    private val playlistScope = CoroutineScope(SupervisorJob()  + Dispatchers.Main)
 
     //Playlist Management
     val playlist = mutableListOf<Audio>()
     private val _currentIndex = MutableStateFlow(0)
     val currentIndex: StateFlow<Int> = _currentIndex.asStateFlow()
-
+    val mutex = Mutex()
     init {
         exoPlayer.addListener(this)
     }
 
-    fun addToPlaylist(audio: Audio) {
-        // Check for duplicates
-        if (playlist.any { it.url == audio.url }) {
+    private suspend fun safeUpdateState(state: AudioState){
+//        Log.e(TAG, "safeUpdateState: $state")
+        mutex.withLock {
+            _audioState.update { state }
+        }
+    }
+
+    private suspend fun addToPlaylist(audio: Audio, index: Int = -1) {
+        //check if have in playlist
+        if(playlist.contains(audio)){
             return
         }
-        playlist.add(audio)
-        // Add to ExoPlayer's queue
-        val mediaItem = MediaItem.fromUri(audio.url)
-        exoPlayer.addMediaItem(mediaItem)
-        _audioState.value = AudioState.PlaylistUpdated(playlist)
-//        exoPlayer.prepare()
-    }
+        playlistScope.launch {
 
-    fun removeFromPlaylist(audio: Audio) {
-        val index = playlist.indexOf(audio)
-        if (index != -1) {
-            playlist.removeAt(index)
-            exoPlayer.removeMediaItem(index)
-            _audioState.value = AudioState.PlaylistUpdated(playlist)
+            if (index == -1) {
+                playlist.add(audio)
+                exoPlayer.addMediaItem(MediaItem.fromUri(audio.url))
+            } else {
+                playlist.add(index, audio)
+                exoPlayer.addMediaItem(index, MediaItem.fromUri(audio.url))
+            }
+            safeUpdateState(AudioState.PlaylistUpdated(playlist))
         }
     }
 
-    fun addMediaItemFromUrl(audio: Audio){
+    private suspend fun removeFromPlaylist(index: Int) {
+        playlistScope.launch {
+            playlist.removeAt(index)
+            exoPlayer.removeMediaItem(index)
+            safeUpdateState(AudioState.PlaylistUpdated(playlist))
+        }
+    }
+
+    @androidx.annotation.OptIn(UnstableApi::class)
+    suspend fun addMediaItemToStart(audio: Audio) {
         val mediaItem = MediaItem.fromUri(audio.url)
-        playlist.add(audio)
         exoPlayer.setMediaItem(mediaItem)
         exoPlayer.prepare()
+
+        playlistScope.launch {
+            playlist.add(0, audio)
+            safeUpdateState(AudioState.PlaylistUpdated(playlist))
+        }
     }
 
     @androidx.annotation.OptIn(UnstableApi::class)
@@ -84,7 +98,8 @@ class AudioServiceHandler @Inject constructor(
             duration = 0L
         ),
         seekPosition: Long = 0,
-
+        oldPosition: Int = 0,
+        newPosition: Int = 0,
     ){
         when(playerEvent){
             //seek forward the audio
@@ -93,16 +108,32 @@ class AudioServiceHandler @Inject constructor(
             PlayerEvent.Backward -> exoPlayer.seekBack()
             //play or pauseRecording the audio
             PlayerEvent.StartPlaying -> {
-                if(exoPlayer.isPlaying){
-                    exoPlayer.stop()
-                    stopProgressUpdate()
-                }
-                addMediaItemFromUrl(audio)
-                //start playing first
-                _audioState.value = AudioState.Playing(true)
-                isStop.value = false
-                exoPlayer.playWhenReady = true
-                startProgressUpdate()
+                  if(playlist.isEmpty()){
+                      //Case1: First Time Playing
+                        addMediaItemToStart(audio)
+                        //start playing first
+                        safeUpdateState(AudioState.Playing(true))
+                        isStop.value = false
+                        exoPlayer.playWhenReady = true
+                        startProgressUpdate()
+                  } else {
+                      val existingIndex = playlist.indexOfFirst { it.url == audio.url }
+                      if(existingIndex != -1){
+                            //Case2 : Audio is already in the playlist
+                            exoPlayer.seekToDefaultPosition(existingIndex)
+                            safeUpdateState(AudioState.PlaylistIndex(existingIndex))
+                            exoPlayer.playWhenReady = true
+                            startProgressUpdate()
+                      } else {
+                            //Case3: Audio is not in the playlist || Replace First Audio in Playlist
+                            exoPlayer.replaceMediaItem(0, MediaItem.fromUri(audio.url))
+                            playlist[0] = audio
+//                            updatePlaylistState()
+                            safeUpdateState(AudioState.Playing(true))
+                            exoPlayer.playWhenReady = true
+                            startProgressUpdate()
+                      }
+                  }
             }
             PlayerEvent.PlayPause -> playOrPause()
             //seek to the selected position
@@ -110,13 +141,17 @@ class AudioServiceHandler @Inject constructor(
 
             PlayerEvent.Stop -> {
                 //Stop
+                exoPlayer.clearMediaItems()
                 exoPlayer.stop()
                 isStop.value = true
                 stopProgressUpdate()
                 //clear all
-                exoPlayer.clearMediaItems()
                 playlist.clear()
-                _audioState.value = AudioState.PlaylistUpdated(playlist)
+
+                safeUpdateState(AudioState.Playing(false))
+                playlistScope.launch {
+                    safeUpdateState(AudioState.PlaylistUpdated(playlist))
+                }
             }
 
             is PlayerEvent.UpdateProgress -> {
@@ -133,21 +168,20 @@ class AudioServiceHandler @Inject constructor(
 
             is PlayerEvent.AddToPlaylist -> {
                 //check if no audio playing or audio is playing -> if no audio add to list and play
-//                Log.e(TAG, "${isStop.value} && ${playlist}")
                 if(isStop.value && playlist.isEmpty()){ //add to playlist and playing this audio
-                    addMediaItemFromUrl(audio)
+                    addMediaItemToStart(audio)
                     //start playing first
-                    _audioState.value = AudioState.Playing(true)
+                    safeUpdateState(AudioState.Playing(true))
                     isStop.value = false
                     exoPlayer.playWhenReady = true
                     startProgressUpdate()
                 } else { //add to playlist only
-                    addToPlaylist(audio)
+                    addToPlaylist(audio, index)
                 }
             }
 
             is PlayerEvent.RemoveFromPlayList -> {
-                removeFromPlaylist(audio)
+                removeFromPlaylist(index)
             }
 
             is PlayerEvent.PlayFromPlaylist -> {
@@ -181,6 +215,17 @@ class AudioServiceHandler @Inject constructor(
             PlayerEvent.PreviousTrack -> {
                 exoPlayer.seekToPrevious()
                 _audioState.value = AudioState.PlaylistIndex(exoPlayer.currentMediaItemIndex)
+            }
+
+            PlayerEvent.ReorderPlaylist -> {
+                //change in ExoPlayer and update the playlist
+                exoPlayer.moveMediaItem(oldPosition, newPosition) //move media item in exoPlayer
+                //remember to update playing state
+                safeUpdateState(AudioState.PlaylistIndex(exoPlayer.currentMediaItemIndex))
+                playlistScope.launch {
+                    playlist.add(newPosition, playlist.removeAt(oldPosition))
+                    safeUpdateState(AudioState.PlaylistUpdated(playlist))
+                }
             }
         }
     }
@@ -264,6 +309,7 @@ sealed class PlayerEvent {
     object SeekTo: PlayerEvent()
     object Stop: PlayerEvent()
     object LoopModeChange: PlayerEvent()
+    object ReorderPlaylist:PlayerEvent()
     data class UpdateProgress(val newProgress: Float): PlayerEvent()
 
     //Playlist
@@ -279,7 +325,7 @@ sealed class PlayerEvent {
 //sealed class for the audio state
 sealed class AudioState {
     object Initial: AudioState()
-    data class PlaylistUpdated(val list: MutableList<Audio>): AudioState()
+    data class PlaylistUpdated(val list: List<Audio>): AudioState()
     data class PlaylistIndex(val index: Int): AudioState()
     data class Ready(val duration: Long): AudioState()
     data class Progress(val progress: Long): AudioState()

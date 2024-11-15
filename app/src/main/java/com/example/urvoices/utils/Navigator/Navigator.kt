@@ -18,7 +18,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FabPosition
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -42,6 +41,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
+import com.example.urvoices.data.model.Audio
 import com.example.urvoices.ui._component.BottomBar
 import com.example.urvoices.ui._component.MediaPlayer
 import com.example.urvoices.viewmodel.AuthViewModel
@@ -55,7 +55,6 @@ import com.example.urvoices.viewmodel.SearchViewModel
 import com.example.urvoices.viewmodel.UIEvents
 import com.example.urvoices.viewmodel.UploadViewModel
 
-@OptIn(ExperimentalMaterial3Api::class)
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter", "StateFlowValueCalledInComposition")
 @Composable
 fun Navigator(authViewModel: AuthViewModel) {
@@ -183,11 +182,20 @@ fun Navigator(authViewModel: AuthViewModel) {
                                     onPrevious = {
                                         playerViewModel.onUIEvents(UIEvents.PreviousAudio)
                                     },
+                                    onAddToPlaylist = { audio: Audio, index: Int ->
+                                        playerViewModel.onUIEvents(UIEvents.AddToPlaylist(
+                                            audio = audio,
+                                            index = index
+                                        ))
+                                    },
                                     onRemoveFromPlaylist = {
                                         playerViewModel.onUIEvents(UIEvents.RemoveFromPlaylist(it))
                                     },
                                     onPlayFromList = {
                                         playerViewModel.onUIEvents(UIEvents.PlaySelectedFromList(it))
+                                    },
+                                    onPlaylistReorder = { fromIndex: Int, toIndex: Int ->
+                                        playerViewModel.onUIEvents(UIEvents.ReorderPlaylist(fromIndex, toIndex))
                                     },
                                     onLoopModeChange = {
                                         playerViewModel.onUIEvents(UIEvents.LoopModeChange)
