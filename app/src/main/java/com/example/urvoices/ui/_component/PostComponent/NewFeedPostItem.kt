@@ -252,7 +252,7 @@ fun NewFeedPostItem(
                                     id = post.ID,
                                     title = post.audioName,
                                     url = post.url,
-                                    author = currentUser!!.displayName!!,
+                                    author = userBaseInfo["username"]!!,
                                     duration = post.duration
                                 )
                             ))
