@@ -6,6 +6,7 @@ import com.example.urvoices.data.service.FirebaseBlockService
 import com.example.urvoices.data.service.FirebaseNotificationService
 import com.example.urvoices.data.service.FirebasePostService
 import com.example.urvoices.data.service.FirebaseUserService
+import com.example.urvoices.utils.SharedPreferencesHelper
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.storage.FirebaseStorage
@@ -52,9 +53,10 @@ object Firebase {
     fun provideFirebaseUserService(
         storage: StorageReference,
         firebaseFirestore: FirebaseFirestore,
-        auth: FirebaseAuth
+        auth: FirebaseAuth,
+        sharedPrefs: SharedPreferencesHelper
     ): FirebaseUserService {
-        return FirebaseUserService(storage, firebaseFirestore, auth)
+        return FirebaseUserService(storage, firebaseFirestore, auth, sharedPrefs)
     }
 
     @Provides

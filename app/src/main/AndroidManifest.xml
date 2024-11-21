@@ -59,8 +59,9 @@
                 <category android:name="android.intent.category.DEFAULT" />
 
                 <data
-                    android:host="urvoices.com"
-                    android:scheme="https" />
+                    android:host="urvoices.page.link"
+                    android:scheme="https"
+                />
             </intent-filter>
         </activity>
 
@@ -87,6 +88,11 @@
                 <action android:name="androidx.media3.session.MediaSessionService" />
             </intent-filter>
         </service>
+
+        <provider
+            android:name="androidx.startup.InitializationProvider"
+            android:authorities="${applicationId}.androidx-startup"
+            tools:node="remove" />
 
         <!--
              Firebase Cloud Messaging Service

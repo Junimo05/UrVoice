@@ -26,7 +26,7 @@ import com.example.urvoices.R
 @Composable
 fun SearchBar(
     modifier: Modifier = Modifier,
-    searchBoxState: SearchBoxState = SearchBoxState(),
+    searchBoxState: SearchBoxState,
     onValueChange: (String) -> Unit = {},
 ){
     var text by remember { mutableStateOf("") }

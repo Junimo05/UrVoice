@@ -9,9 +9,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
-import androidx.compose.foundation.layout.FlowRowOverflow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -26,13 +23,16 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
+import androidx.compose.material3.Divider
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -64,6 +64,7 @@ import com.algolia.instantsearch.compose.highlighting.toAnnotatedString
 import com.algolia.instantsearch.compose.hits.HitsState
 import com.algolia.instantsearch.compose.searchbox.SearchBoxState
 import com.algolia.instantsearch.filter.state.FilterState
+import com.algolia.instantsearch.searcher.multi.MultiSearcher
 import com.algolia.search.model.filter.Filter
 import com.example.urvoices.R
 import com.example.urvoices.data.algolia.Post_Algolia
@@ -80,6 +81,7 @@ fun SearchScreen(
     navController: NavController,
     modifier: Modifier = Modifier,
     searchBoxState: SearchBoxState,
+    multiSearcher: MultiSearcher,
     userState: HitsState<User_Algolia>,
     postState: HitsState<Post_Algolia>,
     filterState: FilterState,
@@ -90,8 +92,11 @@ fun SearchScreen(
     val TAG = "SearchScreen"
     val scope = rememberCoroutineScope()
     val listState = rememberLazyListState()
-    val isSearching = mutableStateOf(false)
+    val isSearching = remember { mutableStateOf(false) }
 
+    LaunchedEffect(searchBoxState.query) {
+        multiSearcher.searchAsync()
+    }
 
     Scaffold(
         topBar = {
@@ -134,8 +139,9 @@ fun SearchScreen(
         ){
             SearchBar(
                 searchBoxState = searchBoxState,
-                onValueChange = {
-                    isSearching.value = it.isNotEmpty()
+                onValueChange = {value ->
+//                    Log.e(TAG, "Search value change send to it: $value")
+                    isSearching.value = value.isNotEmpty()
                     scope.launch {
                         listState.scrollToItem(0)
                     }
@@ -147,6 +153,7 @@ fun SearchScreen(
                 isFiltered = isSearching,
                 onClearFilter = {
                     onClearFilter()
+                    isSearching.value = false
                 }
             )
             if(isSearching.value){

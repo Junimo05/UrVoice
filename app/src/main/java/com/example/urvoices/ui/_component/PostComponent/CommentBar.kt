@@ -83,20 +83,21 @@ fun CommentBar(
         Row(
             modifier = Modifier
                 .padding(8.dp)
+                .height(60.dp)
                 .fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            if(isFocused){
-                IconButton(
-                    onClick = { /* Xử lý chức năng */ },
-                ) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.ic_editor_attachament),
-                        contentDescription = "Attach file",
-                        tint = MaterialTheme.colorScheme.onPrimaryContainer
-                    )
-                }
-            }
+//            if(isFocused){
+//                IconButton(
+//                    onClick = { /* Xử lý chức năng */ },
+//                ) {
+//                    Icon(
+//                        painter = painterResource(id = R.drawable.ic_editor_attachament),
+//                        contentDescription = "Attach file",
+//                        tint = MaterialTheme.colorScheme.onPrimaryContainer
+//                    )
+//                }
+//            }
             Card(
                 shape = MaterialTheme.shapes.extraLarge,
                 border = BorderStroke(
@@ -107,7 +108,7 @@ fun CommentBar(
                     containerColor = Color.Transparent,
                 ) ,
                 modifier = Modifier
-                    .height(50.dp)
+                    .height(60.dp)
                     .weight(1f),
             ) {
                 TextField(
@@ -146,7 +147,6 @@ fun CommentBar(
                                 onSendMessage(commentText.value, "")
                             }
                             else{
-//                                Log.e("CommentBar", "Reply to: ${replyTo.value?.id}")
                                 onSendMessage(commentText.value, replyTo.value?.id!!)
                             }
                             isFocused = false
@@ -166,23 +166,3 @@ fun CommentBar(
         }
     }
 }
-
-//@SuppressLint("UnrememberedMutableState")
-//@Preview(showBackground = true)
-//@Composable
-//fun CommentBarPreview() {
-//    MyTheme {
-//        CommentBar(
-//            onSendMessage = {
-//
-//            },
-//            onAttachFile = {},
-//            focusRequester =  FocusRequester(),
-//            replyTo = mutableStateOf(null),
-//            commentText = mutableStateOf(""),
-//            currentUserName = "User",
-//            uiState = PostDetailState.Success,
-//            parentUsername = mutableStateOf(""),
-//        )
-//    }
-//}

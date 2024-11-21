@@ -31,6 +31,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -39,6 +40,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -54,18 +56,22 @@ import coil.request.ImageRequest
 import com.example.urvoices.R
 import com.example.urvoices.data.model.Audio
 import com.example.urvoices.data.model.Post
+import com.example.urvoices.data.service.FirebaseBlockService
 import com.example.urvoices.ui._component.InteractionRow
 import com.example.urvoices.ui._component.MoreAction.DropDownMenu
 import com.example.urvoices.ui._component.MoreAction.PostAction
 import com.example.urvoices.ui._component.OptionBar
 import com.example.urvoices.ui._component.OptionItem
-import com.example.urvoices.utils.Navigator.BASE_URL
+import com.example.urvoices.utils.Auth.BASE_URL
+import com.example.urvoices.utils.Navigator.EditPostScreen
 import com.example.urvoices.utils.Post_Interactions
 import com.example.urvoices.utils.getTimeElapsed
 import com.example.urvoices.viewmodel.AuthViewModel
 import com.example.urvoices.viewmodel.HomeViewModel
+import com.example.urvoices.viewmodel.InteractionRowState
 import com.example.urvoices.viewmodel.InteractionViewModel
 import com.example.urvoices.viewmodel.MediaPlayerVM
+import com.example.urvoices.viewmodel.PostDetailState
 import com.example.urvoices.viewmodel.UIEvents
 import kotlinx.coroutines.runBlocking
 
@@ -82,14 +88,14 @@ fun NewFeedPostItem(
     val TAG = "NewFeedPostItem"
     val context = LocalContext.current
     val clipboardManager = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-    val timeText = getTimeElapsed(post.createdAt)
+    val timeText = remember(post.createdAt) { getTimeElapsed(post.createdAt) }
 
     val interactionViewModel = hiltViewModel<InteractionViewModel>(
         key = post.ID
     )
-
+    val interactionState by interactionViewModel.uiState.collectAsState()
     val currentUser = authVM.getCurrentUser()
-    val userBaseInfo by remember(post.userId) {
+    val userBaseInfo by rememberSaveable(post.userId) {
         mutableStateOf(runBlocking {
             homeViewModel.getUserInfo(post.userId)
         })
@@ -98,6 +104,9 @@ fun NewFeedPostItem(
     //State
     val expandMenu = rememberSaveable { mutableStateOf(false) }
     val isBlock = rememberSaveable { mutableStateOf(false) }
+    val blockInfo = rememberSaveable{
+        mutableStateOf(FirebaseBlockService.BlockInfo.NO_BLOCK)
+    }
     val isSaved = rememberSaveable { mutableStateOf(false) }
     val isLove = rememberSaveable { mutableStateOf(false) }
 
@@ -162,7 +171,7 @@ fun NewFeedPostItem(
                                             title = post.audioName!!,
                                             url = post.url!!,
                                             author = userBaseInfo["username"]!!,
-                                            duration = post.duration
+                                            duration = post.duration?:0
                                         )
                                     )
                                 )
@@ -194,17 +203,29 @@ fun NewFeedPostItem(
                                     expandMenu.value = false
                                 }
                             },
-                            isBlock = isBlock,
+                            blockInfo = blockInfo,
                             blockUser = {
-                                if(isBlock.value){
-                                    val result = interactionViewModel.unblockUser(post.userId)
-                                    Toast.makeText(context, result, Toast.LENGTH_SHORT).show()
-                                    isBlock.value = false
-                                } else {
-                                    val result = interactionViewModel.blockUser(post.userId)
-                                    Toast.makeText(context, result, Toast.LENGTH_SHORT).show()
+                                val result = interactionViewModel.blockUser(post.userId)
+                                Toast.makeText(context, result, Toast.LENGTH_SHORT).show()
+                                if(interactionState == InteractionRowState.Success){
                                     isBlock.value = true
                                 }
+                                expandMenu.value = false
+                            },
+                            unblockUser = {
+                                val result = interactionViewModel.unblockUser(post.userId)
+                                Toast.makeText(context, result, Toast.LENGTH_SHORT).show()
+                                if(interactionState == InteractionRowState.Success){
+                                    isBlock.value = false
+                                }
+                                expandMenu.value = false
+                            },
+                            changeInfo = {
+                                navController.navigate(
+                                    EditPostScreen(
+                                        post = post
+                                    )
+                                )
                                 expandMenu.value = false
                             }
                         )
@@ -236,37 +257,79 @@ fun NewFeedPostItem(
                 )
 
                 Spacer(modifier = Modifier.height(8.dp))
-                AudioWaveformItem(
-                    id = post.ID!!,
-                    audioUrl = post.url!!,
-                    audioAmplitudes = post.amplitudes,
-                    currentPlayingAudio = playerViewModel.currentAudio.value.url,
-                    currentPlayingPost = playerViewModel.currentAudio.value.id,
-                    duration = playerViewModel.duration, //fix Duration each Post
-                    isPlaying = playerViewModel.isPlaying,
-                    isStop = playerViewModel.isStop.value,
-                    onPlayStart = {
-                        if(post.url.isNotEmpty()){
-                            playerViewModel.onUIEvents(UIEvents.PlayingAudio(
-                                Audio(
-                                    id = post.ID,
-                                    title = post.audioName,
-                                    url = post.url,
-                                    author = userBaseInfo["username"]!!,
-                                    duration = post.duration
-                                )
-                            ))
-                        }
-                    },
-                    onPlayPause = {
-                        playerViewModel.onUIEvents(UIEvents.PlayPause)
-                    },
-                    percentPlayed = playerViewModel.progress,
-                    onPercentChange = {
-                        playerViewModel.onUIEvents(UIEvents.SeekTo(it))
-                    },
-                )
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                ){
+                    AsyncImage(
+                        model = ImageRequest.Builder(LocalContext.current)
+                            .data(
+                                if(post.imgUrl.isNullOrEmpty()){
+                                    R.drawable.music_play_svgrepo_com
+                                } else {
+                                    post.imgUrl
+                                }
+                            )
+                            .crossfade(true)
+                            .build(),
+                        contentDescription = "Avatar",
+                        placeholder = painterResource(id = R.drawable.ic_media_note),
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier
+                            .size(64.dp)
+                            .clip(RectangleShape)
+                            .border(2.dp, Color.Black, RectangleShape)
+                    )
+                    AudioItem(
+                        id = post.ID!!,
+                        audioUrl = post.url!!,
+                        audioAmplitudes = post.amplitudes,
+                        currentPlayingAudio = playerViewModel.currentAudio.value.url,
+                        currentPlayingPost = playerViewModel.currentAudio.value.id,
+                        duration = playerViewModel.durationPlayer, //fix Duration each Post
+                        isPlaying = playerViewModel.isPlaying,
+                        isStop = playerViewModel.isStop.value,
+                        onPlayStart = {
+                            if(post.url.isNotEmpty()){
+                                playerViewModel.onUIEvents(UIEvents.PlayingAudio(
+                                    Audio(
+                                        id = post.ID,
+                                        title = post.audioName,
+                                        url = post.url,
+                                        author = userBaseInfo["username"]!!,
+                                        duration = post.duration?:0
+                                    )
+                                ))
+                            }
+                        },
+                        onPlayPause = {
+                            playerViewModel.onUIEvents(UIEvents.PlayPause)
+                        },
+                        percentPlayed = playerViewModel.progress,
+                        onPercentChange = {
+                            playerViewModel.onUIEvents(UIEvents.SeekTo(it))
+                        },
+                    )
+                }
                 Spacer(modifier = Modifier.height(8.dp))
+
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                ){
+                    post._tags!!.forEach {
+                        Text(
+                            text = "#$it",
+                            style = TextStyle(
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 16.sp,
+                                color = MaterialTheme.colorScheme.onPrimaryContainer
+                            ),
+                            modifier = Modifier.padding(top = 4.dp, bottom = 0.dp, start = 14.dp, end = 0.dp)
+                        )
+                    }
+                }
+
 
                 OptionBar(
                     itemList = listOf(
@@ -276,11 +339,11 @@ fun NewFeedPostItem(
                                   playerViewModel.onUIEvents(
                                       UIEvents.AddToPlaylist(
                                           Audio(
-                                              id = post.ID,
+                                              id = post.ID!!,
                                               title = post.audioName,
-                                              url = post.url,
+                                              url = post.url!!,
                                               author = userBaseInfo["username"]!!,
-                                              duration = post.duration
+                                              duration = post.duration?:0
                                           )
                                       )
                                   )
@@ -303,7 +366,7 @@ fun NewFeedPostItem(
                                 interactionViewModel.loveAction(
                                     isLove = it,
                                     targetUserID = post.userId,
-                                    postID = post.ID
+                                    postID = post.ID!!
                                 ){ result ->
                                     //get isLove input then update UI if result = true
                                     if(result){
@@ -323,7 +386,7 @@ fun NewFeedPostItem(
                         modifier = Modifier.weight(1f)
                     )
                     IconButton(onClick = {
-                        interactionViewModel.savePost(post.ID){result ->
+                        interactionViewModel.savePost(post.ID!!){result ->
                             if(result != null){
                                 if(result){
                                     isSaved.value = true
@@ -415,7 +478,7 @@ fun ProfileInfo(
                     text = userInfo["username"] ?: "Unknown",
                     style = TextStyle(
                         fontWeight = FontWeight.Bold,
-                        fontSize = 24.sp,
+                        fontSize = 20.sp,
                         color = MaterialTheme.colorScheme.onPrimaryContainer
                     ),
                     modifier = Modifier.clickable {
@@ -423,24 +486,26 @@ fun ProfileInfo(
                         navController.navigate("profile/$userId")
                     }
                 )
-                Box(
-                    modifier = Modifier
-                        .height(70.dp)
-                        .fillMaxWidth(0.8f)
-                        .border(1.dp, Color.Black, RoundedCornerShape(8.dp))
-                        .padding(8.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text = postDes,
-                        style = TextStyle(
-                            fontWeight = FontWeight.Normal,
-                            fontSize = 20.sp,
-                            color = MaterialTheme.colorScheme.onPrimaryContainer
-                        ),
-                        maxLines = 2,
-                        overflow = TextOverflow.Ellipsis,
-                    )
+                if(postDes.isNotEmpty()){
+                    Box(
+                        modifier = Modifier
+                            .height(70.dp)
+                            .fillMaxWidth(0.95f)
+                            .border(1.dp, Color.Black, RoundedCornerShape(8.dp))
+                            .padding(8.dp),
+                        contentAlignment = Alignment.TopStart
+                    ) {
+                        Text(
+                            text = postDes,
+                            style = TextStyle(
+                                fontWeight = FontWeight.Normal,
+                                fontSize = 16.sp,
+                                color = MaterialTheme.colorScheme.onPrimaryContainer
+                            ),
+                            maxLines = 3,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                    }
                 }
             }
         }

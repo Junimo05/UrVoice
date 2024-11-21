@@ -40,6 +40,7 @@ import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -66,7 +67,6 @@ import coil.request.ImageRequest
 import com.example.urvoices.R
 import com.example.urvoices.presentations.theme.MyTheme
 import com.example.urvoices.ui._component.TopBarBackButton
-import com.example.urvoices.utils.Auth.checkProvider
 import com.example.urvoices.utils.Navigator.MainScreen
 import com.example.urvoices.utils.deleteOldImageFile
 import com.example.urvoices.utils.generateUniqueFileName
@@ -89,23 +89,23 @@ import java.io.FileOutputStream
 @Composable
 fun ProfileEditScreen(
     navController: NavController,
-    profileViewModel: ProfileViewModel? = null,
+    profileViewModel: ProfileViewModel,
 ) {
     val TAG = "ProfileEditScreen"
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
 
-    val currentUser by remember { mutableStateOf(profileViewModel?.displayuser) }
-    val authProfile by remember { mutableStateOf(profileViewModel?.authCurrentUser) }
+    val currentUser by profileViewModel.displayUser.collectAsState()
+    val authProfile by remember { mutableStateOf(profileViewModel.authCurrentUser) }
 
     val scrollState = rememberScrollState(0)
 
     val isChanged = mutableStateOf(false)
-    var username by remember { mutableStateOf(currentUser!!.username) }
-    var bio by remember { mutableStateOf(currentUser!!.bio) }
-    var country by remember { mutableStateOf(currentUser!!.country) }
-    var email by remember { mutableStateOf(currentUser!!.email) }
-    val downloadAvatarUrl by remember { mutableStateOf(currentUser!!.avatarUrl) }
+    var username by remember { mutableStateOf(currentUser.username) }
+    var bio by remember { mutableStateOf(currentUser.bio) }
+    var country by remember { mutableStateOf(currentUser.country) }
+    var email by remember { mutableStateOf(currentUser.email) }
+    val downloadAvatarUrl by remember { mutableStateOf(currentUser.avatarUrl) }
     var imgUri by remember { mutableStateOf(Uri.EMPTY) }
     var updating by mutableStateOf(false)
 
@@ -113,7 +113,6 @@ fun ProfileEditScreen(
     //Image Handle
     val imageCropper = rememberImageCropper()
     val cropState = imageCropper.cropState
-
     val imagePicker = rememberImagePicker(onImage = { uri ->
         scope.launch {
             deleteOldImageFile(imgUri)
@@ -180,7 +179,7 @@ fun ProfileEditScreen(
 
     //Confirm Changed To Update Profile
     LaunchedEffect(username, bio, country, email, imgUri) {
-       isChanged.value = username != currentUser!!.username || bio != currentUser!!.bio || country != currentUser!!.country || email != currentUser!!.email || imgUri != Uri.EMPTY
+       isChanged.value = username != currentUser.username || bio != currentUser.bio || country != currentUser.country || email != currentUser.email || imgUri != Uri.EMPTY
     }
 
     Scaffold(
@@ -191,180 +190,178 @@ fun ProfileEditScreen(
             )
         },
     ) {
-        if (updating) {
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator(
-                    color = MaterialTheme.colorScheme.secondary,
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.background)
+                .padding(top = it.calculateTopPadding())
+                .verticalScroll(
+                    state = scrollState,
+                    enabled = true
+                ),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // Profile picture
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.Center
+            ) {
+                AvatarChangeComponent(
+                    imgUri = imgUri,
+                    currentAvatarUrl = downloadAvatarUrl,
+                    imagePicker = {
+                        imagePicker.pick(
+                            "image/*",
+                        )
+                    },
+                    cameraLauncher = {
+                        cameraLauncher.launch(input = null)
+                    }
                 )
+                if(cropState != null){
+                    ImageCropperDialog(state = cropState)
+                }
             }
-        }
-        if(currentUser != null){
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // Profile fields
+            ProfileField(
+                label = "Username",
+                value = username,
+                onValueChange = { username = it }
+            )
+            ProfileField(
+                label = "Bio",
+                value = bio,
+                onValueChange = { bio = it }
+            )
+
+            ProfileField(
+                label = "Where I am",
+                value = country,
+                onValueChange = { country = it }
+            )
+
+            ProfileField(
+                label = "Email",
+                value = email,
+                onValueChange = { email = it },
+                canEdit = false
+            )
+
+
+            Spacer(modifier = Modifier.height(16.dp))
+
             Column(
                 modifier = Modifier
-                    .fillMaxSize()
-                    .background(MaterialTheme.colorScheme.background)
-                    .padding(top = it.calculateTopPadding())
-                    .verticalScroll(
-                        state = scrollState,
-                        enabled = true
-                    ),
-                horizontalAlignment = Alignment.CenterHorizontally,
+                    .fillMaxWidth(0.95f)
+                    .border(
+                        width = 1.dp,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        shape = MaterialTheme.shapes.medium
+                    )
+                    .padding(8.dp)
+                    .height(200.dp),
+                horizontalAlignment = Alignment.Start,
             ) {
-
-                Spacer(modifier = Modifier.height(24.dp))
-
-                // Profile picture
                 Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.Center
-                ) {
-                    AvatarChangeComponent(
-                        imgUri = imgUri,
-                        currentAvatarUrl = downloadAvatarUrl,
-                        imagePicker = {
-                            imagePicker.pick(
-                                "image/*",
-                            )
-                        },
-                        cameraLauncher = {
-                            cameraLauncher.launch(input = null)
-                        }
-                    )
-                    if(cropState != null){
-                        ImageCropperDialog(state = cropState)
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(24.dp))
-
-                // Profile fields
-                ProfileField(
-                    label = "Username",
-                    value = username,
-                    onValueChange = { username = it }
-                )
-                ProfileField(
-                    label = "Bio",
-                    value = bio,
-                    onValueChange = { bio = it }
-                )
-
-                ProfileField(
-                    label = "Country",
-                    value = country,
-                    onValueChange = { country = it }
-                )
-
-                ProfileField(
-                    label = "Email",
-                    value = email,
-                    onValueChange = { email = it },
-                    canEdit = checkProvider(authProfile) != GoogleAuthProvider.PROVIDER_ID
-                )
-
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                Column(
                     modifier = Modifier
-                        .fillMaxWidth(0.95f)
-                        .border(
-                            width = 1.dp,
-                            color = MaterialTheme.colorScheme.onSurface,
-                            shape = MaterialTheme.shapes.medium
-                        )
-                        .padding(8.dp)
-                        .height(200.dp),
-                    horizontalAlignment = Alignment.Start,
+                        .fillMaxWidth()
+                        .padding(end = 8.dp),
                 ) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(end = 8.dp),
-                    ) {
-                        Text("Links",
-                            style = TextStyle(
-                                color = MaterialTheme.colorScheme.onSurface,
-                                fontSize = 14.sp,
-                                fontWeight = FontWeight.Bold
-                            ),
-                            modifier = Modifier
-                                .padding(start = 8.dp)
-                                .weight(1f)
-                        )
-                        Text("2",
-                            style = TextStyle(
-                                color = MaterialTheme.colorScheme.onSurface,
-                                fontSize = 14.sp,
-                                fontWeight = FontWeight.Light
-                            ),
-                            modifier = Modifier.padding(start = 8.dp)
-                        )
-                    }
-                    LazyColumn(
-                        modifier = Modifier.fillMaxSize(),
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        items(2) {
-                            EditableTextField()
-                        }
-                    }
-
-                }
-                Spacer(modifier = Modifier.height(16.dp))
-
-                Button(
-                    onClick = {
-                        if (isChanged.value) {
-                            scope.launch {
-                                updating = true
-                                val result = profileViewModel?.updateProfile(
-                                    username = username,
-                                    bio = bio,
-                                    country = country,
-                                    email = email,
-                                    avatarUri = imgUri
-                                ) ?: false
-
-                                if (result) {
-                                    // Delete image after update
-                                    deleteOldImageFile(imgUri)
-                                    imgUri = Uri.EMPTY
-                                    //Reload Data
-                                    profileViewModel?.loadData(profileViewModel.currentUserID)
-                                    updating = false
-                                    navController.navigate(MainScreen.ProfileScreen.MainProfileScreen.route)
-                                } else {
-                                    Toast.makeText(context, "Error when updating profile", Toast.LENGTH_SHORT).show()
-                                    updating = false
-                                }
-                            }
-                        }
-                    },
-                    modifier = Modifier
-                        .fillMaxWidth(0.8f)
-                        .height(48.dp)
-                        .border(
-                            width = 1.dp,
-                            color = MaterialTheme.colorScheme.secondary,
-                            shape = MaterialTheme.shapes.medium
-                        ),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Color.Transparent,
-                        contentColor = MaterialTheme.colorScheme.onSecondaryContainer
-                    )
-                ) {
-                    Text(
-                        text = "Save",
+                    Text("Links",
                         style = TextStyle(
-                            color = MaterialTheme.colorScheme.onSecondaryContainer,
+                            color = MaterialTheme.colorScheme.onSurface,
                             fontSize = 14.sp,
                             fontWeight = FontWeight.Bold
-                        )
+                        ),
+                        modifier = Modifier
+                            .padding(start = 8.dp)
+                            .weight(1f)
                     )
+                    Text("2",
+                        style = TextStyle(
+                            color = MaterialTheme.colorScheme.onSurface,
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Light
+                        ),
+                        modifier = Modifier.padding(start = 8.dp)
+                    )
+                }
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize(),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    items(2) {
+                        EditableTextField()
+                    }
                 }
 
             }
+            Spacer(modifier = Modifier.height(16.dp))
+            if (updating) {
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator(
+                        color = MaterialTheme.colorScheme.secondary,
+                    )
+                }
+            }
+            Button(
+                onClick = {
+                    if (isChanged.value) {
+                        scope.launch {
+                            updating = true
+                            val result = profileViewModel.updateProfile(
+                                username = username,
+                                bio = bio,
+                                country = country,
+                                email = email,
+                                avatarUri = imgUri
+                            )
+
+                            if (result) {
+                                // Delete image after update
+                                deleteOldImageFile(imgUri)
+                                imgUri = Uri.EMPTY
+                                //Reload Data
+                                profileViewModel.loadData(profileViewModel.currentUserID)
+                                updating = false
+                                navController.navigate(MainScreen.ProfileScreen.MainProfileScreen.route)
+                            } else {
+                                Toast.makeText(context, "Error when updating profile", Toast.LENGTH_SHORT).show()
+                                updating = false
+                            }
+                        }
+                    }
+                },
+                enabled = !updating,
+                modifier = Modifier
+                    .fillMaxWidth(0.8f)
+                    .height(48.dp)
+                    .border(
+                        width = 1.dp,
+                        color = MaterialTheme.colorScheme.secondary,
+                        shape = MaterialTheme.shapes.medium
+                    ),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color.Transparent,
+                    contentColor = MaterialTheme.colorScheme.onSecondaryContainer
+                )
+            ) {
+                Text(
+                    text = "Save",
+                    style = TextStyle(
+                        color = MaterialTheme.colorScheme.onSecondaryContainer,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                )
+            }
+
         }
     }
 }
@@ -529,6 +526,8 @@ fun ProfileField(
     label: String,
     value: String,
     onValueChange: (String) -> Unit,
+    buttonIcon: Int = R.drawable.ic_contact_edit,
+    onButtonClick: () -> Unit = {},
     canEdit : Boolean = true
 ) {
     Card(
@@ -553,7 +552,7 @@ fun ProfileField(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(4.dp),
-            ) {
+        ) {
             Text(label,
                 modifier = Modifier.padding(start = 8.dp, top = 4.dp),
                 style = TextStyle(
@@ -562,21 +561,37 @@ fun ProfileField(
                     fontWeight = FontWeight.Bold
                 )
             )
-            TextField(
-                value = value,
-                onValueChange = onValueChange,
-                colors = TextFieldDefaults.colors(
-                    focusedContainerColor = MaterialTheme.colorScheme.primaryContainer,
-                    cursorColor = Color.White,
-                    disabledTextColor = Color.Gray,
-                    focusedIndicatorColor = Color.Transparent,
-                    unfocusedContainerColor = Color.Transparent,
-                    disabledIndicatorColor = Color.Transparent
-                ),
-                textStyle = TextStyle(color = MaterialTheme.colorScheme.onPrimaryContainer),
+            Row(
                 modifier = Modifier.fillMaxWidth(),
-                enabled = canEdit
-            )
+                verticalAlignment = Alignment.CenterVertically
+            ){
+                TextField(
+                    value = value,
+                    onValueChange = onValueChange,
+                    colors = TextFieldDefaults.colors(
+                        focusedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                        cursorColor = Color.White,
+                        disabledTextColor = Color.Gray,
+                        focusedIndicatorColor = Color.Transparent,
+                        unfocusedContainerColor = Color.Transparent,
+                        disabledIndicatorColor = Color.Transparent
+                    ),
+                    textStyle = TextStyle(color = MaterialTheme.colorScheme.onPrimaryContainer),
+                    modifier = Modifier.weight(1f),
+                    enabled = canEdit
+                )
+                if(onButtonClick != {}){
+                    IconButton(
+                        onClick = onButtonClick
+                    ) {
+                        Icon(
+                            painter = painterResource(id = buttonIcon),
+                            contentDescription = "",
+                            modifier = Modifier.size(24.dp)
+                        )
+                    }
+                }
+            }
         }
     }
 }
@@ -585,15 +600,4 @@ sealed class ImageState {
     data object Empty : ImageState()
     data object Loading : ImageState()
     data object Success : ImageState()
-}
-
-@Preview(showBackground = true)
-@Composable
-fun ProfileEditScreenPreview() {
-    MyTheme {
-        ProfileEditScreen(
-            navController = rememberNavController(),
-
-        )
-    }
 }

@@ -1,16 +1,20 @@
 package com.example.urvoices.viewmodel
 
 import android.Manifest
+import android.content.Context
 import android.os.Handler
 import android.os.Looper
+import android.util.DisplayMetrics
 import android.util.Log
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateListOf
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.urvoices.utils.audio_record.AndroidAudioRecorder
 import com.example.urvoices.viewmodel.State.AppGlobalState
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -19,7 +23,9 @@ import javax.inject.Inject
 
 @HiltViewModel
 class MediaRecorderVM @Inject constructor(
+    @ApplicationContext context: Context,
     private val audioRecorder: AndroidAudioRecorder,
+    savedStateHandle: SavedStateHandle
 ) : ViewModel() {
     private val permission = arrayOf(Manifest.permission.RECORD_AUDIO)
     private val _recorderState = MutableStateFlow<RecorderState>(RecorderState.Idle)
@@ -28,6 +34,8 @@ class MediaRecorderVM @Inject constructor(
     var recordingTime = mutableLongStateOf(0L)
 
     val amplitudesLive = mutableStateListOf<Int>()
+    val maxAmplitude = 100
+
 
     private val handler = Handler(Looper.getMainLooper())
 
@@ -36,6 +44,7 @@ class MediaRecorderVM @Inject constructor(
 
     //File
     fun getFileUri() = audioRecorder.getAudioFileUri()
+    fun getFilePath() = audioRecorder.getAudioFilePath()
     fun deleteFile() = audioRecorder.tempFile.delete()
 
 
@@ -93,7 +102,7 @@ class MediaRecorderVM @Inject constructor(
     private fun updateAmplitude(){
         if(recorderState.value != RecorderState.Recording) return
         audioRecorder.getMaxAmplitude().let {
-            if(amplitudesLive.size > 100) amplitudesLive.removeFirst()
+            if(amplitudesLive.size > maxAmplitude) amplitudesLive.removeFirst()
             amplitudesLive.add(it)
         }
         handler.postDelayed(this::updateAmplitude, 100)
@@ -118,6 +127,10 @@ class MediaRecorderVM @Inject constructor(
 
 
 }
+
+
+fun Int.toPx(displayMetrics: DisplayMetrics): Float { return this * displayMetrics.density }
+fun Float.toPx(displayMetrics: DisplayMetrics): Float { return this * displayMetrics.density }
 
 sealed class RecorderState {
     object Idle : RecorderState()

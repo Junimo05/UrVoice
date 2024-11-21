@@ -14,6 +14,7 @@ data class Post_Algolia(
     val ID: String = "",
     val userId: String = "",
     val url: String = "",
+    val imgUrl: String = "",
     val audioName: String = "No Name",
     val description: String = "",
     @SerialName("_tags")

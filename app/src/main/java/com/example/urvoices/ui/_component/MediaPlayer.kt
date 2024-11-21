@@ -44,6 +44,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -55,12 +56,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.input.pointer.consumeAllChanges
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontVariation.weight
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
@@ -71,8 +70,8 @@ import androidx.navigation.NavController
 import com.example.urvoices.R
 import com.example.urvoices.data.model.Audio
 import com.example.urvoices.utils.formatToMinSecFromMillisec
-import com.example.urvoices.viewmodel.UIEvents
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.util.concurrent.TimeUnit
 
@@ -82,6 +81,10 @@ fun MediaPlayer(
     navController: NavController,
     playlist: List<Audio>,
     modifier: Modifier = Modifier,
+    //MediaPlayerMinimize State
+    isMinimize: MutableState<Boolean>,
+    lastInteractionTime: Long,
+    //
     progress: Float,
     isAudioPlaying: Boolean,
     currentPlayingIndex: Int, //index of current playing audio in playlist
@@ -132,20 +135,29 @@ fun MediaPlayer(
         }
     }
 
+    //Minimize MediaBar
+    LaunchedEffect(lastInteractionTime) {
+        while(true){
+            delay(5000) // Check every 5 seconds
+            if (System.currentTimeMillis() - lastInteractionTime > 10000 && !bottomSheetState.isVisible) { // 10 seconds of inactivity
+                isMinimize.value = true
+            }
+        }
+    }
 
     val optionItemList = listOf(
         OptionItem(
             icon = R.drawable.ic_actions_menu,
             des = "Playlist",
             onClick = {scope.launch {
-                Log.e("MediaPlayer Show", "${playlist}")
+//                Log.e("MediaPlayer Show", "${playlist}")
                 bottomSheetState.expand()
             }}
         ),
         OptionItem(
             icon = R.drawable.step_backward_svgrepo_com,
             des = "Previous",
-            onClick = {}
+            onClick = onPrevious
         ),
         OptionItem(
             icon = R.drawable.backward_svgrepo_com,
@@ -160,7 +172,7 @@ fun MediaPlayer(
         OptionItem(
             icon = R.drawable.step_forward_svgrepo_com,
             des = "Next",
-            onClick = {}
+            onClick = onNext
         ),
         OptionItem(
             icon = R.drawable.loop_svgrepo_com,
@@ -170,194 +182,209 @@ fun MediaPlayer(
 
     )
 
-    val expandAnimation by animateDpAsState(targetValue = if(expandOptionBar) 150.dp else 100.dp)
+    val expandAnimation by animateDpAsState(targetValue = if(expandOptionBar) 150.dp else 100.dp,
+        label = "expand_animation"
+    )
 
-    Row (
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(expandAnimation)
-            .border(
-                BorderStroke(
-                    width = 1.dp,
-                    brush = SolidColor(MaterialTheme.colorScheme.onSurface),
-                ),
-                shape = MaterialTheme.shapes.medium.copy(CornerSize(20.dp))
-            )
-            .background(MaterialTheme.colorScheme.surface)
-            .then(modifier)
-        ,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Column(
-            modifier = Modifier.padding(8.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.SpaceBetween
+    if(isMinimize.value){
+        Box(
+            modifier = Modifier,
+            contentAlignment = Alignment.Center
         ){
-            MainBar(
-                isAudioPlaying = isAudioPlaying,
-                progress = progress,
-                duration = duration,
-                onProgress = onProgress,
-                onPlayPause = onPlayPause,
-                onStop = onStop
-            )
             IconButton(
-                onClick = {
-                    setExpandOptionBar(!expandOptionBar)
-                },
-                modifier = Modifier.size(24.dp)
+                onClick = { isMinimize.value = false },
+                modifier = Modifier
+                    .size(64.dp)
+                    .background(MaterialTheme.colorScheme.surfaceVariant)
             ) {
                 Icon(
-                    painter = painterResource(id = if (expandOptionBar) R.drawable.ic_chevron_top else R.drawable.ic_chevron_down),
-                    contentDescription = "More"
-                )
-            }
-            if(expandOptionBar){
-                OptionBar(
-                    itemList = optionItemList,
+                    painter = painterResource(id = R.drawable.cassette_svgrepo_com),
+                    contentDescription = "Expand Media Player",
+                    modifier = Modifier.size(64.dp)
                 )
             }
         }
-
-        //BottomSheet
-        if(bottomSheetState.isVisible){
-            ModalBottomSheet(
-                onDismissRequest = {  },
-                sheetState = bottomSheetState,
-            ) {
-                LazyColumn(
-                    state = lazyListState,
-                    modifier = Modifier
-                        .fillMaxHeight(0.8f)
-                        .fillMaxWidth()
-                        .background(MaterialTheme.colorScheme.surface)
-                        .pointerInput(Unit) {
-                            detectDragGesturesAfterLongPress(
-                                onDragStart = { offset ->
-                                    lazyListState.layoutInfo.visibleItemsInfo
-                                        //find the item that is being dragged
-                                        .firstOrNull { item -> offset.y.toInt() in item.offset..(item.offset + item.size) }
-                                        ?.also {
-                                            //if Found then get the index of the item
-                                            (it.contentType as? DraggableItem)?.let { draggableItem ->
-                                                draggingItem = it
-                                                draggingItemIndex = draggableItem.index
-                                            }
-                                        }
-                                },
-                                onDragEnd = {
-                                    isDragging.value = false
-                                    draggingItem = null
-                                    draggingItemIndex = null
-                                    delta = 0f
-                                },
-                                onDragCancel = {
-                                    isDragging.value = false
-                                    draggingItem = null
-                                    delta = 0f
-                                },
-                                onDrag = { change, dragAmount ->
-                                    change.consume()
-                                    delta += dragAmount.y
-
-                                    val currentDraggingItemIndex =
-                                        draggingItemIndex ?: return@detectDragGesturesAfterLongPress
-                                    val currentDraggingItem =
-                                        draggingItem ?: return@detectDragGesturesAfterLongPress
-
-                                    val startOffset = currentDraggingItem.offset + delta
-                                    val endOffset =
-                                        currentDraggingItem.offset + currentDraggingItem.size + delta
-                                    val middleOffset = startOffset + (endOffset - startOffset) / 2
-
-                                    val targetItem =
-                                        lazyListState.layoutInfo.visibleItemsInfo.find { item ->
-                                            middleOffset.toInt() in item.offset..item.offset + item.size &&
-                                                    currentDraggingItem.index != item.index &&
-                                                    item.contentType is DraggableItem
-                                        }
-
-                                    if (targetItem != null) {
-                                        val targetIndex =
-                                            (targetItem.contentType as DraggableItem).index
-                                        //reorder the playlist
-                                        onPlaylistReorder(currentDraggingItemIndex, targetIndex)
-                                        //update the dragging item index and offset
-                                        draggingItemIndex = targetIndex
-                                        draggingItem = targetItem
-                                        delta += currentDraggingItem.offset - targetItem.offset
-                                    } else {
-                                        val startOffsetToTop =
-                                            startOffset - lazyListState.layoutInfo.viewportStartOffset
-                                        val endOffsetToBottom =
-                                            endOffset - lazyListState.layoutInfo.viewportEndOffset
-                                        val scroll =
-                                            when {
-                                                startOffsetToTop < 0 -> startOffsetToTop.coerceAtMost(
-                                                    0f
-                                                )
-
-                                                endOffsetToBottom > 0 -> endOffsetToBottom.coerceAtLeast(
-                                                    0f
-                                                )
-
-                                                else -> 0f
-                                            }
-                                        val canScrollDown =
-                                            currentDraggingItemIndex != playlist.size - 1 && endOffsetToBottom > 0
-                                        val canScrollUp =
-                                            currentDraggingItemIndex != 0 && startOffsetToTop < 0
-                                        if (scroll != 0f && (canScrollUp || canScrollDown)) {
-                                            scrollChannel.trySend(scroll)
-                                        }
-                                    }
-                                }
-                            )
-                        },
-                ){
-                    itemsIndexed(
-                        items = playlist,
-                        contentType = { index, _ -> DraggableItem(index = index)}
-                    ){
-                        index, audio ->
-                        val modifierTransition = if (draggingItemIndex == index) { //if the item is being dragged
-                            Modifier
-                                .zIndex(1f)
-                                .graphicsLayer {
-                                    translationY = animatedDelta
-                                }
-                        } else {
-                            Modifier
-                        }
-                        PlaylistItem(
-                            index = index,
-                            playlistItemData = PlaylistItemData(audio = audio),
-                            isAudioPlaying = isAudioPlaying,
-                            onPlayPause = onPlayPause,
-                            onPlayFromList = onPlayFromList,
-                            onRemove = {
-                                scope.launch {
-                                    onRemoveFromPlaylist(index)
-                                    val result = snackbarHostState.showSnackbar(
-                                        message = "Audio removed from playlist",
-                                        actionLabel = "Undo"
-                                    )
-                                    if(result == SnackbarResult.ActionPerformed){
-                                        onAddToPlaylist(audio, index)
-                                    }
-                                }
-                            },
-                            screenWidth = screenWidth,
-                            currentPlayingIndex = currentPlayingIndex,
-                            modifier = modifierTransition
-                        )
-                    }
-                }
-                //Snackbar
-                SnackbarHost(
-                    hostState = snackbarHostState,
-                    modifier = Modifier.fillMaxWidth()
+    } else {
+        Row (
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(expandAnimation)
+                .background(MaterialTheme.colorScheme.surface)
+                .then(modifier)
+            ,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column(
+                modifier = Modifier.padding(8.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.SpaceBetween
+            ){
+                MainBar(
+                    isAudioPlaying = isAudioPlaying,
+                    progress = progress,
+                    duration = duration,
+                    onProgress = onProgress,
+                    onPlayPause = onPlayPause,
+                    onStop = onStop
                 )
+                IconButton(
+                    onClick = {
+                        setExpandOptionBar(!expandOptionBar)
+                    },
+                    modifier = Modifier.size(24.dp)
+                ) {
+                    Icon(
+                        painter = painterResource(id = if (expandOptionBar) R.drawable.ic_chevron_top else R.drawable.ic_chevron_down),
+                        contentDescription = "More"
+                    )
+                }
+                if(expandOptionBar){
+                    OptionBar(
+                        itemList = optionItemList,
+                    )
+                }
+            }
+
+            //BottomSheet
+            if(bottomSheetState.isVisible){
+                ModalBottomSheet(
+                    onDismissRequest = {  },
+                    sheetState = bottomSheetState,
+                ) {
+                    LazyColumn(
+                        state = lazyListState,
+                        modifier = Modifier
+                            .fillMaxHeight(0.8f)
+                            .fillMaxWidth()
+                            .background(MaterialTheme.colorScheme.surface)
+                            .pointerInput(Unit) {
+                                detectDragGesturesAfterLongPress(
+                                    onDragStart = { offset ->
+                                        lazyListState.layoutInfo.visibleItemsInfo
+                                            //find the item that is being dragged
+                                            .firstOrNull { item -> offset.y.toInt() in item.offset..(item.offset + item.size) }
+                                            ?.also {
+                                                //if Found then get the index of the item
+                                                (it.contentType as? DraggableItem)?.let { draggableItem ->
+                                                    draggingItem = it
+                                                    draggingItemIndex = draggableItem.index
+                                                }
+                                            }
+                                    },
+                                    onDragEnd = {
+                                        isDragging.value = false
+                                        draggingItem = null
+                                        draggingItemIndex = null
+                                        delta = 0f
+                                    },
+                                    onDragCancel = {
+                                        isDragging.value = false
+                                        draggingItem = null
+                                        delta = 0f
+                                    },
+                                    onDrag = { change, dragAmount ->
+                                        change.consume()
+                                        delta += dragAmount.y
+
+                                        val currentDraggingItemIndex =
+                                            draggingItemIndex ?: return@detectDragGesturesAfterLongPress
+                                        val currentDraggingItem =
+                                            draggingItem ?: return@detectDragGesturesAfterLongPress
+
+                                        val startOffset = currentDraggingItem.offset + delta
+                                        val endOffset =
+                                            currentDraggingItem.offset + currentDraggingItem.size + delta
+                                        val middleOffset = startOffset + (endOffset - startOffset) / 2
+
+                                        val targetItem =
+                                            lazyListState.layoutInfo.visibleItemsInfo.find { item ->
+                                                middleOffset.toInt() in item.offset..item.offset + item.size &&
+                                                        currentDraggingItem.index != item.index &&
+                                                        item.contentType is DraggableItem
+                                            }
+
+                                        if (targetItem != null) {
+                                            val targetIndex =
+                                                (targetItem.contentType as DraggableItem).index
+                                            //reorder the playlist
+                                            onPlaylistReorder(currentDraggingItemIndex, targetIndex)
+                                            //update the dragging item index and offset
+                                            draggingItemIndex = targetIndex
+                                            draggingItem = targetItem
+                                            delta += currentDraggingItem.offset - targetItem.offset
+                                        } else {
+                                            val startOffsetToTop =
+                                                startOffset - lazyListState.layoutInfo.viewportStartOffset
+                                            val endOffsetToBottom =
+                                                endOffset - lazyListState.layoutInfo.viewportEndOffset
+                                            val scroll =
+                                                when {
+                                                    startOffsetToTop < 0 -> startOffsetToTop.coerceAtMost(
+                                                        0f
+                                                    )
+
+                                                    endOffsetToBottom > 0 -> endOffsetToBottom.coerceAtLeast(
+                                                        0f
+                                                    )
+
+                                                    else -> 0f
+                                                }
+                                            val canScrollDown =
+                                                currentDraggingItemIndex != playlist.size - 1 && endOffsetToBottom > 0
+                                            val canScrollUp =
+                                                currentDraggingItemIndex != 0 && startOffsetToTop < 0
+                                            if (scroll != 0f && (canScrollUp || canScrollDown)) {
+                                                scrollChannel.trySend(scroll)
+                                            }
+                                        }
+                                    }
+                                )
+                            },
+                    ){
+                        itemsIndexed(
+                            items = playlist,
+                            contentType = { index, _ -> DraggableItem(index = index)}
+                        ){
+                                index, audio ->
+                            val modifierTransition = if (draggingItemIndex == index) { //if the item is being dragged
+                                Modifier
+                                    .zIndex(1f)
+                                    .graphicsLayer {
+                                        translationY = animatedDelta
+                                    }
+                            } else {
+                                Modifier
+                            }
+                            PlaylistItem(
+                                index = index,
+                                playlistItemData = PlaylistItemData(audio = audio),
+                                isAudioPlaying = isAudioPlaying,
+                                onPlayPause = onPlayPause,
+                                onPlayFromList = onPlayFromList,
+                                onRemove = {
+                                    scope.launch {
+                                        onRemoveFromPlaylist(index)
+                                        val result = snackbarHostState.showSnackbar(
+                                            message = "Audio removed from playlist",
+                                            actionLabel = "Undo"
+                                        )
+                                        if(result == SnackbarResult.ActionPerformed){
+                                            onAddToPlaylist(audio, index)
+                                        }
+                                    }
+                                },
+                                screenWidth = screenWidth,
+                                currentPlayingIndex = currentPlayingIndex,
+                                modifier = modifierTransition
+                            )
+                        }
+                    }
+                    //Snackbar
+                    SnackbarHost(
+                        hostState = snackbarHostState,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
             }
         }
     }
@@ -435,10 +462,12 @@ fun PlaylistItem(
     screenWidth: Dp,
     modifier: Modifier
 ){
-    var offsetX by remember { mutableStateOf(0f) }
-    val animatedOffsetX by animateFloatAsState(targetValue = offsetX)
-    val revealWidth by animateDpAsState(targetValue = (offsetX / screenWidth.value * screenWidth.value).dp.coerceAtMost(screenWidth))
-    val audioWidth by animateDpAsState(targetValue = screenWidth - revealWidth)
+    var offsetX by remember { mutableFloatStateOf(0f) }
+    val animatedOffsetX by animateFloatAsState(targetValue = offsetX, label = "offset")
+    val revealWidth by animateDpAsState(targetValue = (offsetX / screenWidth.value * screenWidth.value).dp.coerceAtMost(screenWidth),
+        label = "remove_width"
+    )
+    val audioWidth by animateDpAsState(targetValue = screenWidth - revealWidth, label = "audio_width")
     Row(
         modifier = Modifier.fillMaxWidth()
     ){
@@ -456,7 +485,9 @@ fun PlaylistItem(
                 painter = painterResource(id = R.drawable.ic_actions_trash),
                 contentDescription = "Remove",
                 tint = Color.White,
-                modifier = Modifier.size(64.dp).padding(16.dp)
+                modifier = Modifier
+                    .size(64.dp)
+                    .padding(16.dp)
             )
         }
         Column(

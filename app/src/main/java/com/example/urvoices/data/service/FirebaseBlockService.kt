@@ -31,29 +31,52 @@ class FirebaseBlockService @Inject constructor(
         return BlockList()
     }
 
-    suspend fun getBlockStatus(targetID: String): Boolean {
+    object BlockInfo{
+        const val BLOCK = "BLOCK"
+        const val BLOCKED = "BLOCKED"
+        const val NO_BLOCK = "NO_BLOCK"
+    }
+
+    suspend fun getBlockStatus(targetID: String): String {
         val user = auth.currentUser
-        var isBlocked = false
-        if(user != null){
+        var blockInfo = BlockInfo.NO_BLOCK
+        if (user != null) {
             try {
-                val query = firebaseFirestore.collection("rela_blocks")
-                    .whereEqualTo("ID", user.uid)
+                // Check if the current user has blocked the target user
+                val currentUserQuery = firebaseFirestore.collection("rela_blocks")
+                    .whereEqualTo("id", user.uid)
                     .get().await()
-                if (!query.isEmpty) {
-                    for (doc in query) {
+                if (!currentUserQuery.isEmpty) {
+                    for (doc in currentUserQuery) {
                         val blockList = doc.toObject(BlockList::class.java)
                         if (blockList.targetID.contains(targetID)) {
-                            isBlocked = true
+                            blockInfo = BlockInfo.BLOCK
                             break
                         }
                     }
                 }
-            } catch (e: Exception){
+
+                // Check if the target user has blocked the current user
+                if (blockInfo == BlockInfo.NO_BLOCK) {
+                    val targetUserQuery = firebaseFirestore.collection("rela_blocks")
+                        .whereEqualTo("id", targetID)
+                        .get().await()
+                    if (!targetUserQuery.isEmpty) {
+                        for (doc in targetUserQuery) {
+                            val blockList = doc.toObject(BlockList::class.java)
+                            if (blockList.targetID.contains(user.uid)) {
+                                blockInfo = BlockInfo.BLOCKED
+                                break
+                            }
+                        }
+                    }
+                }
+            } catch (e: Exception) {
                 e.printStackTrace()
                 Log.e(TAG, "getBlockStatus: ${e.message}")
             }
         }
-        return isBlocked
+        return blockInfo
     }
 
     suspend fun blockUser(targetID: String): String {
@@ -61,7 +84,7 @@ class FirebaseBlockService @Inject constructor(
         var resultID = ""
         if(user != null){
             try {
-                val documentRef = firebaseFirestore.collection("rela_blocks").document()
+                val documentRef = firebaseFirestore.collection("rela_blocks").document(user.uid)
                 firebaseFirestore.runTransaction{transaction ->
                     val snapshot = transaction.get(documentRef)
                     if(snapshot.exists()){
@@ -95,18 +118,19 @@ class FirebaseBlockService @Inject constructor(
         if(user != null){
             try {
                 val query = firebaseFirestore.collection("rela_blocks")
-                    .whereEqualTo("ID", user.uid)
+                    .document(user.uid)
                     .get().await()
-                if (!query.isEmpty) {
-                    for (doc in query) {
-                        val blockList = doc.toObject(BlockList::class.java)
+                if(query.exists()){
+                    val blockList = query.toObject(BlockList::class.java)
+                    if(blockList != null){
                         val targetIDList = blockList.targetID.toMutableList()
-                        if (targetIDList.contains(targetID)) {
+                        if(targetIDList.contains(targetID)){
                             targetIDList.remove(targetID)
-                            firebaseFirestore.collection("rela_blocks").document(doc.id)
-                                .update("targetID", targetIDList).await()
+                            firebaseFirestore.collection("rela_blocks")
+                                .document(user.uid)
+                                .update("targetID", targetIDList)
+                                .await()
                             resultID = user.uid
-                            break
                         }
                     }
                 }

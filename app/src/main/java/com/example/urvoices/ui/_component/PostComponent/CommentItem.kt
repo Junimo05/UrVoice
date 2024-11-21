@@ -15,14 +15,17 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -83,7 +86,9 @@ fun CommentItem(
         mutableStateOf(runBlocking { commentViewModel.getUserInfo(comment.userId) })
     }
 
-    var totalReplyByTime = 0
+    var totalReplyByTime by remember(comment.userId) {
+        mutableIntStateOf(0)
+    }
     val isExpandedComment = remember { mutableStateOf(false) }
     val isExpandedReply = rememberSaveable { mutableStateOf(false) }
 
@@ -117,143 +122,141 @@ fun CommentItem(
     if(userInfo.isNotEmpty()){
         Card(
             modifier = Modifier
-                .background(MaterialTheme.colorScheme.primaryContainer)
+                .background(Color.Transparent)
                 .padding(
                     start = if (depth > 0) 32.dp else 0.dp,  // Add indent for replies
-                    end = if (depth > 0) 8.dp else 0.dp, // Add indent for replies
-                    top = 8.dp,
-                    bottom = 8.dp
+                    end = if (depth > 0) 4.dp else 0.dp, // Add indent for replies
+                    top = 4.dp,
+                    bottom = 2.dp
                 )
+                .clip(RoundedCornerShape(26.dp))
                 .fillMaxWidth()
         ){
             Column(
                 modifier = Modifier
                     .fillMaxSize()
+                    .clip(RoundedCornerShape(28.dp))
                     .background(MaterialTheme.colorScheme.primaryContainer)
             ) {
-                Box (
-                    modifier = Modifier.fillMaxWidth()
-                ){
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .align(Alignment.CenterEnd),
-                    ) {
-                        if (userInfo.isNotEmpty()){
-                            Column(
-                                modifier = Modifier.padding(top = 8.dp)
-                            ) {
-                                AsyncImage(
-                                    model = ImageRequest.Builder(LocalContext.current)
-                                        .data(userInfo["avatarUrl"])
-                                        .crossfade(true)
-                                        .build(),
-                                    contentDescription = "Avatar",
-                                    placeholder = painterResource(id = R.drawable.person),
-                                    contentScale = ContentScale.Crop,
-                                    error = painterResource(id = R.drawable.person),
-                                    modifier = Modifier
-                                        .size(64.dp)
-                                        .clip(CircleShape)
-                                        .border(2.dp, Color.Black, CircleShape)
-                                        .clickable {
-                                            //To Profile
-                                            navController.navigate("profile/${comment.userId}")
-                                        }
-                                )
-                                Spacer(modifier = Modifier.height(4.dp))
-                                Text(
-                                    text = getTimeElapsed(comment.createdAt),
-                                    style = TextStyle(
-                                        fontWeight = FontWeight.Normal,
-                                        fontSize = 12.sp
-                                    )
-                                )
-                            }
-                            Spacer(modifier = Modifier.width(4.dp))
-                            Column(
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                    ,
+                ) {
+                    if (userInfo.isNotEmpty()){
+                        Column(
+                            modifier = Modifier.padding(top = 12.dp)
+                        ) {
+                            AsyncImage(
+                                model = ImageRequest.Builder(LocalContext.current)
+                                    .data(userInfo["avatarUrl"])
+                                    .crossfade(true)
+                                    .build(),
+                                contentDescription = "Avatar",
+                                placeholder = painterResource(id = R.drawable.person),
+                                contentScale = ContentScale.Crop,
+                                error = painterResource(id = R.drawable.person),
                                 modifier = Modifier
-                                    .padding(start = 16.dp)
-                                    .fillMaxWidth(0.9f)
-                            ){
-                                Text(
-                                    text = userInfo["username"] ?: "Unknown",
-                                    maxLines = 1,
-                                    style = TextStyle(
-                                        fontWeight = FontWeight.Bold,
-                                        fontSize = 20.sp
-                                    ),
-                                    modifier = Modifier
-                                        .padding(bottom = 4.dp)
-                                        .clickable {
-                                            navController.navigate("profile/${comment.userId}")
-                                        }
+                                    .size(64.dp)
+                                    .clip(CircleShape)
+                                    .border(2.dp, Color.Black, CircleShape)
+                                    .clickable {
+                                        //To Profile
+                                        navController.navigate("profile/${comment.userId}")
+                                    }
+                            )
+                            Spacer(modifier = Modifier.height(4.dp))
+                            Text(
+                                text = getTimeElapsed(comment.createdAt),
+                                style = TextStyle(
+                                    fontWeight = FontWeight.Normal,
+                                    fontSize = 12.sp
                                 )
+                            )
+                        }
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Column(
+                            modifier = Modifier
+                                .padding(start = 16.dp, top = 12.dp)
+                                .fillMaxWidth(0.9f)
+                        ){
+                            Text(
+                                text = userInfo["username"] ?: "Unknown",
+                                maxLines = 1,
+                                style = TextStyle(
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 20.sp
+                                ),
+                                modifier = Modifier
+                                    .padding(bottom = 4.dp)
+                                    .clickable {
+                                        navController.navigate("profile/${comment.userId}")
+                                    }
+                            )
 
-                                Text(
-                                    text = contentString,
-                                    modifier = Modifier
-                                        .padding(bottom = 8.dp)
-                                        //TODO: Add click listener to tag -> redirect to profile
-                                        .clickable {
-                                            isExpandedComment.value = !isExpandedComment.value
-                                        }, // Toggle expanded status on click
-                                    style = TextStyle(
-                                        fontWeight = FontWeight.Normal,
-                                        fontSize = 16.sp
-                                    ),
-                                    overflow = if (isExpandedComment.value) TextOverflow.Visible else TextOverflow.Ellipsis, // Control overflow based on expanded status
-                                    maxLines = if (isExpandedComment.value) Int.MAX_VALUE else 5 // Control max lines based on expanded status
-                                )
-                            }
-                            InteractionColumn(interactions = Comment_Interactions(
-                                isLove = isLove.value,
-                                loveCounts = comment.likes,
-                                love_act = {
-                                    interactionViewModel.loveAction(
-                                        isLove = it,
-                                        targetUserID = comment.userId,
-                                        commentID = comment.id!!,
-                                        postID = comment.postId,
-                                        callback = {result ->
-                                            //get isLove input then update UI if result = true
+                            Text(
+                                text = contentString,
+                                modifier = Modifier
+                                    .padding(bottom = 8.dp)
+                                    //TODO: Add click listener to tag -> redirect to profile
+                                    .clickable {
+                                        isExpandedComment.value = !isExpandedComment.value
+                                    }, // Toggle expanded status on click
+                                style = TextStyle(
+                                    fontWeight = FontWeight.Normal,
+                                    fontSize = 16.sp
+                                ),
+                                overflow = if (isExpandedComment.value) TextOverflow.Visible else TextOverflow.Ellipsis, // Control overflow based on expanded status
+                                maxLines = if (isExpandedComment.value) Int.MAX_VALUE else 5 // Control max lines based on expanded status
+                            )
+                        }
+                        InteractionColumn(interactions = Comment_Interactions(
+                            isLove = isLove.value,
+                            loveCounts = comment.likes,
+                            love_act = {
+                                interactionViewModel.loveAction(
+                                    isLove = it,
+                                    targetUserID = comment.userId,
+                                    commentID = comment.id!!,
+                                    postID = comment.postId,
+                                    callback = {result ->
+                                        //get isLove input then update UI if result = true
 //                                        Log.e(TAG, "love_act: $result")
-                                            if(result){
-                                                isLove.value = it
-                                                if(isLove.value){
-                                                    comment.likes += 1
-                                                } else {
-                                                    comment.likes -= 1
-                                                }
+                                        if(result){
+                                            isLove.value = it
+                                            if(isLove.value){
+                                                comment.likes += 1
+                                            } else {
+                                                comment.likes -= 1
                                             }
+                                        }
+                                    }
+                                )
+                            },
+                            commentCounts = comment.replyComments,
+                            comment_act = {
+                                if(comment.replyComments > 0){
+                                    isExpandedReply.value = true
+                                    loadMoreReply(
+                                        commentID = comment.id!!,
+                                        commentViewModel = commentViewModel,
+                                        callback = { result ->
+                                            replies = result
                                         }
                                     )
-                                },
-                                commentCounts = comment.replyComments,
-                                comment_act = {
-                                    if(comment.replyComments > 0){
-                                        isExpandedReply.value = !isExpandedReply.value
-                                        loadMoreReply(
-                                            commentID = comment.id!!,
-                                            commentViewModel = commentViewModel,
-                                            callback = { result ->
-                                                replies = result
-                                            }
-                                        )
-                                    }
-                                },
-                                reply_act = {
-                                    replyAct(comment, userInfo["username"]!!)
                                 }
-                            ))
-                        } else {
-                            CircularProgressIndicator()
-                        }
+                            },
+                            reply_act = {
+                                replyAct(comment, userInfo["username"]!!)
+                            }
+                        ))
+                    } else {
+                        CircularProgressIndicator()
                     }
                 }
                 if (isExpandedReply.value) {
                     if(replies.isNotEmpty()){
-                        replies.forEachIndexed { index, reply ->
+                        replies.forEachIndexed { _, reply ->
                             CommentItem(
                                 navController = navController,
                                 uiState = uiState,

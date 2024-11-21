@@ -4,9 +4,11 @@ import android.net.Uri
 import android.util.Log
 import com.example.urvoices.data.model.User
 import com.example.urvoices.utils.Auth.isPasswordStrong
+import com.example.urvoices.utils.SharedPreferencesHelper
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.AggregateSource
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.SetOptions
 import com.google.firebase.storage.StorageReference
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
@@ -14,7 +16,8 @@ import javax.inject.Inject
 class FirebaseUserService @Inject constructor(
     private val storage: StorageReference,
     private val firebaseFirestore: FirebaseFirestore,
-    private val auth: FirebaseAuth
+    private val auth: FirebaseAuth,
+    private val sharedPrefs: SharedPreferencesHelper
 ){
     val TAG = "FirebaseUserService"
 
@@ -84,10 +87,11 @@ class FirebaseUserService @Inject constructor(
         // get post counts
         return try {
             val docRef = firebaseFirestore.collection("posts")
-                .whereEqualTo("userID", userId)
+                .whereEqualTo("userId", userId)
                 .count()
                 .get(AggregateSource.SERVER)
                 .await()
+//            Log.e(TAG, "getPostCounts: ${docRef.count.toInt()}")
             docRef.count.toInt()
         } catch (e: Exception) {
             e.printStackTrace()
@@ -327,6 +331,42 @@ class FirebaseUserService @Inject constructor(
             // Inform the user that they are not signed in
             println("No user is currently signed in.")
             false
+        }
+    }
+
+    /*
+     User Settings Data
+     */
+    suspend fun saveUserSettings(): Boolean{
+        //get all Setting from Pref and push to Firestore
+        val user = auth.currentUser
+        if (user != null) {
+            val userSettings = sharedPrefs.getUserSettings(user.uid).toMutableMap()
+            userSettings["ID"] = user.uid
+            try {
+                firebaseFirestore.collection("user_settings").document(user.uid)
+                    .set(userSettings, SetOptions.merge()).await()
+                return true
+            } catch (e: Exception) {
+                // Handle exception
+                e.printStackTrace()
+                Log.e(TAG, "saveUserSettings: ${e.message}")
+            }
+        } else {
+            // Inform the user that they are not signed in
+            println("No user is currently signed in.")
+        }
+        return false
+    }
+
+    suspend fun getUserSettingsById(userID: String): Map<String, Any>?{
+        // get user settings by user id
+        return try {
+            val docRef = firebaseFirestore.collection("user_settings").document(userID).get().await()
+            docRef.data?.filterKeys { it != "ID" }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            null
         }
     }
 

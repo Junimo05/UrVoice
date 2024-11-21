@@ -1,7 +1,6 @@
 package com.example.urvoices.ui._component.PostComponent
 
 import android.annotation.SuppressLint
-import android.util.Log
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
@@ -13,27 +12,23 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.drawscope.Fill
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.urvoices.R
-import com.example.urvoices.presentations.theme.MyTheme
 import com.example.urvoices.ui._component.waveform.AudioWaveform
 import com.linc.audiowaveform.infiniteLinearGradient
 import com.linc.audiowaveform.model.AmplitudeType
@@ -41,7 +36,7 @@ import com.linc.audiowaveform.model.WaveformAlignment
 
 @SuppressLint("UnrememberedMutableState")
 @Composable
-fun AudioWaveformItem(
+fun AudioItem(
     id: String,
     audioUrl: String,
     audioAmplitudes: List<Int>?,
@@ -56,7 +51,7 @@ fun AudioWaveformItem(
     duration: Long,
     modifier: Modifier = Modifier
 ) {
-    val TAG = "AudioWaveformItem"
+    val TAG = "AudioItem"
     val colorBrush = SolidColor(MaterialTheme.colorScheme.onPrimary)
     val colorDone = SolidColor(MaterialTheme.colorScheme.surfaceVariant)
     val animatedGradientBrush = Brush.infiniteLinearGradient(
@@ -76,6 +71,7 @@ fun AudioWaveformItem(
             .height(62.dp)
             .width(240.dp)
             .background(MaterialTheme.colorScheme.inversePrimary)
+            .clip(MaterialTheme.shapes.small)
             .border(1.dp, MaterialTheme.colorScheme.onBackground, MaterialTheme.shapes.small)
             .padding(8.dp)
             .alpha(
@@ -104,7 +100,7 @@ fun AudioWaveformItem(
             )
         }
         Box(modifier = Modifier.weight(1f)) {
-//            Log.e(TAG, "AudioWaveformItem of PostID : $id and AudioUrl: $audioUrl")
+//            Log.e(TAG, "AudioItem of PostID : $id and AudioUrl: $audioUrl")
             AudioWaveform(
                 // Spike DrawStyle: Fill or Stroke
                 style = Fill,

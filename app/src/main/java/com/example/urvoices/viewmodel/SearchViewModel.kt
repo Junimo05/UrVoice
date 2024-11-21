@@ -1,5 +1,6 @@
 package com.example.urvoices.viewmodel
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import com.algolia.instantsearch.android.paging3.Paginator
 import com.algolia.instantsearch.android.paging3.searchbox.connectPaginator
@@ -9,15 +10,13 @@ import com.algolia.instantsearch.compose.hits.HitsState
 import com.algolia.instantsearch.compose.searchbox.SearchBoxState
 import com.algolia.instantsearch.core.connection.ConnectionHandler
 import com.algolia.instantsearch.core.hits.connectHitsView
-import com.algolia.instantsearch.core.searcher.connectView
-import com.algolia.instantsearch.filter.clear.ClearMode
+import com.algolia.instantsearch.core.searcher.Searcher
+
 import com.algolia.instantsearch.filter.clear.FilterClearConnector
 import com.algolia.instantsearch.filter.clear.connectView
 import com.algolia.instantsearch.filter.list.FilterListConnector
-import com.algolia.instantsearch.filter.list.FilterListView
 import com.algolia.instantsearch.filter.list.connectView
 import com.algolia.instantsearch.filter.state.FilterState
-import com.algolia.instantsearch.filter.state.Filters
 import com.algolia.instantsearch.filter.state.groupOr
 import com.algolia.instantsearch.searchbox.SearchBoxConnector
 import com.algolia.instantsearch.searchbox.connectView
@@ -31,19 +30,32 @@ import com.algolia.search.model.ApplicationID
 import com.algolia.search.model.Attribute
 import com.algolia.search.model.IndexName
 import com.algolia.search.model.filter.Filter
+import com.algolia.search.transport.RequestOptions
 import com.example.urvoices.BuildConfig
 import com.example.urvoices.data.algolia.Post_Algolia
 import com.example.urvoices.data.algolia.User_Algolia
-import com.example.urvoices.data.model.User
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 
 @HiltViewModel
 class SearchViewModel @Inject constructor() : ViewModel() {
-    private val multiSearcher = MultiSearcher(
+    val requestConfig = RequestOptions().apply {
+        readTimeout = 5000
+        writeTimeout = 5000
+
+    }
+    val multiSearcher = MultiSearcher(
         applicationID = ApplicationID(BuildConfig.ALGOLIA_APPLICATION_ID),
-        apiKey = APIKey(BuildConfig.ALGOLIA_SEARCH_API_KEY)
-    )
+        apiKey = APIKey(BuildConfig.ALGOLIA_SEARCH_API_KEY),
+        requestOptions = requestConfig
+    ).apply {
+        response.subscribe { response ->
+            Log.d("SearchViewModel", "Raw response: $response")
+        }
+        error.subscribe { error ->
+            Log.e("SearchViewModel", "Search error: $error")
+        }
+    }
 
     private val userSearcher = multiSearcher.addHitsSearcher(IndexName("user_search"))
     private val postSearcher = multiSearcher.addHitsSearcher(IndexName("post_search"))
@@ -77,16 +89,25 @@ class SearchViewModel @Inject constructor() : ViewModel() {
         groupID = groupTag
     )
 
-    val connections = ConnectionHandler(
+    private val connections = ConnectionHandler(
         searchBoxConnector,
         filterListConnector,
     )
     init {
+        userSearcher.response.subscribe { response ->
+            Log.d("SearchViewModel", "User searcher response: $response")
+        }
+
+        postSearcher.response.subscribe { response ->
+            Log.d("SearchViewModel", "Post searcher response: $response")
+        }
+
         connections += userSearcher.connectFilterState(filterState)
         connections += postSearcher.connectFilterState(filterState)
         connections += clearAll.connectView(filterClear)
 
         connections += searchBoxConnector.connectView(searchBoxState)
+
         connections += userSearcher.connectHitsView(userState) { it.hits.deserialize(User_Algolia.serializer()) }
         connections += postSearcher.connectHitsView(postState) { it.hits.deserialize(Post_Algolia.serializer()) }
 

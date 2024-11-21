@@ -88,7 +88,7 @@ fun InteractionColumn(
 ) {
     Column(
         modifier = Modifier
-            .padding(4.dp)
+            .padding(top = 4.dp)
             .then(modifier)
         ,
         verticalArrangement = Arrangement.spacedBy(5.dp),
@@ -97,7 +97,7 @@ fun InteractionColumn(
         interactions.forEachIndexed { index, interaction ->
             Column (
                 modifier = Modifier
-                    .padding(2.dp),
+                    .padding(1.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ){
                 IconButton(

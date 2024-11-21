@@ -53,7 +53,7 @@ class MediaPlayerVM @Inject constructor(
     @OptIn(SavedStateHandleSaveableApi::class)
     var currentPlayingIndex by saveStateHandle.saveable{mutableIntStateOf(-1)}
     @OptIn(SavedStateHandleSaveableApi::class)
-    var duration by saveStateHandle.saveable { mutableLongStateOf(0L) }
+    var durationPlayer by saveStateHandle.saveable { mutableLongStateOf(0L) }
     @OptIn(SavedStateHandleSaveableApi::class)
     var progress by saveStateHandle.saveable { mutableFloatStateOf(0F) }
     @OptIn(SavedStateHandleSaveableApi::class)
@@ -61,6 +61,8 @@ class MediaPlayerVM @Inject constructor(
     val isStop: StateFlow<Boolean> = audioService.isStop.asStateFlow()
     @OptIn(SavedStateHandleSaveableApi::class)
     var isPlaying by saveStateHandle.saveable { mutableStateOf(false) }
+    @OptIn(SavedStateHandleSaveableApi::class)
+    var isEnd by saveStateHandle.saveable { mutableStateOf(false) }
     @OptIn(SavedStateHandleSaveableApi::class)
     var repeatMode by saveStateHandle.saveable { mutableIntStateOf(Player.REPEAT_MODE_OFF) }
     var isServiceRunning = false
@@ -79,13 +81,17 @@ class MediaPlayerVM @Inject constructor(
                     is AudioState.Playing -> {
                         isPlaying = state.isPlaying
                     }
+                    is AudioState.Ending -> {
+                        isEnd = state.isEnd
+                    }
                     is AudioState.Progress -> setProgressValue(state.progress)
                     is AudioState.CurrentPlaying -> {
 //                        Log.e(TAG, "Current Playing: ${state.audio}")
                         currentAudio.value = state.audio
                     }
                     is AudioState.Ready -> {
-                        duration = state.duration
+                        durationPlayer = state.duration
+                        isEnd = false
                         _uiState.value = UIStates.Ready
                     }
 
@@ -140,7 +146,7 @@ class MediaPlayerVM @Inject constructor(
             is UIEvents.SeekTo -> {
                 audioService.onPlayerEvents(
                     PlayerEvent.SeekTo,
-                    seekPosition = (duration * uiEvents.position).toLong()
+                    seekPosition = (durationPlayer * uiEvents.position).toLong()
                 )
             }
             is UIEvents.UpdateProgress -> {
@@ -215,7 +221,7 @@ class MediaPlayerVM @Inject constructor(
 
     private fun setProgressValue(currentProgress: Long){
         progress =
-            if (currentProgress > 0) ((currentProgress.toFloat() / duration.toFloat()) * 1f)
+            if (currentProgress > 0) ((currentProgress.toFloat() / durationPlayer.toFloat()) * 1f)
             else 0f
         progressString = formatDurationString(currentProgress)
     }
@@ -229,7 +235,7 @@ class MediaPlayerVM @Inject constructor(
             duration = 0L //audio duration
         )
         currentPlayingIndex = -1
-        duration = 0L
+        durationPlayer = 0L
         progress = 0f
         progressString = "00:00"
         isPlaying = false

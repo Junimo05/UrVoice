@@ -5,5 +5,7 @@ import androidx.room.PrimaryKey
 
 @Entity(tableName = "blocked_users")
 data class BlockedUser(
-    @PrimaryKey val userID: String
+    @PrimaryKey val userID: String,
+    val username: String = "",
+    val avatarUrl: String = ""
 )

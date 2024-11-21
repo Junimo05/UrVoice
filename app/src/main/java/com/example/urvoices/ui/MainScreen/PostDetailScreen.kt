@@ -2,11 +2,15 @@ package com.example.urvoices.ui.MainScreen
 
 import android.annotation.SuppressLint
 import android.content.ClipData
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.MarqueeAnimationMode
 import androidx.compose.foundation.background
+import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -17,14 +21,15 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -42,6 +47,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -62,17 +68,21 @@ import com.example.urvoices.data.model.Audio
 import com.example.urvoices.data.model.Comment
 import com.example.urvoices.data.model.Post
 import com.example.urvoices.data.model.User
+import com.example.urvoices.data.service.FirebaseBlockService
 import com.example.urvoices.ui._component.InteractionRow
 import com.example.urvoices.ui._component.MoreAction.DropDownMenu
 import com.example.urvoices.ui._component.MoreAction.PostAction
-import com.example.urvoices.ui._component.PostComponent.AudioWaveformItem
+import com.example.urvoices.ui._component.PostComponent.AudioItem
 import com.example.urvoices.ui._component.PostComponent.CommentBar
 import com.example.urvoices.ui._component.PostComponent.CommentItem
 import com.example.urvoices.ui._component.TopBarBackButton
-import com.example.urvoices.utils.Navigator.BASE_URL
+import com.example.urvoices.utils.Auth.BASE_URL
+import com.example.urvoices.utils.Navigator.EditPostScreen
 import com.example.urvoices.utils.Post_Interactions
+import com.example.urvoices.utils.processUsername
 import com.example.urvoices.viewmodel.AuthViewModel
 import com.example.urvoices.viewmodel.CommentViewModel
+import com.example.urvoices.viewmodel.InteractionRowState
 import com.example.urvoices.viewmodel.InteractionViewModel
 import com.example.urvoices.viewmodel.MediaPlayerVM
 import com.example.urvoices.viewmodel.PostDetailState
@@ -88,7 +98,8 @@ fun PostDetail(
     postDetailViewModel: PostDetailViewModel,
     authViewModel: AuthViewModel,
     postID: String = "",
-    userID: String = ""
+    userID: String = "",
+    onEditPost: (Post) -> Unit
 ) {
     val TAG = "PostDetailScreen"
     val context = LocalContext.current
@@ -99,6 +110,7 @@ fun PostDetail(
 
     //STATE
     val uiState = postDetailViewModel.uiState.collectAsState()
+    val interactionState = interactionViewModel.uiState.collectAsState()
     val expandMoreAction = rememberSaveable{
         mutableStateOf(false)
     }
@@ -108,7 +120,17 @@ fun PostDetail(
     val isBlock = remember {
         mutableStateOf(false)
     }
+    val blockInfo = remember {
+        mutableStateOf(FirebaseBlockService.BlockInfo.NO_BLOCK)
+    }
 
+    LaunchedEffect(Unit){
+
+        postDetailViewModel.configureObservers()
+    }
+    LaunchedEffect(isBlock.value) {
+        Log.e(TAG, "isBlock Status: ${isBlock.value}")
+    }
 
     LaunchedEffect(postID, userID) {
         postDetailViewModel.loadData(postID = postID, userID = userID)
@@ -116,7 +138,21 @@ fun PostDetail(
             isLove.value = result
         }
         interactionViewModel.getBlockStatus(userID){ result ->
-            isBlock.value = result
+            blockInfo.value = result
+        }
+    }
+
+    LaunchedEffect(blockInfo.value){
+        when(blockInfo.value){
+            FirebaseBlockService.BlockInfo.BLOCK -> {
+                isBlock.value = true
+            }
+            FirebaseBlockService.BlockInfo.BLOCKED -> {
+                isBlock.value = true
+            }
+            FirebaseBlockService.BlockInfo.NO_BLOCK -> {
+                isBlock.value = false
+            }
         }
     }
 
@@ -166,7 +202,7 @@ fun PostDetail(
                                                 url = currentPost.url!!,
                                                 title = currentPost.audioName!!,
                                                 author = userPost.username,
-                                                duration = currentPost.duration
+                                                duration = currentPost.duration!!
                                             )
                                         )
                                     )
@@ -199,17 +235,25 @@ fun PostDetail(
                                         expandMoreAction.value = false
                                     }
                                 },
-                                isBlock = isBlock,
+                                blockInfo = blockInfo,
                                 blockUser = {
-                                    if(isBlock.value){
-                                        val result = interactionViewModel.unblockUser(userID)
-                                        Toast.makeText(context, result, Toast.LENGTH_SHORT).show()
-                                        isBlock.value = false
-                                    } else {
-                                        val result = interactionViewModel.blockUser(userID)
-                                        Toast.makeText(context, result, Toast.LENGTH_SHORT).show()
+                                    val result = interactionViewModel.blockUser(userID)
+                                    Toast.makeText(context, result, Toast.LENGTH_SHORT).show()
+                                    if(interactionState.value == InteractionRowState.Success){
                                         isBlock.value = true
                                     }
+                                    expandMoreAction.value = false
+                                },
+                                unblockUser = {
+                                    val result = interactionViewModel.unblockUser(userID)
+                                    Toast.makeText(context, result, Toast.LENGTH_SHORT).show()
+                                    if(interactionState.value == InteractionRowState.Success){
+                                        isBlock.value = false
+                                    }
+                                    expandMoreAction.value = false
+                                },
+                                changeInfo = {
+                                    onEditPost(currentPost)
                                     expandMoreAction.value = false
                                 }
                             ),
@@ -219,23 +263,25 @@ fun PostDetail(
             }
         },
         bottomBar = {
-            CommentBar(
-                uiState = uiState.value,
-                currentUserName = currentUser?.displayName,
-                onSendMessage = { message, replyID ->
-                    postDetailViewModel.viewModelScope.launch {
+            if(isBlock.value){
+                CommentBar(
+                    uiState = uiState.value,
+                    currentUserName = currentUser?.displayName,
+                    onSendMessage = { message, replyID ->
+                        postDetailViewModel.viewModelScope.launch {
 //                        Log.e("CommentBar", "ReplyID: $replyID")
-                        postDetailViewModel.sendComment(message, replyID)
-                        commentText.value = ""
-                        replyTo.value = null
-                    }
-                },
-                replyTo = replyTo,
-                parentUsername = parentUserName,
-                commentText = commentText,
-                onAttachFile = { /*TODO*/ },
-                focusRequester = focusRequester,
-            )
+                            postDetailViewModel.sendComment(message, replyID)
+                            commentText.value = ""
+                            replyTo.value = null
+                        }
+                    },
+                    replyTo = replyTo,
+                    parentUsername = parentUserName,
+                    commentText = commentText,
+                    onAttachFile = { /*TODO*/ },
+                    focusRequester = focusRequester,
+                )
+            }
         }
     ) { paddingValues ->
         LazyColumn(
@@ -254,69 +300,110 @@ fun PostDetail(
                 Spacer(modifier = Modifier.height(30.dp))
             }
 
-            // Content section
-            item {
-                if (uiState.value == PostDetailState.Success || currentPost.ID?.isNotEmpty() == true) {
-                    ContentDetail(
-                        navController = navController,
-                        isLove = isLove,
-                        interactionViewModel = interactionViewModel,
-                        postDetailViewModel = postDetailViewModel,
-                        scrollThroughContentDetail = scrollThroughContentDetail,
-                        playerViewModel = playerViewModel,
-                        post = currentPost,
-                        user = userPost
-                    )
-                } else {
-                    CircularProgressIndicator(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .wrapContentSize(Alignment.Center)
-                    )
-                }
-                Spacer(modifier = Modifier.height(30.dp))
-            }
-
-            item{
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                ){
-                    Text(
-                        text = "Comments",
-                        style = TextStyle(
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 24.sp
-                        ),
-                        modifier = Modifier.padding(16.dp)
-                    )
-                    if(isLoadingCmt.value){
+            if(!isBlock.value){
+                // Content section
+                item {
+                    if (uiState.value == PostDetailState.Success || currentPost.ID?.isNotEmpty() == true) {
+                        ContentDetail(
+                            navController = navController,
+                            isLove = isLove,
+                            interactionViewModel = interactionViewModel,
+                            postDetailViewModel = postDetailViewModel,
+                            scrollThroughContentDetail = scrollThroughContentDetail,
+                            playerViewModel = playerViewModel,
+                            post = currentPost,
+                            user = userPost
+                        )
+                    } else {
                         CircularProgressIndicator(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .wrapContentSize(Alignment.Center)
                         )
                     }
+                    Spacer(modifier = Modifier.height(30.dp))
                 }
-            }
 
-            // Comments section
-            items(
-                count = commentLists.itemCount,
-                key = { index -> commentLists[index]?.id ?: index }
-            ) { index ->
-                commentLists[index]?.let { comment ->
-                    CommentItem(
-                        navController = navController,
-                        uiState = uiState,
-                        comment = comment,
-                        postDetailViewModel = postDetailViewModel,
-                        interactionViewModel = interactionViewModel,
-                        commentViewModel = commentViewModel,
-                        replyAct = { commentItem, parentCmtUsername ->
-                            replyTo.value = commentItem
-                            parentUserName.value = parentCmtUsername
-                        }
+                item{
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
                     )
+                    {
+                        currentPost._tags!!.forEach {
+                            Text(
+                                text = "#$it",
+                                style = TextStyle(
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 18.sp
+                                ),
+                                modifier = Modifier.padding(16.dp)
+                            )
+                        }
+                    }
+                }
+
+                item{
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                    ){
+                        Text(
+                            text = "Comments",
+                            style = TextStyle(
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 24.sp
+                            ),
+                            modifier = Modifier.padding(16.dp)
+                        )
+                        if(isLoadingCmt.value){
+                            CircularProgressIndicator(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .wrapContentSize(Alignment.Center)
+                            )
+                        }
+                    }
+                }
+
+                // Comments section
+                items(
+                    count = commentLists.itemCount,
+                    key = { index -> commentLists[index]?.id ?: index }
+                ) { index ->
+                    commentLists[index]?.let { comment ->
+                        CommentItem(
+                            navController = navController,
+                            uiState = uiState,
+                            comment = comment,
+                            postDetailViewModel = postDetailViewModel,
+                            interactionViewModel = interactionViewModel,
+                            commentViewModel = commentViewModel,
+                            replyAct = { commentItem, parentCmtUsername ->
+                                replyTo.value = commentItem
+                                parentUserName.value = parentCmtUsername
+                            }
+                        )
+                    }
+                }
+            } else {
+                item {
+                    Column(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        ){
+                        Icon(
+                            painterResource(id = R.drawable.crying_emoticon_rounded_square_face_svgrepo_com),
+                            contentDescription = "Blocked",
+                            modifier = Modifier.size(100.dp)
+                        )
+                        Text(
+                            text = if(blockInfo.value == FirebaseBlockService.BlockInfo.BLOCK) "You have blocked this user" else "You have been blocked by this user",
+                            style = TextStyle(
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 24.sp
+                            ),
+                            modifier = Modifier.padding(16.dp)
+                        )
+                    }
                 }
             }
 
@@ -326,7 +413,7 @@ fun PostDetail(
                     item { LoadingItem() }
                 }
                 commentLists.loadState.append is LoadState.Error -> {
-                    item { ErrorItem { commentLists.retry() } }
+                    item { ErrorItem("Error") }
                 }
             }
         }
@@ -334,7 +421,7 @@ fun PostDetail(
 }
 
 @Composable
-private fun LoadingItem() {
+fun LoadingItem() {
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -346,7 +433,7 @@ private fun LoadingItem() {
 }
 
 @Composable
-private fun ErrorItem(onRetry: () -> Unit) {
+fun ErrorItem(onRetry: String) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -354,9 +441,6 @@ private fun ErrorItem(onRetry: () -> Unit) {
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(text = "Error loading comments")
-        Button(onClick = onRetry) {
-            Text(text = "Retry")
-        }
     }
 }
 
@@ -387,7 +471,7 @@ fun ProfileDetail(
                     navController.navigate("profile/${user.ID}")
                 }
         )
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(8.dp))
         Text(
             text = user.username,
             style = TextStyle(
@@ -395,16 +479,15 @@ fun ProfileDetail(
                 fontSize = 24.sp
             )
         )
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(8.dp))
         Text(
-            text = "@${user.username}",
+            text = "@${processUsername(user.username)}",
             color = Color.Gray,
             style = TextStyle(
                 fontWeight = FontWeight.Normal,
                 fontSize = 18.sp
             )
         )
-        Spacer(modifier = Modifier.height(16.dp))
     }
 }
 
@@ -436,45 +519,93 @@ fun ContentDetail(
         modifier = Modifier
             .fillMaxWidth()
             .background(MaterialTheme.colorScheme.background)
-            .padding(4.dp),
+            .padding(4.dp)
+            ,
     ) {
-        AnimatedVisibility(
-            visible = transitionVisible.value,
-            modifier = Modifier.align(Alignment.CenterHorizontally)
-        ) {
-            Card(
-                shape = RoundedCornerShape(50.dp),
+        Box(modifier = Modifier.padding(8.dp).fillMaxWidth(), contentAlignment = Alignment.Center){
+            Text(
+                text = post.audioName!!,
+                style = TextStyle(
+                    color = MaterialTheme.colorScheme.onSurface,
+                    fontSize = 24.sp,
+                    fontWeight = FontWeight.Bold,
+                ),
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+                modifier = if(playerViewModel.currentAudio.value.id == post.ID) Modifier.basicMarquee(
+                    animationMode = MarqueeAnimationMode.Immediately,
+                    initialDelayMillis = 5000,
+                ) else Modifier,
+                color = if(playerViewModel.currentAudio.value.id == post.ID) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
+            )
+        }
+        Spacer(modifier = Modifier.height(8.dp))
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceEvenly,
+            modifier = Modifier.fillMaxWidth()
+        ){
+            AsyncImage(
+                model = ImageRequest.Builder(LocalContext.current)
+                    .data(
+                        if(post.imgUrl.isNullOrEmpty()){
+                            R.drawable.music_play_svgrepo_com
+                        } else {
+                            post.imgUrl
+                        }
+                    )
+                    .crossfade(true)
+                    .build(),
+                contentDescription = "Avatar",
+                placeholder = painterResource(id = R.drawable.ic_media_note),
+                contentScale = ContentScale.Crop,
                 modifier = Modifier
-                    .fillMaxWidth(0.8f)
-                    .heightIn(min = 100.dp)
-                    .clickable {
-                        contentExpanded.value = !contentExpanded.value
-                    }
-                    .background(MaterialTheme.colorScheme.primaryContainer)
+                    .size(100.dp)
+                    .clip(RectangleShape)
+                    .border(2.dp, Color.Black, RectangleShape)
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            AnimatedVisibility(
+                visible = transitionVisible.value,
+                modifier = Modifier
+                    .clip(RoundedCornerShape(16.dp)),
             ) {
-                Text(
-                    text = post.description,
-                    modifier = Modifier
-                        .align(Alignment.Start)
-                        .padding(start = 16.dp, top = 8.dp, bottom = 8.dp, end = 16.dp),
-                    style = TextStyle(
-                        fontWeight = FontWeight.Normal,
-                        fontSize = 18.sp,
-                        color = MaterialTheme.colorScheme.onPrimaryContainer
-                    ),
-                    maxLines = if (contentExpanded.value) Int.MAX_VALUE else 4,
-                    overflow = if (contentExpanded.value) TextOverflow.Visible else TextOverflow.Ellipsis
-                )
+                if(post.description.isNotEmpty()){
+                    Card(
+                        shape = RoundedCornerShape(16.dp),
+                        modifier = Modifier
+                            .fillMaxWidth(0.9f)
+                            .heightIn(min = 100.dp)
+                            .clickable {
+                                contentExpanded.value = !contentExpanded.value
+                            }
+                            .background(MaterialTheme.colorScheme.primaryContainer)
+                    ) {
+                        Text(
+                            text = post.description,
+                            modifier = Modifier
+                                .align(Alignment.Start)
+                                .padding(start = 16.dp, top = 8.dp, bottom = 8.dp, end = 16.dp),
+                            style = TextStyle(
+                                fontWeight = FontWeight.Normal,
+                                fontSize = 18.sp,
+                                color = MaterialTheme.colorScheme.onPrimaryContainer
+                            ),
+                            maxLines = if (contentExpanded.value) Int.MAX_VALUE else 4,
+                            overflow = if (contentExpanded.value) TextOverflow.Visible else TextOverflow.Ellipsis
+                        )
+                    }
+                }
             }
         }
-
-        AudioWaveformItem(
+        Spacer(modifier = Modifier.height(8.dp))
+        AudioItem(
             id = post.ID!!,
             audioUrl = post.url!!,
             audioAmplitudes = post.amplitudes,
             currentPlayingAudio = playerViewModel.currentAudio.value.url,
             currentPlayingPost = playerViewModel.currentAudio.value.id,
-            duration = playerViewModel.duration,
+            duration = playerViewModel.durationPlayer,
             isPlaying = playerViewModel.isPlaying,
             isStop = playerViewModel.isStop.value,
             onPlayStart = {
@@ -486,7 +617,7 @@ fun ContentDetail(
                                 url = post.url,
                                 title = post.audioName!!,
                                 author = user.username,
-                                duration = post.duration,
+                                duration = post.duration?:0L,
                             )
                         ))
                 }
@@ -525,7 +656,8 @@ fun ContentDetail(
                 comment_act = {
                     postDetailViewModel.reloadComment()
                 }
-            )
+            ),
+            modifier = Modifier.fillMaxWidth()
         )
     }
 }

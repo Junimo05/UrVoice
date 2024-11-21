@@ -1,5 +1,6 @@
 package com.example.urvoices.ui._component
 
+import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
@@ -23,6 +24,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -41,6 +43,7 @@ import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.example.urvoices.R
+import com.example.urvoices.data.db.Entity.SavedPost
 import com.example.urvoices.data.model.Audio
 import com.example.urvoices.data.model.Post
 import com.example.urvoices.utils.formatToMinSecFromMillisec
@@ -52,7 +55,8 @@ import kotlinx.coroutines.runBlocking
 @Composable
 fun SavedItems(
     navController: NavController,
-    post: Post,
+    post: Post = Post(),
+    savedPost: SavedPost = SavedPost(),
     playerVM: MediaPlayerVM,
     profileVM: ProfileViewModel
 ) {
@@ -65,7 +69,6 @@ fun SavedItems(
         })
     }
 
-
     Card(
         shape = RoundedCornerShape(8.dp),
         modifier = Modifier
@@ -73,7 +76,11 @@ fun SavedItems(
             .width(200.dp)
             .border(1.dp, Color.Gray, shape = RoundedCornerShape(8.dp))
             .clickable {
-                navController.navigate("post/${post.userId}/${post.ID}")
+                if (post.ID != "") {
+                    navController.navigate("post/${post.userId}/${post.ID}")
+                } else {
+                    navController.navigate("post/${savedPost.userID}/${savedPost.id}")
+                }
             }
     ) {
         Column(
@@ -83,10 +90,22 @@ fun SavedItems(
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
-                if(userInfo.isNotEmpty()){
+                if(userInfo.isNotEmpty() || savedPost.id.isNotEmpty()){
                     AsyncImage(
                         model = ImageRequest.Builder(LocalContext.current)
-                            .data(userInfo["username"]?.ifEmpty { R.drawable.person })
+                            .data(
+                                if(!post.ID.isNullOrEmpty() || savedPost.id.isNotEmpty()) {
+                                    if(savedPost.avatarUrl.isNotEmpty()) {
+                                        savedPost.avatarUrl
+                                    } else if(userInfo["avatarUrl"] != null && userInfo["avatarUrl"] != "") {
+                                        userInfo["avatarUrl"]
+                                    } else {
+                                        R.drawable.person
+                                    }
+                                } else {
+                                    R.drawable.person
+                                }
+                            )
                             .crossfade(true)
                             .build(),
                         contentDescription = "Avatar",
@@ -98,12 +117,20 @@ fun SavedItems(
                             .border(2.dp, Color.Black, CircleShape)
                             .clickable {
                                 //To Profile
-                                navController.navigate("profile/${post.userId}")
+                                if (!post.ID.isNullOrEmpty()) {
+                                    navController.navigate("profile/${post.userId}")
+                                } else {
+                                    navController.navigate("profile/${savedPost.userID}")
+                                }
                             }
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
-                        text = userInfo["username"]!!, //Username
+                        text = if(!post.ID.isNullOrEmpty()){
+                            userInfo["username"]!!.ifEmpty { "Unknown" }
+                        } else {
+                            savedPost.username.ifEmpty { "Unknown" }
+                        },
                         style = TextStyle(
                             color = MaterialTheme.colorScheme.onSurface,
                             fontSize = 16.sp,
@@ -129,25 +156,33 @@ fun SavedItems(
                     modifier = Modifier.padding(8.dp),
                     horizontalAlignment = Alignment.CenterHorizontally,
                 ) {
-                    Text(
-                        text =  if(post.audioName!!.isEmpty()){
-                                    "No Name"
-                                } else {
-                                    post.audioName
-                                },
-                        style = TextStyle(
-                            color = MaterialTheme.colorScheme.onSecondaryContainer,
-                            fontSize = 14.sp,
-                            fontWeight = FontWeight.Bold
+                    (if(post.ID!!.isNotEmpty() || savedPost.id.isNotEmpty()) {
+                        if(savedPost.audioName.isNotEmpty()) {
+                            savedPost.audioName
+                        } else if(post.audioName!!.isNotEmpty()) {
+                            post.audioName
+                        } else {
+                            "No Name"
+                        }
+                    } else {
+                        "No Name"
+                    }).let {
+                        Text(
+                            text = it,
+                            style = TextStyle(
+                                color = MaterialTheme.colorScheme.onSecondaryContainer,
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.Bold
+                            )
                         )
-                    )
+                    }
                     AnimatedVisibility(
-                        visible = playerVM.isPlaying && playerVM.currentAudio.value.id == post.ID!!,
+                        visible = playerVM.isPlaying && playerVM.currentAudio.value.id == post.ID,
                         enter = slideInVertically(initialOffsetY = { -it }),
                         exit = slideOutVertically(targetOffsetY = { -it })
                     ){
                         Text(
-                            text = formatToMinSecFromMillisec(playerVM.duration),
+                            text = "${playerVM.progressString}/${formatToMinSecFromMillisec(playerVM.durationPlayer)}",
                             style = TextStyle(
                                 color = MaterialTheme.colorScheme.onSecondaryContainer,
                                 fontSize = 12.sp,
@@ -158,28 +193,32 @@ fun SavedItems(
                 }
             }
 
-            IconButton(onClick = {
-                if(playerVM.currentAudio.value.id != post.ID) {
-                    if(post.url!!.isNotEmpty()){
-                        playerVM.onUIEvents(UIEvents.PlayingAudio(
-                            Audio(
-                                id = post.ID!!,
-                                url = post.url,
-                                title = post.audioName!!,
-                                duration = post.duration,
-                                author = userInfo["username"]!!,
-                            )
-                        ))
+            if(!post.ID.isNullOrEmpty()){
+                IconButton(onClick = {
+                    if(playerVM.currentAudio.value.id != post.ID) {
+                        if(post.url!!.isNotEmpty()){
+                            playerVM.onUIEvents(UIEvents.PlayingAudio(
+                                Audio(
+                                    id = post.ID,
+                                    url = post.url,
+                                    title = post.audioName!!,
+                                    duration = post.duration?:0,
+                                    author = userInfo["username"]!!,
+                                )
+                            ))
+                        }
+                    } else if(!playerVM.isEnd) {
+                        playerVM.onUIEvents(UIEvents.PlayPause)
+                    } else {
+                        playerVM.onUIEvents(UIEvents.SeekTo(0F))
                     }
-                } else {
-                    playerVM.onUIEvents(UIEvents.PlayPause)
+                }) {
+                    Icon(
+                        painter = if(playerVM.isPlaying && playerVM.currentAudio.value.id == post.ID) painterResource(id = R.drawable.ic_media_pause) else painterResource(id = R.drawable.ic_media_play),
+                        contentDescription = "Play/Pause",
+                        modifier = Modifier.size(36.dp)
+                    )
                 }
-            }) {
-                Icon(
-                    painter = if(playerVM.isPlaying) painterResource(id = R.drawable.ic_media_pause) else painterResource(id = R.drawable.ic_media_play),
-                    contentDescription = "Play/Pause",
-                    modifier = Modifier.size(36.dp)
-                )
             }
         }
     }

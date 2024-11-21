@@ -1,5 +1,6 @@
 package com.example.urvoices.utils.Navigator
 
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavType
@@ -7,6 +8,10 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.navigation
 import androidx.navigation.navArgument
 import androidx.navigation.navDeepLink
+import androidx.navigation.toRoute
+import com.algolia.search.model.rule.Edit
+import com.example.urvoices.data.model.Post
+import com.example.urvoices.ui.AuthScreen.ForgotPasswordScreen
 import com.example.urvoices.ui.AuthScreen.LoginScreen
 import com.example.urvoices.ui.AuthScreen.RegisterScreen
 import com.example.urvoices.ui.AuthScreen.SplashScreen
@@ -16,19 +21,25 @@ import com.example.urvoices.ui.MainScreen.SearchScreen
 import com.example.urvoices.ui.MainScreen.SettingsScreen
 import com.example.urvoices.ui.MainScreen.UploadScreen
 import com.example.urvoices.ui.MainScreen.PostDetail
+import com.example.urvoices.ui._component.PostComponent.EditPostScreen
 import com.example.urvoices.ui._component.ProfileComponent.ProfileEditScreen
+import com.example.urvoices.ui._component.SettingComponents.BlockScreen
+import com.example.urvoices.ui._component.SettingComponents.SavedPostScreen
 import com.example.urvoices.ui.noti_msg.MessageScreen
 import com.example.urvoices.ui.noti_msg.NotificationScreen
+import com.example.urvoices.utils.Auth.BASE_URL
 import com.example.urvoices.viewmodel.AuthViewModel
+import com.example.urvoices.viewmodel.EditPostVM
 import com.example.urvoices.viewmodel.HomeViewModel
 import com.example.urvoices.viewmodel.MediaPlayerVM
 import com.example.urvoices.viewmodel.MediaRecorderVM
 import com.example.urvoices.viewmodel.PostDetailViewModel
 import com.example.urvoices.viewmodel.ProfileViewModel
 import com.example.urvoices.viewmodel.SearchViewModel
+import com.example.urvoices.viewmodel.SettingViewModel
 import com.example.urvoices.viewmodel.UploadViewModel
+import kotlin.reflect.typeOf
 
-val BASE_URL = "https://urvoices.com"
 
 fun NavGraphBuilder.authGraph(
     navController: NavController,
@@ -45,7 +56,7 @@ fun NavGraphBuilder.authGraph(
             RegisterScreen(navController = navController, authViewModel = authViewModel)
         }
         composable(route = AuthScreen.ForgetPasswordScreen.route){
-
+            ForgotPasswordScreen(navController = navController, authViewModel = authViewModel)
         }
     }
 }
@@ -58,7 +69,8 @@ fun NavGraphBuilder.mainGraph(
     homeViewModel: HomeViewModel,
     uploadViewModel: UploadViewModel,
     profileViewModel: ProfileViewModel,
-    mediaRecorderVM: MediaRecorderVM
+    mediaRecorderVM: MediaRecorderVM,
+    settingVM: SettingViewModel
 ){
     navigation(route = Graph.NAV_SCREEN, startDestination = MainScreen.HomeScreen.route){
         composable(route = MainScreen.HomeScreen.route){
@@ -72,6 +84,7 @@ fun NavGraphBuilder.mainGraph(
         composable(route = MainScreen.SearchScreen.route){
             SearchScreen(
                 navController = navController,
+                multiSearcher = searchViewModel.multiSearcher,
                 searchBoxState = searchViewModel.searchBoxState,
                 userState = searchViewModel.userState,
                 postState = searchViewModel.postState,
@@ -95,7 +108,7 @@ fun NavGraphBuilder.mainGraph(
                     navController = navController,
                     playerViewModel = playerViewModel,
                     profileViewModel = profileViewModel,
-                    userId = it1
+                    userId = it1,
                 )
             }
         }
@@ -105,12 +118,31 @@ fun NavGraphBuilder.mainGraph(
                 profileViewModel = profileViewModel
             )
         }
-        composable(route = MainScreen.SettingsScreen.route){
+        composable(route = MainScreen.SettingsScreen.MainSettingsScreen.route){
             SettingsScreen(
                 navController = navController,
-                playerViewModel = playerViewModel
+                playerViewModel = playerViewModel,
+                authViewModel = authViewModel,
+                settingVM = settingVM
             )
         }
+
+        composable(route = MainScreen.SettingsScreen.BlockedUsersScreen.route){
+            BlockScreen(
+                navController = navController,
+                settingVM = settingVM
+            )
+        }
+
+        composable(route = MainScreen.SettingsScreen.SavedPostsScreen.route){
+            SavedPostScreen(
+                navController = navController,
+                settingVM = settingVM,
+                mediaPlayerVM = playerViewModel,
+                profileVM = profileViewModel
+            )
+        }
+
     }
 }
 fun NavGraphBuilder.specifyGraph(
@@ -121,6 +153,8 @@ fun NavGraphBuilder.specifyGraph(
     profileViewModel: ProfileViewModel
 ){
     navigation(route = Graph.SPECIFY, startDestination = "post"){
+
+
         composable(
             route = "post/{userId}/{postId}",
             arguments = listOf(
@@ -131,6 +165,10 @@ fun NavGraphBuilder.specifyGraph(
                 uriPattern = "$BASE_URL/post/{userId}/{postId}"
             })
         ) { navBackStackEntry ->
+            val postUpdated = navBackStackEntry.savedStateHandle.get<Post>("post")
+            if(postUpdated != null){
+                postDetailViewModel.postFlow.tryEmit(postUpdated)
+            }
             val postId = navBackStackEntry.arguments?.getString("postId")
             val userId = navBackStackEntry.arguments?.getString("userId")
             if (postId != null && userId != null) {
@@ -140,7 +178,14 @@ fun NavGraphBuilder.specifyGraph(
                     postDetailViewModel = postDetailViewModel,
                     authViewModel = authViewModel,
                     postID = postId,
-                    userID = userId
+                    userID = userId,
+                    onEditPost = {post ->
+                        navController.navigate(
+                            EditPostScreen(
+                                post = post
+                            )
+                        )
+                    }
                 )
             } else {
                 // Handle the case where postId is null
@@ -167,6 +212,24 @@ fun NavGraphBuilder.specifyGraph(
             } else {
                 // Handle the case where userId is null
             }
+        }
+
+        composable<EditPostScreen>(
+            typeMap = mapOf(
+                typeOf<Post>() to CustomNavType.PostType,
+            )
+        ) {navBackStackEntry ->
+            val arguments = navBackStackEntry.toRoute<EditPostScreen>()
+            EditPostScreen(
+                navController = navController,
+                editPostVM = hiltViewModel<EditPostVM>(),
+                mediaPlayerVM = playerViewModel,
+                post = arguments.post,
+                onUpdate = { post ->
+                    navController.previousBackStackEntry?.savedStateHandle?.set("post", post)
+                    navController.popBackStack()
+                }
+            )
         }
     }
 }

@@ -15,9 +15,13 @@ import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import com.example.urvoices.data.model.Post
 import com.example.urvoices.data.model.User
+import com.example.urvoices.data.repository.BlockRepository
 import com.example.urvoices.data.repository.NotificationRepository
 import com.example.urvoices.data.repository.PostRepository
 import com.example.urvoices.data.repository.UserRepository
+import com.example.urvoices.data.service.FirebaseBlockService
+import com.example.urvoices.utils.SharedPreferencesHelper
+import com.example.urvoices.utils.SharedPreferencesKeys
 import com.example.urvoices.utils.UserPreferences
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
@@ -48,14 +52,19 @@ class ProfileViewModel @Inject constructor(
     private val postRepository: PostRepository,
     private val notificationRepository: NotificationRepository,
     private val userRepository: UserRepository,
+    private val blockRepository: BlockRepository,
     private val auth: FirebaseAuth,
     private val userDataStore: UserPreferences,
+    private val sharedPrefs: SharedPreferencesHelper,
     savedStateHandle: SavedStateHandle
 ): ViewModel(){
     val TAG = "ProfileViewModel"
 
     private val _uiState = MutableStateFlow<ProfileState>(ProfileState.Initial)
     val uiState: StateFlow<ProfileState> = _uiState.asStateFlow()
+
+    private val _displayUser = MutableStateFlow<User>(userTemp)
+    val displayUser: StateFlow<User> = _displayUser.asStateFlow()
 
     @OptIn(SavedStateHandleSaveableApi::class)
     var isFollowed by savedStateHandle.saveable { mutableStateOf(false) }
@@ -69,14 +78,20 @@ class ProfileViewModel @Inject constructor(
 
     @OptIn(SavedStateHandleSaveableApi::class)
     var displayuserID by savedStateHandle.saveable { mutableStateOf("") }
-    @OptIn(SavedStateHandleSaveableApi::class)
-    var displayuser by savedStateHandle.saveable { mutableStateOf<User>(userTemp) }
 
     @OptIn(SavedStateHandleSaveableApi::class)
     var isCurrentUser by savedStateHandle.saveable { mutableStateOf(false) }
     @OptIn(SavedStateHandleSaveableApi::class)
     var currentUserID by savedStateHandle.saveable { mutableStateOf("") }
     var authCurrentUser = auth.currentUser
+    @OptIn(SavedStateHandleSaveableApi::class)
+    var shareLoving by savedStateHandle.saveable { mutableStateOf(false) }
+    @OptIn(SavedStateHandleSaveableApi::class)
+    var isPrivate by savedStateHandle.saveable { mutableStateOf(false) }
+    @OptIn(SavedStateHandleSaveableApi::class)
+    var isBlocked by savedStateHandle.saveable { mutableStateOf(false) }
+    @OptIn(SavedStateHandleSaveableApi::class)
+    var blockMessage by savedStateHandle.saveable { mutableStateOf("") }
 
     private var userListenerRegistration: ListenerRegistration? = null
 
@@ -103,6 +118,7 @@ class ProfileViewModel @Inject constructor(
     }.flow.cachedIn(viewModelScope)
 
 
+
     fun loadData(userID: String){
         if(displayuserID != userID){
             this.displayuserID = userID
@@ -118,6 +134,8 @@ class ProfileViewModel @Inject constructor(
         _uiState.value = ProfileState.Loading
         viewModelScope.launch {
             loadbaseUserData(userID)
+            getBlockStatus(userID)
+            getUserPrivacy(userID)
             getFollowStatus(userID)
             getPostCounts(userID)
             getFollowerCount(userID)
@@ -131,8 +149,13 @@ class ProfileViewModel @Inject constructor(
     private fun reloadPost(){
         lastVisiblePost.value = ""
         lastVisiblePage.intValue = 1
+        lastVisibleSavedPost.value = ""
+        lastVisibleSavedPage.intValue = 1
         posts = Pager(PagingConfig(pageSize = 3)) {
             postRepository.getAllPostFromUser(displayuserID, lastVisiblePost, lastVisiblePage)
+        }.flow.cachedIn(viewModelScope)
+        savedPosts = Pager(PagingConfig(pageSize = 3)) {
+            postRepository.getAllSavedPostFromUser(displayuserID, lastVisibleSavedPost, lastVisibleSavedPage)
         }.flow.cachedIn(viewModelScope)
     }
 
@@ -140,7 +163,7 @@ class ProfileViewModel @Inject constructor(
         try {
             val user = userRepository.getInfoUserByUserID(userID)
             if(user != null){
-                this.displayuser = user
+                _displayUser.value = user
             }
         } catch (e: Exception) {
             _uiState.value = ProfileState.Error("Error when loading user data")
@@ -202,7 +225,7 @@ class ProfileViewModel @Inject constructor(
         avatarUri: Uri = Uri.EMPTY,
     ): Boolean {
         _uiState.value = ProfileState.Working
-        val oldUser = displayuser.copy()
+        val oldUser = displayUser.value.copy()
 
         return withContext(Dispatchers.IO) {
             try {
@@ -210,7 +233,7 @@ class ProfileViewModel @Inject constructor(
                 if (result) {
                     _uiState.value = ProfileState.Successful
                     // Update user data
-                    displayuser = displayuser.copy(
+                    _displayUser.value = _displayUser.value.copy(
                         username = username,
                         bio = bio,
                         country = country,
@@ -244,7 +267,7 @@ class ProfileViewModel @Inject constructor(
             if (snapshot != null && snapshot.exists()) {
                 val user = snapshot.toObject(User::class.java)
                 if (user != null) {
-                    displayuser = user
+                    _displayUser.value = user
                     // Update UI here or do something with the updated user
                 }
             } else {
@@ -297,7 +320,43 @@ class ProfileViewModel @Inject constructor(
         }
     }
 
+    /*
+        SharedPref
+    */
+    private suspend fun getUserPrivacy(userID: String){
+        try {
+                //get from Firebase
+            val result = userRepository.getUserSettingsByID(userID)
+            if(result != null){
+                //load from Map
+                isPrivate = result[SharedPreferencesKeys.privateAccount] as Boolean
+                shareLoving = result[SharedPreferencesKeys.shareLoving] as Boolean
+            }
+        } catch (e: Exception) {
+            _uiState.value = ProfileState.Error("Error when loading user privacy")
+            Log.e(TAG, "getUserPrivacy: Error")
+        }
+    }
 
+    private suspend fun getBlockStatus(userID: String){
+        try {
+            //get from Firebase
+            val result = blockRepository.getBlockStatusFromFirebase(userID) //local get
+            if (result == FirebaseBlockService.BlockInfo.BLOCK) {
+                isBlocked = true
+                blockMessage = "You have blocked this user"
+            } else if (result == FirebaseBlockService.BlockInfo.BLOCKED) {
+                isBlocked = true
+                blockMessage = "This user has blocked you"
+            } else {
+                isBlocked = false
+                blockMessage = ""
+            }
+        } catch (e: Exception) {
+            _uiState.value = ProfileState.Error("Error when loading user privacy")
+            Log.e(TAG, "getUserPrivacy: Error")
+        }
+    }
 
     //override onCleared
     override fun onCleared() {

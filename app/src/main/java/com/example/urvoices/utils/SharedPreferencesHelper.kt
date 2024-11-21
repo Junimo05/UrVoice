@@ -14,19 +14,26 @@ class SharedPreferencesHelper(context: Context) {
     private val PREFS_NAME = "com.example.urvoices"
     private val LOGGED_IN = "logged_in"
     private val prefs: SharedPreferences = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+    private val appContext = context.applicationContext
 
-    fun setLoggedIn(isLoggedIn: Boolean) {
-        val editor = prefs.edit()
-        editor.putBoolean(LOGGED_IN, isLoggedIn)
-        editor.apply()
+    fun getUserSharedPreferences(userId: String): SharedPreferences {
+        return appContext.getSharedPreferences("user_prefs_$userId", Context.MODE_PRIVATE)
     }
 
-    fun isLoggedIn(): Boolean {
-        return prefs.getBoolean(LOGGED_IN, false)
+    fun getAllSettings(): Map<String, *> {
+        return prefs.all
     }
 
-    fun save(key:String, value: Any){
-        val editor = prefs.edit()
+    fun getUserSettings(userId: String): Map<String, *> {
+        return getUserSharedPreferences(userId).all
+    }
+
+    fun save(key: String, value: Any, userId: String? = null) {
+        val editor = if (userId != null) {
+            getUserSharedPreferences(userId).edit()
+        } else {
+            prefs.edit()
+        }
 
         when (value) {
             is String -> editor.putString(key, value)
@@ -40,37 +47,70 @@ class SharedPreferencesHelper(context: Context) {
         editor.apply()
     }
 
-    fun getString(key: String, default: String = ""): String {
-        return prefs.getString(key, default) ?: default
+    fun getString(key: String, default: String = "", userId: String? = null): String {
+        return if (userId != null) {
+            getUserSharedPreferences(userId).getString(key, default) ?: default
+        } else {
+            prefs.getString(key, default) ?: default
+        }
     }
 
-    fun getInt(key: String, default: Int = 0): Int {
-        return prefs.getInt(key, default)
+    fun getInt(key: String, default: Int = 0, userId: String? = null): Int {
+        return if (userId != null) {
+            getUserSharedPreferences(userId).getInt(key, default)
+        } else {
+            prefs.getInt(key, default)
+        }
     }
 
-    fun getBoolean(key: String, default: Boolean = false): Boolean {
-        return prefs.getBoolean(key, default)
+    fun getBoolean(key: String, default: Boolean = false, userId: String? = null): Boolean {
+        return if (userId != null) {
+            getUserSharedPreferences(userId).getBoolean(key, default)
+        } else {
+            prefs.getBoolean(key, default)
+        }
     }
 
-    fun getFloat(key: String, default: Float = 0f): Float {
-        return prefs.getFloat(key, default)
+    fun getFloat(key: String, default: Float = 0f, userId: String? = null): Float {
+        return if (userId != null) {
+            getUserSharedPreferences(userId).getFloat(key, default)
+        } else {
+            prefs.getFloat(key, default)
+        }
     }
 
-    fun getLong(key: String, default: Long = 0L): Long {
-        return prefs.getLong(key, default)
+    fun getLong(key: String, default: Long = 0L, userId: String? = null): Long {
+        return if (userId != null) {
+            getUserSharedPreferences(userId).getLong(key, default)
+        } else {
+            prefs.getLong(key, default)
+        }
     }
 
-    fun remove(key: String) {
-        val editor = prefs.edit()
+    fun remove(key: String, userId: String? = null) {
+        val editor = if (userId != null) {
+            getUserSharedPreferences(userId).edit()
+        } else {
+            prefs.edit()
+        }
         editor.remove(key)
         editor.apply()
     }
 
-    fun clear() {
-        val editor = prefs.edit()
+    fun clear(userId: String? = null) {
+        val editor = if (userId != null) {
+            getUserSharedPreferences(userId).edit()
+        } else {
+            prefs.edit()
+        }
         editor.clear()
         editor.apply()
     }
+}
+object SharedPreferencesKeys {
+    const val isFirstTime = "isFirstTime"
+    const val shareLoving = "shareLoving"
+    const val privateAccount = "privateAccount"
 }
 
 
