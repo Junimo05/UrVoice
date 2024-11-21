@@ -13,10 +13,12 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -39,6 +41,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import androidx.paging.LoadState
 import androidx.paging.compose.collectAsLazyPagingItems
@@ -49,6 +52,7 @@ import com.example.urvoices.utils.Navigator.AuthScreen
 import com.example.urvoices.utils.UserPreferences
 import com.example.urvoices.viewmodel.AuthState
 import com.example.urvoices.viewmodel.AuthViewModel
+import com.example.urvoices.viewmodel.HomeState
 import com.example.urvoices.viewmodel.HomeViewModel
 import com.example.urvoices.viewmodel.MediaPlayerVM
 import kotlinx.coroutines.launch
@@ -63,6 +67,7 @@ fun HomeScreen(
     Home(navController, authViewModel, homeViewModel, playerViewModel)
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter", "CoroutineCreationDuringComposition")
 @Composable
 fun Home(
@@ -71,22 +76,23 @@ fun Home(
     homeViewModel: HomeViewModel,
     playerViewModel: MediaPlayerVM,
     modifier: Modifier = Modifier
-) {
+){
     val authState = authViewModel.authState.observeAsState()
     val scope = rememberCoroutineScope()
     val mainStateList = rememberLazyListState()
     val homeState = homeViewModel.homeState.collectAsState()
+    val isRefreshing by homeViewModel.isRefreshing.collectAsStateWithLifecycle()
+    val scrollToTopEvent by homeViewModel.scrollToTopEvent.collectAsState()
     val isScrolled = remember {
         mutableStateOf(mainStateList.firstVisibleItemIndex > 0)
     }
 
-    val postList = homeViewModel.postsPaging3.collectAsLazyPagingItems()
+    val postList = homeViewModel.postList.collectAsLazyPagingItems()
 
     val userPreferences = UserPreferences(LocalContext.current)
 
-    //Run when start app
     LaunchedEffect(Unit) {
-        homeViewModel.syncBlockData()
+        homeViewModel.checkFirstLogin()
     }
 
     LaunchedEffect(authState.value) {
@@ -97,6 +103,22 @@ fun Home(
             else -> Unit
         }
      }
+
+    LaunchedEffect(scrollToTopEvent){
+        if (scrollToTopEvent) {
+            mainStateList.animateScrollToItem(0)
+            homeViewModel.resetScrollToTopEvent()
+            //
+            homeViewModel.clearData()
+            homeViewModel.refreshHomeScreen()
+        }
+    }
+
+    LaunchedEffect(postList) {
+        if(postList.itemCount != 0){
+            homeViewModel.setIsRefreshing(false)
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -171,77 +193,74 @@ fun Home(
                                     //TODO: Implement Message
                                 }
                         )
-                        Icon(
-                            painter = painterResource(id = R.drawable.ic_actions_log_out),
-                            contentDescription = null,
-                            modifier = Modifier
-                                .size(36.dp)
-                                .padding(end = 4.dp)
-                                .clickable {
-                                    scope.launch {
-                                        authViewModel.signOut()
-                                    }
-                                }
-                        )
                     }
                 }
             }
 
         }
     ) {paddingValue ->
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(top = paddingValue.calculateTopPadding())
-                .background(MaterialTheme.colorScheme.background),
-            userScrollEnabled = true,
-            state = mainStateList,
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+        PullToRefreshBox(
+            isRefreshing = false,
+            onRefresh = {
+                homeViewModel.refreshHomeScreen()
+            },
+            modifier = Modifier.padding(top = 6.dp)
         ) {
-            items(
-                postList.itemCount
-            ){
-                index ->
-                NewFeedPostItem(
-                    navController = navController,
-                    authVM = authViewModel,
-                    post = postList[index]!!,
-                    homeViewModel = homeViewModel,
-                    playerViewModel = playerViewModel,
-                )
-            }
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(top = paddingValue.calculateTopPadding())
+                    .background(MaterialTheme.colorScheme.background),
+                userScrollEnabled = true,
+                state = mainStateList,
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                items(
+                    count = postList.itemCount,
+                    key = { postList[it]?.ID ?: it}
+                ){
+                        index ->
+                    NewFeedPostItem(
+                        navController = navController,
+                        authVM = authViewModel,
+                        post = postList[index]!!,
+                        homeViewModel = homeViewModel,
+                        playerViewModel = playerViewModel,
+                    )
+                }
 
-            postList.apply {
-                when {
-                    loadState.refresh is LoadState.Loading -> {
-                        item {
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.Center,
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                CircularProgressIndicator()
+                postList.apply {
+                    when {
+                        loadState.refresh is LoadState.Loading -> {
+                            item {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.Center,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    CircularProgressIndicator()
+                                }
                             }
                         }
-                    }
-                    loadState.append is LoadState.Loading -> {
-                        item {
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.Center,
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                CircularProgressIndicator()
+                        loadState.append is LoadState.Loading -> {
+                            item {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.Center,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    CircularProgressIndicator()
+                                }
                             }
                         }
-                    }
-                    loadState.refresh is LoadState.Error -> {
-                        val e = postList.loadState.refresh as LoadState.Error
-                        item { Text(text = e.error.localizedMessage ?: "Unknown Error") }
-                    }
-                    loadState.append is LoadState.Error -> {
-                        val e = postList.loadState.append as LoadState.Error
-                        item { Text(text = e.error.localizedMessage ?: "Unknown Error") }
+                        loadState.refresh is LoadState.Error -> {
+                            val e = postList.loadState.refresh as LoadState.Error
+                            item { Text(text = e.error.localizedMessage ?: "Unknown Error") }
+                        }
+                        loadState.append is LoadState.Error -> {
+                            val e = postList.loadState.append as LoadState.Error
+                            item { Text(text = e.error.localizedMessage ?: "Unknown Error") }
+                        }
                     }
                 }
             }

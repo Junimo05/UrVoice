@@ -64,7 +64,7 @@ fun MessageScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
 
         ) {
-            SearchBar()
+//            SearchBar()
             LazyColumn(
                 modifier = Modifier.fillMaxWidth(),
                 verticalArrangement = Arrangement.spacedBy(10.dp),

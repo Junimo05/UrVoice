@@ -2,8 +2,11 @@ package com.example.urvoices.di
 
 import android.content.Context
 import androidx.lifecycle.SavedStateHandle
+import androidx.work.WorkManager
+import androidx.work.WorkerFactory
 import com.example.urvoices.utils.SharedPreferencesHelper
 import com.example.urvoices.utils.UserPreferences
+import com.example.urvoices.utils.Worker.CustomWorkerFactory
 import com.example.urvoices.viewmodel.State.AppGlobalState
 import com.facebook.appevents.UserDataStore
 import dagger.Module
@@ -30,5 +33,18 @@ object AppModule {
         @ApplicationContext context: Context
     ): UserPreferences = UserPreferences(context)
 
+    @Provides
+    @Singleton
+    fun provideWorkManager(
+        @ApplicationContext context: Context
+    ): WorkManager {
+        return WorkManager.getInstance(context)
+    }
+
+    @Provides
+    @Singleton
+    fun provideWorkerFactory(
+        customWorkerFactory: CustomWorkerFactory
+    ): WorkerFactory = customWorkerFactory
 
 }

@@ -128,7 +128,6 @@ class AudioServiceHandler @Inject constructor(
                             //Case3: Audio is not in the playlist || Replace First Audio in Playlist
                             exoPlayer.replaceMediaItem(0, MediaItem.fromUri(audio.url))
                             playlist[0] = audio
-//                            updatePlaylistState()
                             safeUpdateState(AudioState.Playing(true))
                             exoPlayer.playWhenReady = true
                             startProgressUpdate()
@@ -243,6 +242,9 @@ class AudioServiceHandler @Inject constructor(
             Player.STATE_BUFFERING -> {
                 _audioState.value = AudioState.Buffering(exoPlayer.currentPosition)
             }
+            Player.STATE_ENDED -> {
+                _audioState.value = AudioState.Ending(true)
+            }
         }
     }
 
@@ -331,5 +333,6 @@ sealed class AudioState {
     data class Progress(val progress: Long): AudioState()
     data class Buffering(val progress: Long): AudioState()
     data class Playing(val isPlaying: Boolean): AudioState()
+    data class Ending(val isEnd: Boolean): AudioState()
     data class CurrentPlaying(val audio: Audio): AudioState()
 }

@@ -13,7 +13,9 @@ import com.google.firebase.firestore.AggregateSource
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.FirebaseFirestoreException
 import com.google.firebase.firestore.Query
+import com.google.firebase.firestore.SetOptions
 import com.google.firebase.firestore.toObject
+import com.google.firebase.storage.StorageException
 import com.google.firebase.storage.StorageReference
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -22,7 +24,6 @@ import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
-import wseemann.media.FFmpegMediaMetadataRetriever
 import javax.inject.Inject
 
 class FirebasePostService @Inject constructor(
@@ -32,17 +33,15 @@ class FirebasePostService @Inject constructor(
     private val storage: StorageReference
 ){
     val TAG = "FirebasePostService"
-
+    val scope = CoroutineScope(Dispatchers.IO)
     suspend fun getNewFeed(page: Int, lastVisiblePost: MutableState<String>, lastvisiblePage: MutableState<Int>): List<Post>{
         val posts = mutableListOf<Post>()
-        val limit = 2L
+        val limit = 4L
         try {
             // get posts
             var postQuery = firebaseFirestore.collection("posts")
                 .orderBy("createdAt", Query.Direction.DESCENDING)
                 .limit(limit)
-//            Log.e(TAG, "getNewFeed: $lastVisiblePost")
-//            Log.e(TAG, "getNewFeed: $lastvisiblePage")
 
             if (lastVisiblePost.value != "" && page > lastvisiblePage.value) {
                 val lastVisiblePostRef = firebaseFirestore.collection("posts").document(lastVisiblePost.value).get().await()
@@ -65,21 +64,13 @@ class FirebasePostService @Inject constructor(
                 }
                 val post = document.toObject<Post>()
                 if (post != null) {
-                    val duration = getDurationFromUrl(post.url!!)
                     val likesDeferred = CoroutineScope(Dispatchers.IO).async { getCountLikesPosts(post.ID!!) }
                     val commentsDeferred = CoroutineScope(Dispatchers.IO).async { getCountCommentsPosts(post.ID!!) }
-                    val amplitudesDeferred = CoroutineScope(Dispatchers.IO).async {
-                        audioManager.getAmplitudes(post.url, post.ID!!)
-                    }
-
                     val likes = likesDeferred.await()
                     val comments = commentsDeferred.await()
-                    val amplitudes = amplitudesDeferred.await()
 
                     post.likes = likes
                     post.comments = comments
-                    post.amplitudes = amplitudes
-                    post.duration = duration
 
                     post
                 } else {
@@ -88,7 +79,7 @@ class FirebasePostService @Inject constructor(
             })
         } catch (e: Exception) {
             e.printStackTrace()
-            Log.e(TAG, "getNewFeed: ${e.message}")
+            Log.e(TAG, "getNewFeedError: ${e.message}")
         }
 //        Log.e(TAG, "getNewFeed: $posts")
         return posts
@@ -116,14 +107,10 @@ class FirebasePostService @Inject constructor(
             val postRef = firebaseFirestore.collection("posts").document(postID).get().await()
             if(postRef.exists()){
                 post = postRef.toObject<Post>()
-                val duration = getDurationFromUrl(post!!.url!!)
                 val likesDeferred = CoroutineScope(Dispatchers.IO).async { getCountLikesPosts(postID) }
                 val commentsDeferred = CoroutineScope(Dispatchers.IO).async { getCountCommentsPosts(postID) }
-                val amplitudes = audioManager.getAmplitudes(post.url!!, postID)
-                post.likes = likesDeferred.await()
+                post!!.likes = likesDeferred.await()
                 post.comments = commentsDeferred.await()
-                post.amplitudes = amplitudes
-                post.duration = duration.toLong()
             } else {
                 // Error
                 Log.e(TAG, "getPostDetailByPostID: Post not found")
@@ -173,16 +160,12 @@ class FirebasePostService @Inject constructor(
                 val post = document.toObject(Post::class.java)
                 if (post != null) {
                     val processedPost = withContext(Dispatchers.IO) {
-                        val amplitudes = audioManager.getAmplitudes(post.url!!, post.ID!!)
-                        val likesDeferred = async { getCountLikesPosts(post.ID) }
-                        val commentsDeferred = async { getCountCommentsPosts(post.ID) }
-                        val duration = getDurationFromUrl(post.url)
+                        val likesDeferred = async { getCountLikesPosts(post.ID!!) }
+                        val commentsDeferred = async { getCountCommentsPosts(post.ID!!) }
                         // Đợi tất cả các deferred hoàn thành
                         post.apply {
                             likes = likesDeferred.await()
                             comments = commentsDeferred.await()
-                            this.amplitudes = amplitudes
-                            this.duration = duration
                         }
                     }
                     posts.add(processedPost)
@@ -318,14 +301,30 @@ class FirebasePostService @Inject constructor(
         return posts
     }
 
-    suspend fun createPost(post: Post, audioUrl: Uri): Boolean {
-        return try {
-            val postToCreate = post.copy(ID = null).toMap()
-            val newFileRef = storage.child("audios/${post.userId}/${post.audioName}")
+    suspend fun getAllSavedPost(): List<String>{
+        val currentUser = auth.currentUser
+        if(currentUser != null){
+            try {
+                val refSavedPosts = firebaseFirestore.collection("rela_savePosts").document(currentUser.uid).get().await()
+                val savedPosts = refSavedPosts.get("savedPosts") as List<*>?
+                if (savedPosts != null) {
+                    return savedPosts.mapNotNull { it as String }
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+                Log.e(TAG, "getAllSavedPost: ${e.message}")
+            }
+        }
+        return emptyList()
+    }
 
-            // Upload the file to the new location
-            val uploadTask = newFileRef.putFile(audioUrl).await()
-            val downloadUrl = uploadTask.storage.downloadUrl.await().toString()
+    suspend fun createPost(post: Post, audioUrl: Uri, imgUri: Uri): Boolean {
+        return try {
+            val amplitudes = audioManager.getAmplitudes(audioUrl)
+            post.amplitudes = amplitudes
+            val duration = getDurationFromUrl(audioUrl.toString())
+            post.duration = duration
+            val postToCreate = post.copy(ID = null).toMap()
 
             // Add the post to Firestore and get the auto-generated ID
             val newPostRef = firebaseFirestore.collection("posts").add(postToCreate).await()
@@ -333,6 +332,18 @@ class FirebasePostService @Inject constructor(
 
             // Update the 'id' field in the Firestore document
             newPostRef.update("ID", newPostId).await()
+
+            //Prepare the storage reference
+            val audioRef = storage.child("audios/${post.userId}/${newPostId}")
+            val imgRef = storage.child("imgs/${post.userId}/posts/${newPostId}")
+
+            // Upload the audio to the new location
+            val uploadTask = audioRef.putFile(audioUrl).await()
+            val downloadUrl = uploadTask.storage.downloadUrl.await().toString()
+
+            // Upload the image to the new location
+            val uploadImgTask = imgRef.putFile(imgUri).await()
+            val downloadImgUrl = uploadImgTask.storage.downloadUrl.await().toString()
 
             // create rela_posts_users
             val relaPostUser = mapOf(
@@ -345,6 +356,8 @@ class FirebasePostService @Inject constructor(
 
             // Update the 'url' field in the Firestore document
             firebaseFirestore.collection("posts").document(newPostId).update("url", downloadUrl).await()
+            // Update the 'imgUrl' field in the Firestore document
+            firebaseFirestore.collection("posts").document(newPostId).update("imgUrl", downloadImgUrl).await()
 
             true
         } catch (e: Exception) {
@@ -395,22 +408,47 @@ class FirebasePostService @Inject constructor(
         }
     }
 
-    suspend fun updateDescription(postId: String, description: String): Boolean{
+    suspend fun updatePost(newData: Map<String, Any?>, oldData: Post): Boolean{
         // update post description
         try {
-            firebaseFirestore.collection("posts").document(postId).update("description", description).await()
-            //update time for updateAt
-            firebaseFirestore.collection("posts").document(postId).update("updateAt", System.currentTimeMillis()).await()
+            val updatedMapData = newData.toMutableMap()
+            //update imgUri
+            val newImgUri = (updatedMapData["imgUrl"] as Uri).toString()
+            val oldStorageImg = storage.child("imgs/${oldData.userId}/posts/${oldData.ID}")
+            //delete and change with new img
+            try {
+                oldStorageImg.metadata.await()
+                oldStorageImg.delete().await()
+            } catch (e: StorageException) {
+                if (e.errorCode == StorageException.ERROR_OBJECT_NOT_FOUND) {
+                    Log.e(TAG, "Old image does not exist at location.")
+                } else {
+                    throw e
+                }
+            }
+
+            val uploadImgTask = oldStorageImg.putFile(Uri.parse(newImgUri)).await()
+            val imgUrl = uploadImgTask.storage.downloadUrl.await().toString()
+
+            //prepare new data
+            updatedMapData["imgUrl"] = imgUrl
+            updatedMapData["updatedAt"] = System.currentTimeMillis()
+
+
+            firebaseFirestore.collection("posts").document(updatedMapData["ID"] as String)
+                .set(updatedMapData, SetOptions.merge())
+                .await()
             return true
         }catch (e: Exception){
             e.printStackTrace()
+            Log.e(TAG, "updatePost_PostService Error: ${e.message}")
         }
         return false
     }
 
     /*
      *   Post Interactions
-    */
+     */
 
     private suspend fun getCountCommentsPosts(postId: String): Int {
         return try {
@@ -537,7 +575,7 @@ class FirebasePostService @Inject constructor(
                 //update ID for relation
                 rela ->
                 firebaseFirestore.collection("rela_comments_users_posts").document(rela.result?.id!!)
-                    .update("ID", rela.result?.id!!)
+                    .update("ID", rela.result?.id!!, "commentID", commentResultID)
             }.await()
 
             return comment.apply {

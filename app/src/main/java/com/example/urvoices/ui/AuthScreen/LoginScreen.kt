@@ -203,8 +203,7 @@ fun Login(
                             modifier = Modifier
                                 .clickable(
                                     onClick = {
-                                        //TODO: Implement Forgot Password
-//                                    navController?.navigate(AuthScreen.ForgotPasswordScreen.route)
+                                        navController.navigate(AuthScreen.ForgetPasswordScreen.route)
                                     }
                                 )
                         )
@@ -295,7 +294,7 @@ fun Login(
                                 )
                             }
                         }
-                        Card(
+                        /*Card(
                             modifier = Modifier
                                 .size(200.dp, 60.dp)
                                 .clickable {
@@ -322,7 +321,7 @@ fun Login(
                                     )
                                 )
                             }
-                        }
+                        } */
                     }
                 }
 

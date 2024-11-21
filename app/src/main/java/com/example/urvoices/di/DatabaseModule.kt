@@ -4,6 +4,7 @@ import android.content.Context
 import com.example.urvoices.data.AudioManager
 import com.example.urvoices.data.db.AppDatabase
 import com.example.urvoices.data.db.Dao.BlockedUserDao
+import com.example.urvoices.data.db.Dao.SavedPostDao
 import com.example.urvoices.data.repository.NotificationRepository
 import com.example.urvoices.data.repository.PostRepository
 import com.example.urvoices.data.repository.UserRepository
@@ -39,6 +40,15 @@ object DatabaseModule {
         database: AppDatabase
     ): BlockedUserDao {
         return database.blockedUserDao()
+    }
+
+    @Provides
+    @Singleton
+    fun provideSavedPostDao(
+        @ApplicationContext context: Context,
+        database: AppDatabase
+    ): SavedPostDao {
+        return database.savedPostDao()
     }
 
     /*

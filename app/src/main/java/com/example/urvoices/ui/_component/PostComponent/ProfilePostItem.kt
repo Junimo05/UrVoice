@@ -1,6 +1,8 @@
 package com.example.urvoices.ui._component.PostComponent
 
 import android.annotation.SuppressLint
+import androidx.compose.foundation.MarqueeAnimationMode
+import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -61,7 +63,6 @@ fun ProfilePostItem(
         }
     }
 
-//    Log.e(TAG, "Post in ${TAG}: ${post.ID} - ${post.amplitudes}")
 
     val isExpandedContext = mutableStateOf(false)
     Box(
@@ -83,21 +84,39 @@ fun ProfilePostItem(
                 modifier = Modifier
                     .fillMaxWidth()
             ){
-                Text(
-                    text = post.description,
-                    style = TextStyle(
+                Column(
+                    modifier = Modifier.padding(top = 16.dp, start = 16.dp, end = 16.dp, bottom = 40.dp)
+                ) {
+                    Text(
+                        text = post.audioName!!,
+                        fontWeight = FontWeight.Bold,
+                        style = TextStyle(
+                            color = MaterialTheme.colorScheme.onPrimaryContainer,
+                            fontSize = 18.sp
+                        ),
+                        overflow = TextOverflow.Clip,
+                        maxLines = 1,
+                        modifier = if(playerViewModel.currentAudio.value.id == post.ID) Modifier.basicMarquee(
+                            animationMode = MarqueeAnimationMode.Immediately,
+                            initialDelayMillis = 10000,
+                        ) else Modifier,
+                        color = if(playerViewModel.currentAudio.value.id == post.ID) MaterialTheme.colorScheme.onSecondaryContainer else MaterialTheme.colorScheme.onPrimaryContainer
+                    )
+                    Text(
+                        text = post.description,
+                        style = TextStyle(
+                            color = MaterialTheme.colorScheme.onPrimaryContainer,
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Normal
+                        ),
                         color = MaterialTheme.colorScheme.onPrimaryContainer,
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.Bold
-                    ),
-                    color = MaterialTheme.colorScheme.onPrimaryContainer,
-                    overflow = if(isExpandedContext.value) TextOverflow.Visible else TextOverflow.Ellipsis,
-                    maxLines = if(isExpandedContext.value) Int.MAX_VALUE else 2,
-                    modifier = Modifier
-                        .padding(top = 16.dp, start = 16.dp, end = 16.dp, bottom = 40.dp)
-                        .clickable(onClick = { isExpandedContext.value = !isExpandedContext.value })
-                )
-                Spacer(modifier = Modifier.height(40.dp))
+                        overflow = if(isExpandedContext.value) TextOverflow.Visible else TextOverflow.Ellipsis,
+                        maxLines = if(isExpandedContext.value) Int.MAX_VALUE else 2,
+                        modifier = Modifier
+                            .clickable(onClick = { isExpandedContext.value = !isExpandedContext.value })
+                    )
+                }
+                Spacer(modifier = Modifier.height(50.dp))
                 Text(
                     text = timeText,
                     style = TextStyle(
@@ -139,13 +158,13 @@ fun ProfilePostItem(
                 )
             }
         }
-        AudioWaveformItem(
+        AudioItem(
             id = post.ID!!,
             audioUrl = post.url!!,
             audioAmplitudes = post.amplitudes,
             currentPlayingAudio = playerViewModel.currentAudio.value.url,
             currentPlayingPost = playerViewModel.currentAudio.value.id,
-            duration = playerViewModel.duration,
+            duration = playerViewModel.durationPlayer,
             isPlaying = playerViewModel.isPlaying,
             isStop = playerViewModel.isStop.value,
             onPlayStart = {
@@ -156,7 +175,7 @@ fun ProfilePostItem(
                                 id = post.ID,
                                 url = post.url,
                                 title = post.audioName!!,
-                                duration = post.duration,
+                                duration = post.duration?:0,
                                 author = user.username
                             )
                         ))

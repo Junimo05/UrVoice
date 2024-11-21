@@ -2,15 +2,27 @@
   "formatVersion": 1,
   "database": {
     "version": 1,
-    "identityHash": "8bb0d6ccd624fdf528b233649f2e75ef",
+    "identityHash": "87b8d470f9721f2bb54b974169442cd0",
     "entities": [
       {
         "tableName": "blocked_users",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`userID` TEXT NOT NULL, PRIMARY KEY(`userID`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`userID` TEXT NOT NULL, `username` TEXT NOT NULL, `avatarUrl` TEXT NOT NULL, PRIMARY KEY(`userID`))",
         "fields": [
           {
             "fieldPath": "userID",
             "columnName": "userID",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "username",
+            "columnName": "username",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "avatarUrl",
+            "columnName": "avatarUrl",
             "affinity": "TEXT",
             "notNull": true
           }
@@ -28,7 +40,7 @@
     "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '8bb0d6ccd624fdf528b233649f2e75ef')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '87b8d470f9721f2bb54b974169442cd0')"
     ]
   }
 }

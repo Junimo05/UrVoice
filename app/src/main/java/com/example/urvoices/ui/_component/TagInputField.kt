@@ -31,6 +31,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.urvoices.R
 import com.example.urvoices.presentations.theme.MyTheme
+import java.util.Locale
 
 @Composable
 fun TagInputField(
@@ -51,7 +52,7 @@ fun TagInputField(
             label = { Text("Tags") },
             onValueChange = {newValue ->
                 if(newValue.text.endsWith(' ')){
-                    tags = tags + newValue.text.trim()
+                    tags = tags + newValue.text.trim().lowercase(Locale.ROOT)
                     onValueChange(tags)
                     tag = TextFieldValue("")
                 } else {

@@ -1,8 +1,10 @@
 package com.example.urvoices.utils
 
+import android.content.ContentUris
 import android.content.Context
 import android.graphics.Bitmap
 import android.net.Uri
+import android.provider.OpenableColumns
 import wseemann.media.FFmpegMediaMetadataRetriever
 import java.io.File
 import java.io.FileOutputStream
@@ -10,6 +12,73 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 import kotlin.math.floor
+import android.database.Cursor
+import android.provider.MediaStore
+import android.provider.DocumentsContract
+
+
+fun getRealPathFromUri(context: Context, contentUri: Uri): String? {
+    var filePath: String? = null
+    try {
+        context.contentResolver.openInputStream(contentUri)?.use { inputStream ->
+            val fileName = getFileName(context, contentUri)
+            val file = File(context.cacheDir, fileName)
+
+            FileOutputStream(file).use { outputStream ->
+                inputStream.copyTo(outputStream)
+            }
+
+            filePath = file.absolutePath
+        }
+    } catch (e: Exception) {
+        e.printStackTrace()
+    }
+    return filePath
+}
+
+fun checkHttps(url: String): Boolean {
+    return if (url.startsWith("https://") || url.startsWith("http://")) {
+        true
+    } else {
+       false
+    }
+}
+
+private fun getFileName(context: Context, uri: Uri): String {
+    var fileName = "file"
+
+    // Try to get the display name from the document
+    context.contentResolver.query(uri, null, null, null, null)?.use { cursor ->
+        if (cursor.moveToFirst()) {
+            val displayNameIndex = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME)
+            if (displayNameIndex != -1) {
+                fileName = cursor.getString(displayNameIndex)
+            }
+        }
+    }
+
+    // If we couldn't get a name, generate one with timestamp
+    if (fileName == "file") {
+        fileName = "file_${System.currentTimeMillis()}"
+    }
+
+    return fileName
+}
+
+private fun isExternalStorageDocument(uri: Uri): Boolean {
+    return "com.android.externalstorage.documents" == uri.authority
+}
+
+private fun isDownloadsDocument(uri: Uri): Boolean {
+    return "com.android.providers.downloads.documents" == uri.authority
+}
+
+private fun isMediaDocument(uri: Uri): Boolean {
+    return "com.android.providers.media.documents" == uri.authority
+}
+
+
+
 
 fun formatFileSize(size: Long): String {
     val kilobyte: Long = 1024

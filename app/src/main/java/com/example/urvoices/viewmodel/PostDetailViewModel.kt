@@ -20,9 +20,11 @@ import com.example.urvoices.data.repository.UserRepository
 import com.google.firebase.auth.FirebaseAuth
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
@@ -78,6 +80,16 @@ class PostDetailViewModel @Inject constructor(
 
     private val _commentFlow = MutableStateFlow<PagingData<Comment>>(PagingData.empty())
     val commentFlow = _commentFlow.asStateFlow()
+
+    val postFlow: MutableSharedFlow<Post> = MutableSharedFlow(replay = 1)
+
+    fun configureObservers() = viewModelScope.launch {
+        postFlow
+            .distinctUntilChanged() // ignores multiple identical events
+            .collect { postUpdated ->
+                Log.e(TAG, "configureObservers: ${postUpdated.audioName}")
+            }
+    }
 
     fun loadData(postID: String, userID: String) {
         this.postID = postID

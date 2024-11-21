@@ -35,7 +35,7 @@ class UserRepository @Inject constructor(
 
     suspend fun followUser(userId: String, followStatus: Boolean) = firebaseUserService.followUser(userId, followStatus)
 
-    //TODO: Get Paging
+
     fun getPagingFollowerList(userId: String): PagingSource<Int, User> {
         return object : PagingSource<Int, User>() {
             override suspend fun load(params: LoadParams<Int>): LoadResult<Int, User> {
@@ -120,4 +120,30 @@ class UserRepository @Inject constructor(
         }
         return false
     }
+
+
+    /*
+      Shared Preferences
+     */
+    suspend fun getUserSettingsByID(userId: String): Map<String, Any>?  {
+        try {
+            val userSettings = firebaseUserService.getUserSettingsById(userId)
+            return userSettings
+        } catch (e: Exception) {
+            e.printStackTrace()
+            Log.e(TAG, "getUserSettingsByID: Error")
+        }
+        return null
+    }
+
+    suspend fun saveUserSettings(): Boolean{
+        try {
+            return firebaseUserService.saveUserSettings()
+        } catch (e: Exception) {
+            e.printStackTrace()
+            Log.e(TAG, "saveUserSettings: Error")
+        }
+        return false
+    }
+
 }

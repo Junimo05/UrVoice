@@ -17,6 +17,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import com.example.urvoices.R
+import com.example.urvoices.data.service.FirebaseBlockService
 
 @Composable
 fun DropDownMenu(
@@ -65,26 +66,13 @@ fun DropDownMenu(
     }
 }
 
-fun PostAction(
-    isCurrentUserPost: Boolean,
-    addToPlaylist: () -> Unit,
-    goToPost: () -> Unit,
-    goToUser: () -> Unit,
-    copyLink: () -> Unit,
-    savePost: () -> Unit,
-    isBlock: MutableState<Boolean>,
-    blockUser: () -> Unit,
-): List<DropDownAction> {
+fun UserAction(
 
-    return if (isBlock.value) {
+    isBlock: Boolean,
+    blockUser: () -> Unit
+): List<DropDownAction> {
+    return if (isBlock) {
         listOf(
-            DropDownAction(
-                icon = R.drawable.ic_actions_user,
-                title = "Go to User",
-                action = {
-                    goToUser()
-                }
-            ),
             DropDownAction(
                 icon = R.drawable.ic_visibility_on,
                 title = "Unblock User",
@@ -93,6 +81,56 @@ fun PostAction(
                 }
             )
         )
+    } else {
+        listOf(
+            DropDownAction(
+                icon = R.drawable.ic_visibility_off,
+                title = "Block User",
+                action = {
+                    blockUser()
+                }
+            )
+        )
+    }
+}
+
+fun PostAction(
+    isCurrentUserPost: Boolean,
+    addToPlaylist: () -> Unit,
+    changeInfo: () -> Unit,
+    goToPost: () -> Unit,
+    goToUser: () -> Unit,
+    copyLink: () -> Unit,
+    savePost: () -> Unit,
+    blockInfo: MutableState<String>,
+    blockUser: () -> Unit,
+    unblockUser: () -> Unit
+): List<DropDownAction> {
+
+    return if (blockInfo.value != FirebaseBlockService.BlockInfo.NO_BLOCK) { //Block = true
+        val actions = mutableListOf(
+            DropDownAction(
+                icon = R.drawable.ic_actions_user,
+                title = "Go to User",
+                action = {
+                    goToUser()
+                }
+            )
+        )
+
+        if(blockInfo.value != FirebaseBlockService.BlockInfo.BLOCK) { //This user is blocked by current user
+            actions.add(
+                DropDownAction(
+                    icon = R.drawable.ic_visibility_on,
+                    title = "Unblock User",
+                    action = {
+                        unblockUser()
+                    }
+                )
+            )
+        }
+
+        actions
     } else {
         val actions = mutableListOf(
             DropDownAction(
@@ -131,6 +169,8 @@ fun PostAction(
                 }
             )
         )
+
+        //Check Post Owner
         if (!isCurrentUserPost) {
             actions.add(
                 DropDownAction(
@@ -138,6 +178,16 @@ fun PostAction(
                     title = "Block User",
                     action = {
                         blockUser()
+                    }
+                )
+            )
+        } else {
+            actions.add(
+                DropDownAction(
+                    icon = R.drawable.pencil_svgrepo_com,
+                    title = "Edit",
+                    action = {
+                        changeInfo()
                     }
                 )
             )

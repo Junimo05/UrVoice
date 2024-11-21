@@ -39,6 +39,7 @@ private val MaxSpikePaddingDp: Dp = 12.dp
 private val MinSpikeRadiusDp: Dp = 0.dp
 private val MaxSpikeRadiusDp: Dp = 12.dp
 
+
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun AudioWaveformLive(
@@ -47,6 +48,7 @@ fun AudioWaveformLive(
     spikeWidth: Dp = 4.dp,
     spikeRadius: Dp = 2.dp,
     spikePadding: Dp = 1.dp,
+    maxColumn: Int,
     amplitudesLiveData: List<Int>,
     onProgressChange: (Float) -> Unit
 ) {
@@ -92,15 +94,24 @@ fun AudioWaveformLive(
             }
             .border(1.dp, Color.Gray),
     ) {
+        val canvasWidth = size.width
+        val canvasHeight = size.height
+
         val spikeWidthPx = with(density) { _spikeWidth.toPx() }
         val spikePaddingPx = with(density) { _spikePadding.toPx() }
         val spikeRadiusPx = with(density) { _spikeRadius.toPx() }
 
-        val canvasWidth = size.width
-        val canvasHeight = size.height
+        val totalWidth = maxColumn * (spikeWidthPx + spikePaddingPx) - spikePaddingPx
+
+        // Adjust spike width and padding to fit within the canvas width
+        val adjustedSpikeWidthPx = if (totalWidth > canvasWidth) {
+            (canvasWidth - (maxColumn - 1) * spikePaddingPx) / maxColumn
+        } else {
+            spikeWidthPx
+        }
 
         amplitudesLiveData.forEachIndexed { index, amplitude ->
-            val left = index * (spikeWidthPx + spikePaddingPx)
+            val left = index * (adjustedSpikeWidthPx + spikePaddingPx)
             val amplitudePercent = (amplitude.toFloat() / maxAmplitude).coerceIn(0f, 1f)
             val spikeHeight = amplitudePercent * canvasHeight
             val top = canvasHeight / 2f - spikeHeight / 2f
@@ -111,7 +122,7 @@ fun AudioWaveformLive(
             drawRoundRect(
                 brush = waveformBrush,
                 topLeft = Offset(x = left, y = top),
-                size = Size(spikeWidthPx, spikeHeight),
+                size = Size(adjustedSpikeWidthPx, spikeHeight),
                 cornerRadius = CornerRadius(spikeRadiusPx, spikeRadiusPx)
             )
         }

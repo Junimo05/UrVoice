@@ -4,6 +4,7 @@ import android.Manifest
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.pm.PackageManager
+import android.graphics.Bitmap
 import android.net.Uri
 import android.provider.OpenableColumns
 import android.util.Log
@@ -17,6 +18,7 @@ import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -32,9 +34,13 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -58,11 +64,14 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
@@ -73,13 +82,17 @@ import androidx.compose.ui.unit.sp
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.navigation.NavController
+import coil.compose.AsyncImage
 import com.example.urvoices.R
 import com.example.urvoices.app.host.MainActivity
 import com.example.urvoices.ui._component.TagInputField
 import com.example.urvoices.ui._component.waveform.AudioWaveformLive
 import com.example.urvoices.utils.Navigator.MainScreen
+import com.example.urvoices.utils.deleteOldImageFile
 import com.example.urvoices.utils.formatFileSize
 import com.example.urvoices.utils.formatToMinSecFromMillisec
+import com.example.urvoices.utils.generateUniqueFileName
+import com.example.urvoices.utils.getRealPathFromUri
 import com.example.urvoices.viewmodel.MediaPlayerVM
 import com.example.urvoices.viewmodel.MediaRecorderVM
 import com.example.urvoices.viewmodel.RecorderState
@@ -87,10 +100,21 @@ import com.example.urvoices.viewmodel.State.AppGlobalState
 import com.example.urvoices.viewmodel.UIEvents
 import com.example.urvoices.viewmodel.UploadState
 import com.example.urvoices.viewmodel.UploadViewModel
+import com.mr0xf00.easycrop.CropError
+import com.mr0xf00.easycrop.CropResult
+import com.mr0xf00.easycrop.CropState
+import com.mr0xf00.easycrop.crop
+import com.mr0xf00.easycrop.rememberImageCropper
+import com.mr0xf00.easycrop.rememberImagePicker
+import com.mr0xf00.easycrop.ui.ImageCropperDialog
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import linc.com.amplituda.Amplituda
+import linc.com.amplituda.callback.AmplitudaErrorListener
+import java.io.File
+import java.io.FileOutputStream
 
 @SuppressLint("UnrememberedMutableState")
 @Composable
@@ -100,6 +124,7 @@ fun UploadScreen(
     uploadViewModel: UploadViewModel,
     mediaRecorderVM: MediaRecorderVM
 ){
+    val TAG = "UploadScreen"
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
     //mediaRecorder VM
@@ -109,12 +134,48 @@ fun UploadScreen(
     val recordUri = rememberSaveable {
         mutableStateOf(Uri.EMPTY)
     }
+    val recordPath = rememberSaveable {
+        mutableStateOf("")
+    }
+    var imgUri by remember { mutableStateOf(Uri.EMPTY) }
+    fun clearData(){
+        recordUri.value = Uri.EMPTY
+        recordPath.value = ""
+        imgUri = Uri.EMPTY
+    }
+
+    val imageCropper = rememberImageCropper()
+    val cropState = imageCropper.cropState
+    val imagePicker = rememberImagePicker(onImage = { uri ->
+        scope.launch {
+            deleteOldImageFile(imgUri)
+            val result = imageCropper.crop(uri = uri, context = context)
+            when (result) {
+                CropResult.Cancelled -> {
+                    Log.d(TAG, "Crop Cancelled")
+                }
+                is CropResult.Success -> {
+                    val croppedBitmap = result.bitmap.asAndroidBitmap()
+                    val fileName = generateUniqueFileName()
+                    val file = File(context.cacheDir, fileName)
+                    FileOutputStream(file).use { out ->
+                        croppedBitmap.compress(Bitmap.CompressFormat.JPEG, 100, out)
+                    }
+                    imgUri = Uri.fromFile(file)
+                }
+                CropError.LoadingError -> {
+                    Toast.makeText(context, "Error loading image", Toast.LENGTH_SHORT).show()
+                }
+                CropError.SavingError -> {
+                    Toast.makeText(context, "Error saving image", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+    })
+
     val uploadState by uploadViewModel.uploadState.observeAsState()
     val recorderState by mediaRecorderVM.recorderState.collectAsState()
 
-    var snackbar by remember {
-        mutableStateOf(false)
-    }
     var showExitRecordingDialog by remember {
         mutableStateOf(false)
     }
@@ -135,8 +196,10 @@ fun UploadScreen(
             is RecorderState.Uploading -> {
                 // Update when done
                 val uri = mediaRecorderVM.getFileUri()
+                val path = mediaRecorderVM.getFilePath()
                 if (uri != Uri.EMPTY) {
                     recordUri.value = uri
+                    recordPath.value = path
                     // Switch to Upload
                     pagerState.animateScrollToPage(0)
                 }
@@ -149,12 +212,20 @@ fun UploadScreen(
     LaunchedEffect(uploadState){
         when(uploadState){
             is UploadState.Success -> {
-                // Show success message
-                snackbar = true
+                clearData()
+                uploadViewModel.showSnackBar(
+                    message = "Upload Success",
+                )
+                //reset
                 delay(3000)
-                snackbar = false
-                navController.navigate(MainScreen.UploadScreen.route)
+                uploadViewModel.hideSnackBar()
                 uploadViewModel.resetUploadState()
+            }
+            is UploadState.Loading -> {
+                uploadViewModel.hideSnackBar()
+                uploadViewModel.showSnackBar(
+                    message = "Uploading...",
+                )
             }
             is UploadState.Error -> {
                 // Show error message
@@ -225,8 +296,8 @@ fun UploadScreen(
     ) { paddingValues ->
         Box(
             modifier = Modifier
+                .padding(top = paddingValues.calculateTopPadding())
                 .fillMaxSize()
-                .padding(paddingValues)
         ) {
             HorizontalPager(
                 state = pagerState,
@@ -236,8 +307,14 @@ fun UploadScreen(
                     0 -> Upload(
                         navController = navController,
                         recordUri = recordUri,
+                        imgUri = imgUri,
+                        cropState = cropState,
+                        imagePicker = {
+                            imagePicker.pick(
+                                "image/*",
+                            )
+                        },
                         uploadViewModel = uploadViewModel,
-                        mediaRecorderVM = mediaRecorderVM,
                         playerViewModel = playerViewModel,
                         context = context
                     )
@@ -272,20 +349,6 @@ fun UploadScreen(
                 pagerState = pagerState,
                 modifier = Modifier.matchParentSize()
             )
-
-            if (snackbar) {
-                Snackbar(
-                    modifier = Modifier.align(Alignment.BottomCenter),
-                ) {
-                    Text("Upload success")
-                }
-            }
-
-            if (uploadState is UploadState.Loading) {
-                CircularProgressIndicator(
-                    modifier = Modifier.align(Alignment.Center)
-                )
-            }
         }
     }
 }
@@ -482,6 +545,7 @@ fun Record(
                     AudioWaveformLive(
                         amplitudesLiveData = mediaRecorderVM.amplitudesLive,
                         waveformBrush = SolidColor(MaterialTheme.colorScheme.onBackground),
+                        maxColumn = 100,
                         onProgressChange = {
 
                         }
@@ -550,18 +614,27 @@ fun Record(
                             if (ContextCompat.checkSelfPermission(context, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
                                 ActivityCompat.requestPermissions(activity, arrayOf(Manifest.permission.RECORD_AUDIO), REQUEST_RECORD_AUDIO_PERMISSION)
                             }
-                            if(recorderState is RecorderState.Idle){
-                                //check AppGlobalState if is Playing
-                                if(AppGlobalState.isPlaying.value){
-                                    playerViewModel.onUIEvents(
-                                        uiEvents = UIEvents.Stop
-                                    )
+                            when (recorderState) {
+                                is RecorderState.Idle -> {
+                                    //check AppGlobalState if is Playing
+                                    if(AppGlobalState.isPlaying.value){
+                                        playerViewModel.onUIEvents(
+                                            uiEvents = UIEvents.Stop
+                                        )
+                                    }
+                                    mediaRecorderVM.startRecording()
                                 }
-                                mediaRecorderVM.startRecording()
-                            } else if(recorderState is RecorderState.Recording){
-                                mediaRecorderVM.pauseRecording()
-                            } else if(recorderState is RecorderState.Paused){
-                                mediaRecorderVM.resumeRecording()
+
+                                is RecorderState.Recording -> {
+                                    mediaRecorderVM.pauseRecording()
+                                }
+
+                                is RecorderState.Paused -> {
+                                    mediaRecorderVM.resumeRecording()
+                                }
+
+                                is RecorderState.Error -> TODO()
+                                RecorderState.Uploading -> TODO()
                             }
                         }
                     )
@@ -623,23 +696,55 @@ fun RecordIcon(
 }
 
 
-@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
+@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter", "UnrememberedMutableState")
 @Composable
 fun Upload(
     navController: NavController,
     recordUri: MutableState<Uri>,
+    cropState: CropState?,
+    imgUri: Uri,
+    imagePicker: () -> Unit,
     uploadViewModel: UploadViewModel,
-    mediaRecorderVM: MediaRecorderVM,
     playerViewModel: MediaPlayerVM,
     context: Context
 ){
+
     var audioUri by rememberSaveable { mutableStateOf<Uri?>(recordUri.value) }
     var audioName by rememberSaveable { mutableStateOf<String>("") }
     var audioDes by rememberSaveable { mutableStateOf<String>("") }
     var audioSize by rememberSaveable { mutableStateOf<Long?>(null) }
     var tag by rememberSaveable { mutableStateOf<List<String>>(emptyList()) }
 
-    var uploadState = uploadViewModel.uploadState.observeAsState()
+
+    val scrollState = rememberScrollState()
+    val uploadState by uploadViewModel.uploadState.observeAsState()
+    var showDialogCancel by remember { mutableStateOf(false) }
+
+    LaunchedEffect(uploadState) {
+        when (uploadState) {
+            is UploadState.Success -> {
+                // Reset Upload Screen
+
+            }
+            is UploadState.Loading -> {
+                //show loading on screen
+            }
+            is UploadState.Error -> {
+                // Show error message
+                Toast.makeText(context, "Upload failed", Toast.LENGTH_SHORT).show()
+                uploadViewModel.resetUploadState()
+            }
+            else -> {}
+        }
+    }
+
+    fun reset(){
+        audioUri = null
+        audioName = ""
+        audioDes = ""
+        audioSize = null
+        tag = emptyList()
+    }
 
     LaunchedEffect(recordUri.value) {
         if (recordUri.value != Uri.EMPTY) {
@@ -664,10 +769,6 @@ fun Upload(
         }
     }
 
-    LaunchedEffect(Unit) {
-        Log.e("UploadScreen", "UploadScreen: ${audioUri}")
-    }
-
     val launcher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
@@ -686,109 +787,186 @@ fun Upload(
         }
     }
 
-    Scaffold(
-        content = { it ->
-            Column(
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(scrollState)
+        ,
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        if(cropState != null){
+            ImageCropperDialog(state = cropState)
+        }
+        if (audioUri == null || imgUri == Uri.EMPTY) {
+            IconButton(
+                onClick = {
+                    if (audioUri == null) {
+                        launcher.launch("audio/*")
+                    } else {
+                        imagePicker()
+                    }
+                },
                 modifier = Modifier
-                    .padding(it)
-                    .fillMaxSize()
-                ,
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
+                    .size(200.dp)
+                    .border(
+                        2.dp,
+                        MaterialTheme.colorScheme.surfaceVariant,
+                        MaterialTheme.shapes.small
+                    )
             ) {
-                IconButton(onClick = {
+                Icon(
+                    painter = painterResource(
+                        id = if (audioUri == null) {
+                            R.drawable.add_music_multimedia_svgrepo_com
+                        } else {
+                            R.drawable.add_photo_svgrepo_com
+                        }
+                    ),
+                    contentDescription = "Upload",
+                    tint = MaterialTheme.colorScheme.onBackground
+                )
+            }
+        } else if(imgUri != Uri.EMPTY) {
+            Column(
+                modifier = Modifier,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                AsyncImage(
+                    model = imgUri,
+                    contentDescription = "Avatar",
+                    placeholder = painterResource(id = R.drawable.person),
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier
+                        .size(80.dp)
+                        .clip(RoundedCornerShape(8.dp))
+                        .border(2.dp, Color.Black, RoundedCornerShape(8.dp))
+                        .clickable {
+                            imagePicker()
+                        }
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = "Click to choose another image",
+                    style = TextStyle(
+                        color = MaterialTheme.colorScheme.onBackground,
+                        fontSize = 16.sp
+                    )
+                )
+                HorizontalDivider(Modifier.fillMaxWidth())
+            }
+        }
+
+        if (audioUri != null) {
+            Button(
+                onClick = {
                     launcher.launch("audio/*")
                 },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp)
+            ) {
+                Text("Change File")
+            }
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+        audioUri?.let {
+            if(audioUri != Uri.EMPTY){
+                Column(
                     modifier = Modifier
-                        .size(200.dp)
-                        .border(
-                            2.dp,
-                            MaterialTheme.colorScheme.surfaceVariant,
-                            MaterialTheme.shapes.small
-                        )
+                        .fillMaxWidth()
+                        .padding(16.dp)
                 ) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.add_audio),
-                        contentDescription = "Upload",
-                        tint = MaterialTheme.colorScheme.onBackground
+                    audioName.let { name ->
+                        TextField(
+                            value = name,
+                            onValueChange = { audioName = it },
+                            label = { Text("Urvoice's Name") },
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    TextField(
+                        value = audioSize?.let { size -> formatFileSize(size) } ?: "Unknown",
+                        onValueChange = { /* Handle text change */},
+                        label = { Text("UrVoice's Size") },
+                        readOnly = true,
+                        modifier = Modifier.fillMaxWidth()
                     )
-                }
+                    Spacer(modifier = Modifier.height(8.dp))
 
-                Spacer(modifier = Modifier.height(16.dp))
+                    TextField(
+                        value = audioDes,
+                        onValueChange = { audioDes = it },
+                        label = { Text("About this urvoice") },
+                        minLines = 3,
+                        modifier = Modifier.fillMaxWidth()
+                    )
 
-                audioUri?.let {
-                    if(audioUri != Uri.EMPTY){
-                        Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(16.dp)
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    TagInputField(
+                        value = tag,
+                        onValueChange = {tag = it},
+                        modifier = Modifier.fillMaxWidth()
+                    )
+
+                    Row(
+                        modifier = Modifier.align(Alignment.CenterHorizontally),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ){
+                        Button(
+                            onClick = {
+                                CoroutineScope(Dispatchers.Main).launch {
+                                    uploadViewModel.createPost(audioUri!!, imgUri ,audioName , audioDes, tag)
+                                }
+                            },
                         ) {
-                            audioName.let { name ->
-                                TextField(
-                                    value = name,
-                                    onValueChange = { audioName = it },
-                                    label = { Text("Urvoice's Name") },
-                                    modifier = Modifier.fillMaxWidth()
-                                )
-                            }
+                            Text("Upload")
+                        }
+                        Button(
+                            onClick = {
+                                showDialogCancel = true
+                            },
+                        ) {
+                            Text("Cancel")
+                        }
 
-                            Spacer(modifier = Modifier.height(8.dp))
-
-                            TextField(
-                                value = audioSize?.let { size -> formatFileSize(size) } ?: "Unknown",
-                                onValueChange = { /* Handle text change */},
-                                label = { Text("UrVoice's Size") },
-                                readOnly = true,
-                                modifier = Modifier.fillMaxWidth()
-                            )
-                            Spacer(modifier = Modifier.height(8.dp))
-
-                            TextField(
-                                value = audioDes,
-                                onValueChange = { audioDes = it },
-                                label = { Text("About this urvoice") },
-                                minLines = 3,
-                                modifier = Modifier.fillMaxWidth()
-                            )
-
-                            Spacer(modifier = Modifier.height(16.dp))
-
-                            TagInputField(
-                                value = tag,
-                                onValueChange = {tag = it},
-                                modifier = Modifier.fillMaxWidth()
-                            )
-
-                            Row(
-                                modifier = Modifier.align(Alignment.CenterHorizontally),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically
-                            ){
-                                Button(
-                                    onClick = {
-                                        CoroutineScope(Dispatchers.Main).launch {
-                                            uploadViewModel.createPost(audioUri!!, audioName , audioDes, tag)
+                        if(showDialogCancel){
+                            AlertDialog(
+                                onDismissRequest = { showDialogCancel = false},
+                                title = { Text("Warning") },
+                                text = { Text("Are you sure you want to cancel? All data will be lost.") },
+                                confirmButton = {
+                                    Button(
+                                        onClick = {
+                                            audioUri = null
+                                            audioName = ""
+                                            audioDes = ""
+                                            audioSize = null
+                                            tag = emptyList()
+                                            showDialogCancel = false
                                         }
-                                    },
-                                ) {
-                                    Text("Upload")
+                                    ) {
+                                        Text("Confirm")
+                                    }
+                                },
+                                dismissButton = {
+                                    Button(
+                                        onClick = { showDialogCancel = false}
+                                    ) {
+                                        Text("Dismiss")
+                                    }
                                 }
-                                Button(
-                                    onClick = {
-                                        audioUri = null
-                                        audioName = ""
-                                        audioDes = ""
-                                        audioSize = null
-                                        tag = emptyList()
-                                    },
-                                ) {
-                                    Text("Cancel")
-                                }
-                            }
+                            )
                         }
                     }
                 }
             }
         }
-    )
+    }
 }

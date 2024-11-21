@@ -1,7 +1,9 @@
 package com.example.urvoices.data
 
 import android.content.Context
+import android.net.Uri
 import android.util.Log
+import com.example.urvoices.utils.getRealPathFromUri
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -47,6 +49,27 @@ class AudioManager @Inject constructor(
         } finally {
             // Delete file from cache
             cacheFile.delete()
+        }
+    }
+
+    suspend fun getAmplitudes(uri: Uri): List<Int> = withContext(Dispatchers.IO) {
+        //get File from Local Storage in app
+        try {
+            // Process audio file
+            return@withContext amplituda.processAudio(
+                getRealPathFromUri(context, uri),
+                Compress.withParams(Compress.AVERAGE, 2)
+            )
+                .get(
+                    AmplitudaErrorListener {
+                        it.printStackTrace()
+                        Log.e("AudioManager", "Error: ${it.message}")
+                    }
+                )
+                .amplitudesAsList()
+        } catch (e: Exception) {
+            e.printStackTrace()
+            return@withContext emptyList<Int>()
         }
     }
 

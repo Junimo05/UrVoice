@@ -39,7 +39,7 @@ class InteractionViewModel @Inject constructor(
 
 
     //STATE
-    private val _uiState: MutableStateFlow<InteractionRowState> = MutableStateFlow(InteractionRowState.Initial)
+    private val _uiState = MutableStateFlow<InteractionRowState>(InteractionRowState.Initial)
     val uiState: StateFlow<InteractionRowState> = _uiState.asStateFlow()
 
     //DATA STATE
@@ -63,10 +63,10 @@ class InteractionViewModel @Inject constructor(
         }
     }
 
-    fun getBlockStatus(targetUserID: String, callback: (Boolean) -> Unit){
+    fun getBlockStatus(targetUserID: String, callback: (String) -> Unit){
         try {
             viewModelScope.launch {
-                val result = blockRepository.getBlockStatus(
+                val result = blockRepository.getBlockStatusFromFirebase(
                     targetID = targetUserID,
                 )
                 callback(result)

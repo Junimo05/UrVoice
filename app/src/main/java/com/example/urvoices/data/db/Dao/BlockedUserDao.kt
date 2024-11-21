@@ -1,5 +1,6 @@
 package com.example.urvoices.data.db.Dao
 
+import androidx.paging.PagingSource
 import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
@@ -18,5 +19,8 @@ interface BlockedUserDao {
     suspend fun deleteAll()
 
     @Query("SELECT * FROM blocked_users")
-    suspend fun getAllBlockedUsers(): List<BlockedUser>
+    fun getAllBlockedUsers(): PagingSource<Int, BlockedUser>
+
+    @Query("SELECT * FROM blocked_users WHERE userID = :userID")
+    suspend fun getBlockedUser(userID: String): BlockedUser?
 }

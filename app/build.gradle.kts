@@ -163,6 +163,7 @@ dependencies {
     implementation(libs.firebase.firestore)
     implementation("com.facebook.android:facebook-login:latest.release")
     implementation(libs.firebase.storage)
+    implementation("com.google.firebase:firebase-dynamic-links")
 
     //Aglolia
     implementation("com.algolia:instantsearch-android:3.+")
@@ -194,7 +195,7 @@ dependencies {
     implementation("io.coil-kt:coil-compose:2.7.0")
 
     //androidx.work
-    val work_version = "2.7.0-alpha02"
+    val work_version = "2.7.1"
     implementation("androidx.work:work-runtime-ktx:$work_version")
 }
 

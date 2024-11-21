@@ -2,7 +2,9 @@ package com.example.urvoices.app.host
 
 import android.Manifest
 import android.annotation.SuppressLint
+import android.content.Intent
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -52,6 +54,21 @@ class MainActivity : ComponentActivity() {
             TheVoicesApp {
                 finish()
             }
+        }
+        handleDeeplink(intent)
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        handleDeeplink(intent)
+    }
+
+    private fun handleDeeplink(intent: Intent){
+        val data: Uri? = intent.data
+        if (data != null) {
+            // Xử lý dữ liệu từ deeplink
+            val pathSegment = data.pathSegments
+            // Thực hiện điều gì đó với pathSegment
         }
     }
 }
