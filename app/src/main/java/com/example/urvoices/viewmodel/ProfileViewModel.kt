@@ -91,7 +91,7 @@ class ProfileViewModel @Inject constructor(
     @OptIn(SavedStateHandleSaveableApi::class)
     var isBlocked by savedStateHandle.saveable { mutableStateOf(false) }
     @OptIn(SavedStateHandleSaveableApi::class)
-    var blockMessage by savedStateHandle.saveable { mutableStateOf("") }
+    var blockInfo by savedStateHandle.saveable { mutableStateOf("") }
 
     private var userListenerRegistration: ListenerRegistration? = null
 
@@ -221,7 +221,6 @@ class ProfileViewModel @Inject constructor(
         username: String,
         bio: String,
         country: String,
-        email: String,
         avatarUri: Uri = Uri.EMPTY,
     ): Boolean {
         _uiState.value = ProfileState.Working
@@ -229,7 +228,7 @@ class ProfileViewModel @Inject constructor(
 
         return withContext(Dispatchers.IO) {
             try {
-                val result = userRepository.updateUser(username, bio, country, email, avatarUri, oldUser)
+                val result = userRepository.updateUser(username, bio, country, avatarUri, oldUser)
                 if (result) {
                     _uiState.value = ProfileState.Successful
                     // Update user data
@@ -237,7 +236,6 @@ class ProfileViewModel @Inject constructor(
                         username = username,
                         bio = bio,
                         country = country,
-                        email = email,
                     )
                     true
                 } else {
@@ -344,13 +342,13 @@ class ProfileViewModel @Inject constructor(
             val result = blockRepository.getBlockStatusFromFirebase(userID) //local get
             if (result == FirebaseBlockService.BlockInfo.BLOCK) {
                 isBlocked = true
-                blockMessage = "You have blocked this user"
+                blockInfo = result
             } else if (result == FirebaseBlockService.BlockInfo.BLOCKED) {
                 isBlocked = true
-                blockMessage = "This user has blocked you"
+                blockInfo = result
             } else {
                 isBlocked = false
-                blockMessage = ""
+                blockInfo = result
             }
         } catch (e: Exception) {
             _uiState.value = ProfileState.Error("Error when loading user privacy")

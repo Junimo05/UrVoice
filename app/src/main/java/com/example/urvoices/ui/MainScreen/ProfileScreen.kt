@@ -62,6 +62,7 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.example.urvoices.R
 import com.example.urvoices.data.model.User
+import com.example.urvoices.data.service.FirebaseBlockService
 import com.example.urvoices.ui._component.FullScreenDialog
 import com.example.urvoices.ui._component.MoreAction.DropDownMenu
 import com.example.urvoices.ui._component.MoreAction.UserAction
@@ -92,12 +93,14 @@ fun ProfileScreen(
 
     //interactionVM init
     val interactionViewModel = hiltViewModel<InteractionViewModel>()
+    val isBlock by lazy { mutableStateOf(profileViewModel.isBlocked)}
+    val blockInfo by lazy { mutableStateOf(profileViewModel.blockInfo)}
 
     //State & Data
     val uiState = profileViewModel.uiState.collectAsState()
     val postList = profileViewModel.posts.collectAsLazyPagingItems()
     val savedPostsList = profileViewModel.savedPosts.collectAsLazyPagingItems()
-    var dropDownMenu = remember {
+    val dropDownMenu = remember {
         mutableStateOf(false)
     }
     val whereIamShowState = remember {
@@ -109,6 +112,7 @@ fun ProfileScreen(
 
     val shareLoving by lazy { mutableStateOf(profileViewModel.shareLoving)}
     val isPrivate by lazy { mutableStateOf(profileViewModel.isPrivate)}
+
 
     var tab by rememberSaveable {
         mutableIntStateOf(0)
@@ -183,10 +187,12 @@ fun ProfileScreen(
                                     val result = interactionViewModel.unblockUser(userId)
                                     Toast.makeText(context, result, Toast.LENGTH_SHORT).show()
                                     profileViewModel.isBlocked = false
+                                    navController.navigate("profile/$userId")
                                 } else {
                                     val result = interactionViewModel.blockUser(userId)
                                     Toast.makeText(context, result, Toast.LENGTH_SHORT).show()
                                     profileViewModel.isBlocked = true
+                                    navController.navigate("profile/$userId")
                                 }
                                 dropDownMenu.value = false
                             }
@@ -223,123 +229,81 @@ fun ProfileScreen(
                 },
             )
             Spacer(modifier = Modifier.height(4.dp))
-            //TODO: isBlock check
-            if(!isPrivate.value || isUser.value){
-                //Posts/Playlist
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Column(
-                        modifier = Modifier
-                            .clickable {
-                                tab = 0
-                            }
+            if(!isBlock.value){
+                if(!isPrivate.value || isUser.value){
+                    //Posts/Playlist
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text(
-                            text = "Posts",
-                            style = TextStyle(
-                                fontWeight = FontWeight.Normal,
-                                fontSize = 16.sp
-                            ),
-                            modifier = Modifier.align(Alignment.CenterHorizontally)
-                        )
-                        Spacer(modifier = Modifier
-                            .height(4.dp)
-                            .fillMaxWidth(fraction = 0.5f)
-                            .background(if (tab == 0) MaterialTheme.colorScheme.primary else Color.Transparent)
-                        )
-                    }
-                    Column(
-                        modifier = Modifier
-                            .clickable {
-                                tab = 1
-                            }
-                    ) {
-                        Text(
-                            text = "Urvoice Loving",
-                            style = TextStyle(
-                                fontWeight = FontWeight.Normal,
-                                fontSize = 16.sp
-                            ),
-                            modifier = Modifier.align(Alignment.CenterHorizontally)
-                        )
-                        Spacer(modifier = Modifier
-                            .height(4.dp)
-                            .fillMaxWidth()
-                            .background(if (tab == 1) MaterialTheme.colorScheme.primary else Color.Transparent)
-                        )
-                    }
-                }
-                Spacer(modifier = Modifier.height(8.dp))
-                // Grid of Loving
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                ){
-                    if(tab == 0) {
-                        LazyColumn(
-                            modifier = Modifier.fillMaxSize(),
-                            userScrollEnabled = true,
-                            verticalArrangement = Arrangement.spacedBy(8.dp),
-
-                            ) {
-                            items(postList.itemCount) { index ->
-                                ProfilePostItem(
-                                    navController = navController,
-                                    post = postList[index]!!,
-                                    user = user,
-                                    playerViewModel = playerViewModel,
-                                    interactionViewModel = interactionViewModel
-                                )
-//                            Log.e(TAG, "PostItem: ${postList[index]!!.ID} && ${postList[index]!!.amplitudes}")
-                            }
-
-                            postList.apply {
-                                when {
-                                    loadState.refresh is LoadState.Loading -> {
-                                        item {
-                                            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
-                                                CircularProgressIndicator()
-                                            }
-                                        }
-                                    }
-                                    loadState.append is LoadState.Loading -> {
-                                        item {
-                                            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
-                                                CircularProgressIndicator()
-                                            }
-                                        }
-                                    }
-                                    loadState.refresh is LoadState.Error -> {
-                                        val e = postList.loadState.refresh as LoadState.Error
-                                        item { Text(text = e.error.localizedMessage ?: "Unknown Error") }
-                                    }
-                                    loadState.append is LoadState.Error -> {
-                                        val e = postList.loadState.append as LoadState.Error
-                                        item { Text(text = e.error.localizedMessage ?: "Unknown Error") }
-                                    }
+                        Column(
+                            modifier = Modifier
+                                .clickable {
+                                    tab = 0
                                 }
-                            }
+                        ) {
+                            Text(
+                                text = "Posts",
+                                style = TextStyle(
+                                    fontWeight = FontWeight.Normal,
+                                    fontSize = 16.sp
+                                ),
+                                modifier = Modifier.align(Alignment.CenterHorizontally)
+                            )
+                            Spacer(modifier = Modifier
+                                .height(4.dp)
+                                .fillMaxWidth(fraction = 0.5f)
+                                .background(if (tab == 0) MaterialTheme.colorScheme.primary else Color.Transparent)
+                            )
                         }
-                    } else {
-                        if(shareLoving.value || isUser.value){
-                            LazyVerticalGrid(
-                                columns = GridCells.Fixed(3),
+                        Column(
+                            modifier = Modifier
+                                .clickable {
+                                    tab = 1
+                                }
+                        ) {
+                            Text(
+                                text = "Urvoice Loving",
+                                style = TextStyle(
+                                    fontWeight = FontWeight.Normal,
+                                    fontSize = 16.sp
+                                ),
+                                modifier = Modifier.align(Alignment.CenterHorizontally)
+                            )
+                            Spacer(modifier = Modifier
+                                .height(4.dp)
+                                .fillMaxWidth()
+                                .background(if (tab == 1) MaterialTheme.colorScheme.primary else Color.Transparent)
+                            )
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(8.dp))
+                    // Grid of Loving
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                    ){
+                        if(tab == 0) {
+                            LazyColumn(
+                                modifier = Modifier.fillMaxSize(),
                                 userScrollEnabled = true,
                                 verticalArrangement = Arrangement.spacedBy(8.dp),
-                                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                            ) {
-                                items(savedPostsList.itemCount) { index ->
-                                    SavedItems(
+
+                                ) {
+                                items(postList.itemCount) { index ->
+                                    ProfilePostItem(
                                         navController = navController,
-                                        post = savedPostsList[index]!!,
-                                        playerVM = playerViewModel,
-                                        profileVM = profileViewModel
+                                        post = postList[index]!!,
+                                        user = user,
+                                        playerViewModel = playerViewModel,
+                                        interactionViewModel = interactionViewModel,
+                                        isBlock = isBlock,
+                                        blockInfo = blockInfo
                                     )
+//                            Log.e(TAG, "PostItem: ${postList[index]!!.ID} && ${postList[index]!!.amplitudes}")
                                 }
 
-                                savedPostsList.apply {
+                                postList.apply {
                                     when {
                                         loadState.refresh is LoadState.Loading -> {
                                             item {
@@ -356,30 +320,88 @@ fun ProfileScreen(
                                             }
                                         }
                                         loadState.refresh is LoadState.Error -> {
-                                            val e = savedPostsList.loadState.refresh as LoadState.Error
+                                            val e = postList.loadState.refresh as LoadState.Error
                                             item { Text(text = e.error.localizedMessage ?: "Unknown Error") }
                                         }
                                         loadState.append is LoadState.Error -> {
-                                            val e = savedPostsList.loadState.append as LoadState.Error
+                                            val e = postList.loadState.append as LoadState.Error
                                             item { Text(text = e.error.localizedMessage ?: "Unknown Error") }
                                         }
                                     }
                                 }
                             }
                         } else {
-                            Box(
-                                modifier = Modifier.fillMaxSize(),
-                                contentAlignment = Alignment.Center
-                            ){
-                                Text(
-                                    text = "This user has not shared any Urvoice Loving",
-                                    style = TextStyle(
-                                        fontWeight = FontWeight.Bold,
-                                        fontSize = 18.sp
+                            if(shareLoving.value || isUser.value){
+                                LazyVerticalGrid(
+                                    columns = GridCells.Fixed(3),
+                                    userScrollEnabled = true,
+                                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                ) {
+                                    items(savedPostsList.itemCount) { index ->
+                                        SavedItems(
+                                            navController = navController,
+                                            post = savedPostsList[index]!!,
+                                            playerVM = playerViewModel,
+                                            profileVM = profileViewModel
+                                        )
+                                    }
+
+                                    savedPostsList.apply {
+                                        when {
+                                            loadState.refresh is LoadState.Loading -> {
+                                                item {
+                                                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
+                                                        CircularProgressIndicator()
+                                                    }
+                                                }
+                                            }
+                                            loadState.append is LoadState.Loading -> {
+                                                item {
+                                                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
+                                                        CircularProgressIndicator()
+                                                    }
+                                                }
+                                            }
+                                            loadState.refresh is LoadState.Error -> {
+                                                val e = savedPostsList.loadState.refresh as LoadState.Error
+                                                item { Text(text = e.error.localizedMessage ?: "Unknown Error") }
+                                            }
+                                            loadState.append is LoadState.Error -> {
+                                                val e = savedPostsList.loadState.append as LoadState.Error
+                                                item { Text(text = e.error.localizedMessage ?: "Unknown Error") }
+                                            }
+                                        }
+                                    }
+                                }
+                            } else {
+                                Box(
+                                    modifier = Modifier.fillMaxSize(),
+                                    contentAlignment = Alignment.Center
+                                ){
+                                    Text(
+                                        text = "This user has not shared any Urvoice Loving",
+                                        style = TextStyle(
+                                            fontWeight = FontWeight.Bold,
+                                            fontSize = 18.sp
+                                        )
                                     )
-                                )
+                                }
                             }
                         }
+                    }
+                } else {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = "This user has a private account. Follow to see their posts",
+                            style = TextStyle(
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 18.sp
+                            )
+                        )
                     }
                 }
             } else {
@@ -388,7 +410,7 @@ fun ProfileScreen(
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = "This user has a private account. Follow to see their posts",
+                        text = if (blockInfo.value == FirebaseBlockService.BlockInfo.BLOCKED) "This user has blocked you" else "This user has been blocked by you",
                         style = TextStyle(
                             fontWeight = FontWeight.Bold,
                             fontSize = 18.sp
@@ -433,7 +455,7 @@ fun UserInfo(
         if(user.ID.isNotEmpty()){
             Column(
                 modifier = Modifier
-                    .fillMaxWidth(0.4f)
+                    .fillMaxWidth(if(!isBlock) 0.4f else 1f)
                     .fillMaxHeight()
                     .padding(10.dp),
                 verticalArrangement = Arrangement.Center,
@@ -469,30 +491,31 @@ fun UserInfo(
                         fontSize = 12.sp
                     ),
                 )
-                //TODO: isBlock check
                 Spacer(modifier = Modifier.height(8.dp))
-                Row(
-                    modifier = Modifier
-                        .background(MaterialTheme.colorScheme.inverseSurface)
-                        .size(128.dp, 32.dp)
-                        .padding(4.dp)
-                        .clickable {
-                            whereIamShowState.value = !whereIamShowState.value
-                        },
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.Center
-                ) {
-                    Text(
-                        //Link tag
-                        text = user.country,
-                        style = TextStyle(
-                            fontWeight = FontWeight.Normal,
-                            fontSize = 14.sp,
-                            color = MaterialTheme.colorScheme.inverseOnSurface
-                        ),
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
+                if(!isBlock){
+                    Row(
+                        modifier = Modifier
+                            .background(MaterialTheme.colorScheme.inverseSurface)
+                            .size(128.dp, 32.dp)
+                            .padding(4.dp)
+                            .clickable {
+                                whereIamShowState.value = !whereIamShowState.value
+                            },
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Center
+                    ) {
+                        Text(
+                            //Link tag
+                            text = user.country,
+                            style = TextStyle(
+                                fontWeight = FontWeight.Normal,
+                                fontSize = 14.sp,
+                                color = MaterialTheme.colorScheme.inverseOnSurface
+                            ),
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    }
                 }
                 if(whereIamShowState.value){
                     FullScreenDialog(
@@ -504,130 +527,131 @@ fun UserInfo(
                 }
             }
         }
-        //TODO: isBlock check
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(4.dp)
-                .padding(top = 10.dp, end = 10.dp, bottom = 10.dp, start = 0.dp),
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Row(
+        if(!isBlock){
+            Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(start = 20.dp, end = 20.dp),
-                horizontalArrangement = Arrangement.SpaceBetween
+                    .padding(4.dp)
+                    .padding(top = 10.dp, end = 10.dp, bottom = 10.dp, start = 0.dp),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                infoList.forEach { (title, count) ->
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        Text(
-                            text = count.toString(),
-                            style = TextStyle(
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 16.sp
-                            ),
-                        )
-                        Text(
-                            text = title,
-                            style = TextStyle(
-                                fontWeight = FontWeight.Light,
-                                fontSize = 12.sp
-                            ),
-                        )
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(start = 20.dp, end = 20.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    infoList.forEach { (title, count) ->
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Text(
+                                text = count.toString(),
+                                style = TextStyle(
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 16.sp
+                                ),
+                            )
+                            Text(
+                                text = title,
+                                style = TextStyle(
+                                    fontWeight = FontWeight.Light,
+                                    fontSize = 12.sp
+                                ),
+                            )
+                        }
                     }
                 }
-            }
-            Spacer(modifier = Modifier.height(8.dp))
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .fillMaxHeight(0.65f)
-                ,
-            ){
-                Text(
-                    text = user.bio,
-                    style = TextStyle(
-                        fontWeight = FontWeight.Normal,
-                        fontSize = 14.sp
-                    ),
-                    modifier = Modifier.padding(15.dp),
-                    overflow = TextOverflow.Ellipsis
-                )
-            }
-            Spacer(modifier = Modifier.height(8.dp))
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceAround
-            ) {
-                if(isUser.value) {
-                    Card(
-                        modifier = Modifier
-                            .padding(4.dp)
-                            .border(1.dp, MaterialTheme.colorScheme.primary, CircleShape)
-                            .clickable {
-                                navController.navigate(MainScreen.ProfileScreen.EditProfileScreen.route)
-                            }
-                    ) {
-                        Text(
-                            text = "Edit Profile",
-                            style = TextStyle(
-                                fontWeight = FontWeight.Normal,
-                                fontSize = 14.sp
-                            ),
+                Spacer(modifier = Modifier.height(8.dp))
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .fillMaxHeight(0.65f)
+                    ,
+                ){
+                    Text(
+                        text = user.bio,
+                        style = TextStyle(
+                            fontWeight = FontWeight.Normal,
+                            fontSize = 14.sp
+                        ),
+                        modifier = Modifier.padding(15.dp),
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
+                Spacer(modifier = Modifier.height(8.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceAround
+                ) {
+                    if(isUser.value) {
+                        Card(
                             modifier = Modifier
-                                .padding(8.dp)
-                                .align(Alignment.CenterHorizontally)
-                        )
-                    }
-                } else {
-                    Card(
-                        modifier = Modifier
-                            .width(100.dp)
-                            .padding(4.dp)
-                            .border(1.dp, MaterialTheme.colorScheme.primary, CircleShape)
-                            .clickable {
-                                followAction()
-                            },
-                        colors = CardDefaults.cardColors(
-                            containerColor = if (followStatus) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surface
-                        )
+                                .padding(4.dp)
+                                .border(1.dp, MaterialTheme.colorScheme.primary, CircleShape)
+                                .clickable {
+                                    navController.navigate(MainScreen.ProfileScreen.EditProfileScreen.route)
+                                }
+                        ) {
+                            Text(
+                                text = "Edit Profile",
+                                style = TextStyle(
+                                    fontWeight = FontWeight.Normal,
+                                    fontSize = 14.sp
+                                ),
+                                modifier = Modifier
+                                    .padding(8.dp)
+                                    .align(Alignment.CenterHorizontally)
+                            )
+                        }
+                    } else {
+                        Card(
+                            modifier = Modifier
+                                .width(100.dp)
+                                .padding(4.dp)
+                                .border(1.dp, MaterialTheme.colorScheme.primary, CircleShape)
+                                .clickable {
+                                    followAction()
+                                },
+                            colors = CardDefaults.cardColors(
+                                containerColor = if (followStatus) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surface
+                            )
 
-                    ) {
-                        Text(
-                            text = if (followStatus) "Following" else "Follow",
-                            style = TextStyle(
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 14.sp,
-                                color = if (followStatus) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface
-                            ),
-                            modifier = Modifier
-                                .padding(8.dp)
-                                .align(Alignment.CenterHorizontally)
-                        )
+                        ) {
+                            Text(
+                                text = if (followStatus) "Following" else "Follow",
+                                style = TextStyle(
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 14.sp,
+                                    color = if (followStatus) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface
+                                ),
+                                modifier = Modifier
+                                    .padding(8.dp)
+                                    .align(Alignment.CenterHorizontally)
+                            )
+                        }
+                        /*                    Card(
+												modifier = Modifier
+													.width(100.dp)
+													.padding(4.dp)
+													.border(1.dp, MaterialTheme.colorScheme.primary, CircleShape)
+													.clickable {
+														//TODO: Message
+													}
+											) {
+												Text(
+													text = "Message",
+													style = TextStyle(
+														fontWeight = FontWeight.Bold,
+														fontSize = 14.sp
+													),
+													modifier = Modifier
+														.padding(8.dp)
+														.align(Alignment.CenterHorizontally)
+												)
+											}*/
                     }
-/*                    Card(
-                        modifier = Modifier
-                            .width(100.dp)
-                            .padding(4.dp)
-                            .border(1.dp, MaterialTheme.colorScheme.primary, CircleShape)
-                            .clickable {
-                                //TODO: Message
-                            }
-                    ) {
-                        Text(
-                            text = "Message",
-                            style = TextStyle(
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 14.sp
-                            ),
-                            modifier = Modifier
-                                .padding(8.dp)
-                                .align(Alignment.CenterHorizontally)
-                        )
-                    }*/
                 }
             }
         }

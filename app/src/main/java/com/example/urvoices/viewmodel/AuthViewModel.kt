@@ -1,5 +1,6 @@
 package com.example.urvoices.viewmodel
 
+import android.content.Context
 import android.util.Log
 import android.widget.Toast
 import androidx.credentials.Credential
@@ -13,25 +14,25 @@ import com.example.urvoices.utils.UserPreferences
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential.Companion.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL
 import com.google.firebase.auth.AuthCredential
+import com.google.firebase.auth.EmailAuthProvider
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseAuthInvalidUserException
 import com.google.firebase.auth.GoogleAuthProvider
 import com.google.firebase.firestore.FirebaseFirestore
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 
 @HiltViewModel
 class AuthViewModel @Inject constructor(
+    @ApplicationContext private val context: Context,
     private val sharedPreferences: SharedPreferencesHelper,
     private val firestore: FirebaseFirestore,
     private val userDataStore: UserPreferences,
     private val auth: FirebaseAuth
 ): ViewModel(){
-    private val scope = CoroutineScope(Dispatchers.Main)
 
     private val _authState = MutableLiveData<AuthState>()
     val authState: LiveData<AuthState> = _authState
@@ -39,10 +40,19 @@ class AuthViewModel @Inject constructor(
     private val _signUpState = MutableLiveData<SignupState>()
     val signUpState: LiveData<SignupState> = _signUpState
 
-    val emailVerificationStatus = MutableLiveData<Boolean?>()
+    val emailVerificationStatus = MutableLiveData<Boolean?>(null)
+    val emailSent = MutableLiveData<Boolean?>(null)
+
+
 
     init {
         checkStatus()
+    }
+
+
+    fun resetEmailState(){
+        emailVerificationStatus.value = null
+        emailSent.value = null
     }
 
     fun getCurrentUser() = auth.currentUser
@@ -85,7 +95,7 @@ class AuthViewModel @Inject constructor(
                             }
                         }
                     }
-                }else{
+                } else {
                     _authState.value = AuthState.Error("Email or Password is incorrect")
                 }
             }
@@ -94,8 +104,13 @@ class AuthViewModel @Inject constructor(
             }
     }
 
-    fun signUpEmailPassword(email: String, password: String){
+    fun signUpEmailPassword(email: String, password: String, retypePassword: String){
         _signUpState.value = SignupState.Loading
+        if(password != retypePassword){
+            Toast.makeText(context, "Password and retype password are not the same", Toast.LENGTH_SHORT).show()
+            _signUpState.value = SignupState.Error("Password and retype password are not the same")
+            return
+        }
         auth.createUserWithEmailAndPassword(email, password)
             .addOnCompleteListener { task ->
                 if(task.isSuccessful){
@@ -111,7 +126,7 @@ class AuthViewModel @Inject constructor(
             }
     }
 
-    fun createInfo(username: String){
+    fun createInfoAfterVerify(username: String){
         val user = auth.currentUser
         _signUpState.value = SignupState.Loading
         if(user != null){
@@ -128,7 +143,6 @@ class AuthViewModel @Inject constructor(
             )).addOnCompleteListener {
                 if(it.isSuccessful){
                     _signUpState.value = SignupState.Complete
-                    _authState.value = AuthState.Authenticated
                 }else{
                     _authState.value = AuthState.Error("Cannot create user info")
                     deleteAccountWhenSignError()
@@ -157,13 +171,35 @@ class AuthViewModel @Inject constructor(
 
     fun sendEmailVerification(){
         _signUpState.value = SignupState.Loading
+        viewModelScope.launch {
+            reloadUser()
+            val user = auth.currentUser
+            user?.sendEmailVerification()
+                ?.addOnCompleteListener { task ->
+                    if(task.isSuccessful){
+                        Toast.makeText(context, "Email Verification Sent", Toast.LENGTH_SHORT).show()
+                        emailSent.value = true
+                        _signUpState.value = SignupState.SendEmail
+                    } else {
+                        emailSent.value = false
+                        Toast.makeText(context, "An error occurred. Please try again", Toast.LENGTH_SHORT).show()
+                        _signUpState.value = SignupState.Error(task.exception?.message ?: "An error occurred")
+                    }
+                }
+        }
+    }
+
+    fun updateEmail(email: String){
         val user = auth.currentUser
-        user?.sendEmailVerification()
+        user?.verifyBeforeUpdateEmail(email)
             ?.addOnCompleteListener { task ->
                 if(task.isSuccessful){
-                    _signUpState.value = SignupState.SendEmail
+                    emailSent.value = true
+                    emailVerificationStatus.value = false
+                    firestore.collection("users").document(user.uid).update("email", email)
                 }else{
-                    Toast.makeText(null, "An error occurred. Please try again", Toast.LENGTH_SHORT).show()
+                    emailSent.value = false
+                    Toast.makeText(context, "An error occurred. Please try again", Toast.LENGTH_SHORT).show()
                     _signUpState.value = SignupState.Error(task.exception?.message ?: "An error occurred")
                 }
             }
@@ -173,7 +209,7 @@ class AuthViewModel @Inject constructor(
         _signUpState.value = SignupState.Loading
         viewModelScope.launch {
             //reload
-            auth.currentUser?.reload()?.await()
+            reloadUser()
             val user = auth.currentUser
             if (user != null) {
                 if (user.isEmailVerified) {
@@ -261,6 +297,55 @@ class AuthViewModel @Inject constructor(
                     onFailure(errorMessage)
                 }
             }
+    }
+
+    fun updatePassword(newPassword: String, onSuccess: () -> Unit, onFailure: (String) -> Unit) {
+        val user = FirebaseAuth.getInstance().currentUser
+        user?.updatePassword(newPassword)
+            ?.addOnCompleteListener { task ->
+                if (task.isSuccessful) {
+                    Log.e("AuthViewModel", "User password updated.")
+                    onSuccess()
+                } else {
+                    val errorMessage = task.exception?.message ?: "Failed to update user password."
+                    Log.e("AuthViewModel", errorMessage)
+                    onFailure(errorMessage)
+                }
+            }
+    }
+
+    fun reAuthenticateUser(email: String, password: String, onSuccess: () -> Unit, onFailure: (String) -> Unit) {
+        val user = FirebaseAuth.getInstance().currentUser
+        user?.providerData?.forEach { userInfo ->
+            val credential = when (userInfo.providerId) {
+                GoogleAuthProvider.PROVIDER_ID -> GoogleAuthProvider.getCredential(email, password)
+                EmailAuthProvider.PROVIDER_ID -> EmailAuthProvider.getCredential(email, password)
+                // Add other providers as needed
+                else -> null
+            }
+            credential?.let {
+                user.reauthenticate(it)
+                    .addOnCompleteListener { task ->
+                        if (task.isSuccessful) {
+                            Log.d("AuthViewModel", "User re-authenticated with provider: ${userInfo.providerId}.")
+                            onSuccess()
+                        } else {
+                            val exception = task.exception
+                            val errorMessage = if (exception is FirebaseAuthInvalidUserException) {
+                                "The user's credential is no longer valid. Please sign in again."
+                            } else {
+                                exception?.message ?: "Failed to re-authenticate user with provider: ${userInfo.providerId}."
+                            }
+                            Log.e("AuthViewModel", errorMessage)
+                            onFailure(errorMessage)
+                        }
+                    }
+            }
+        }
+    }
+
+    suspend fun reloadUser(){
+        auth.currentUser?.reload()?.await()
     }
 
     suspend fun signOut(){

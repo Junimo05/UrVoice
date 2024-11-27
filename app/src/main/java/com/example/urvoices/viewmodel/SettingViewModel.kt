@@ -1,6 +1,7 @@
 package com.example.urvoices.viewmodel
 
 import android.content.Context
+import android.util.Log
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
@@ -39,7 +40,7 @@ class SettingViewModel @Inject constructor(
 	val state: StateFlow<SettingState> = _state.asStateFlow()
 
 	val blockedUsers = blockRepository.getBlockDataFromLocal().cachedIn(viewModelScope)
-	val savedPosts = postRepository.getSavedPostDataFromLocal().cachedIn(viewModelScope)
+	var savedPosts = postRepository.getSavedPostDataFromLocal().cachedIn(viewModelScope)
 	//load blocks list from dao
 
 	@OptIn(SavedStateHandleSaveableApi::class)
@@ -52,6 +53,17 @@ class SettingViewModel @Inject constructor(
 	}
 	val username = runBlocking {
 		userPref.userNameFlow.first()
+	}
+
+	fun savePost(postID: String, callback: (Boolean?) -> Unit){
+		try {
+			viewModelScope.launch {
+				val result = postRepository.savePost(postID)
+				callback(result)
+			}
+		} catch (e: Exception) {
+			Log.e(TAG, "savePost Func Failed: ${e.message}")
+		}
 	}
 
 	fun unblockUser(blockedUser: BlockedUser){

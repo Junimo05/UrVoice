@@ -61,6 +61,32 @@ class PostRepository @Inject constructor(
         return false
     }
 
+    suspend fun deletePost(postID: String): Boolean {
+        try {
+            val result = firestorePostService.deletePost(postID)
+            if(result) {
+                return true
+            }else {
+                return false
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            Log.e(TAG, "deletePostRepo Error: ${e.message}")
+        }
+        return false
+    }
+
+    suspend fun getAllDeletePost(): List<Post> {
+        try {
+            val result = firestorePostService.getAllDeletePost()
+            return result
+        } catch (e: Exception) {
+            e.printStackTrace()
+            Log.e(TAG, "getAllDeletePostRepo Error: ${e.message}")
+        }
+        return emptyList()
+    }
+
     fun getNewFeed(lastVisiblePage: MutableState<Int>, lastVisiblePost: MutableState<String>): PagingSource<Int, Post> {
         return object : PagingSource<Int, Post>() {
             private val NETWORK_PAGE_SIZE = 4
@@ -106,9 +132,7 @@ class PostRepository @Inject constructor(
         try {
             val result = firestorePostService.savePosts(postID)
             if(result != null) {
-                if (result) {
-                    syncSavedPosts()
-                }
+                syncSavedPosts()
             }
             return result
         } catch (e: Exception) {
@@ -148,6 +172,16 @@ class PostRepository @Inject constructor(
     suspend fun replyComment(actionUserID: String, parentID: String, postID: String, content: String): Comment {
         val result = firestorePostService.replyComment(actionUserID, parentID, postID, content)
         return result
+    }
+
+    suspend fun softDeleteComment(comment: Comment): Boolean{
+        try {
+            val result = firestorePostService.softDeleteComment(comment)
+            return result
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+        return false
     }
 
     //

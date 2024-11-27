@@ -58,7 +58,8 @@ fun SavedItems(
     post: Post = Post(),
     savedPost: SavedPost = SavedPost(),
     playerVM: MediaPlayerVM,
-    profileVM: ProfileViewModel
+    profileVM: ProfileViewModel,
+    unSave: (String) -> Unit = {}
 ) {
     val TAG = "SavedItems"
 
@@ -87,6 +88,7 @@ fun SavedItems(
             horizontalAlignment = Alignment.CenterHorizontally,
             modifier = Modifier.padding(top = 8.dp)
         ) {
+            //USER INFO
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
@@ -146,77 +148,107 @@ fun SavedItems(
                 }
             }
 
-            Box(
-                modifier = Modifier
-                    .background(MaterialTheme.colorScheme.secondaryContainer)
-                    .fillMaxWidth(),
-                contentAlignment = Alignment.Center
-            ) {
-                Column(
-                    modifier = Modifier.padding(8.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally,
+            //POST INFO
+            if(post.deletedAt == null){
+                Box(
+                    modifier = Modifier
+                        .background(MaterialTheme.colorScheme.secondaryContainer)
+                        .fillMaxWidth(),
+                    contentAlignment = Alignment.Center
                 ) {
-                    (if(post.ID!!.isNotEmpty() || savedPost.id.isNotEmpty()) {
-                        if(savedPost.audioName.isNotEmpty()) {
-                            savedPost.audioName
-                        } else if(post.audioName!!.isNotEmpty()) {
-                            post.audioName
+                    Column(
+                        modifier = Modifier.padding(8.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                    ) {
+                        (if(post.ID!!.isNotEmpty() || savedPost.id.isNotEmpty()) {
+                            if(savedPost.audioName.isNotEmpty()) {
+                                savedPost.audioName
+                            } else if(post.audioName!!.isNotEmpty()) {
+                                post.audioName
+                            } else {
+                                "No Name"
+                            }
                         } else {
                             "No Name"
+                        }).let {
+                            Text(
+                                text = it,
+                                style = TextStyle(
+                                    color = MaterialTheme.colorScheme.onSecondaryContainer,
+                                    fontSize = 14.sp,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            )
                         }
-                    } else {
-                        "No Name"
-                    }).let {
-                        Text(
-                            text = it,
-                            style = TextStyle(
-                                color = MaterialTheme.colorScheme.onSecondaryContainer,
-                                fontSize = 14.sp,
-                                fontWeight = FontWeight.Bold
+                        AnimatedVisibility(
+                            visible = playerVM.isPlaying && playerVM.currentAudio.value.id == post.ID,
+                            enter = slideInVertically(initialOffsetY = { -it }),
+                            exit = slideOutVertically(targetOffsetY = { -it })
+                        ){
+                            Text(
+                                text = "${playerVM.progressString}/${formatToMinSecFromMillisec(playerVM.durationPlayer)}",
+                                style = TextStyle(
+                                    color = MaterialTheme.colorScheme.onSecondaryContainer,
+                                    fontSize = 12.sp,
+                                    fontWeight = FontWeight.Normal
+                                )
                             )
-                        )
+                        }
                     }
-                    AnimatedVisibility(
-                        visible = playerVM.isPlaying && playerVM.currentAudio.value.id == post.ID,
-                        enter = slideInVertically(initialOffsetY = { -it }),
-                        exit = slideOutVertically(targetOffsetY = { -it })
-                    ){
-                        Text(
-                            text = "${playerVM.progressString}/${formatToMinSecFromMillisec(playerVM.durationPlayer)}",
-                            style = TextStyle(
-                                color = MaterialTheme.colorScheme.onSecondaryContainer,
-                                fontSize = 12.sp,
-                                fontWeight = FontWeight.Normal
-                            )
+                }
+                if(!post.ID.isNullOrEmpty()){
+                    IconButton(onClick = {
+                        if(playerVM.currentAudio.value.id != post.ID) {
+                            if(post.url!!.isNotEmpty()){
+                                playerVM.onUIEvents(UIEvents.PlayingAudio(
+                                    Audio(
+                                        id = post.ID,
+                                        url = post.url,
+                                        title = post.audioName!!,
+                                        duration = post.duration?:0,
+                                        author = userInfo["username"]!!,
+                                    )
+                                ))
+                            }
+                        } else if(!playerVM.isEnd) {
+                            playerVM.onUIEvents(UIEvents.PlayPause)
+                        } else {
+                            playerVM.onUIEvents(UIEvents.SeekTo(0F))
+                        }
+                    }) {
+                        Icon(
+                            painter = if(playerVM.isPlaying && playerVM.currentAudio.value.id == post.ID) painterResource(id = R.drawable.ic_media_pause) else painterResource(id = R.drawable.ic_media_play),
+                            contentDescription = "Play/Pause",
+                            modifier = Modifier.size(36.dp)
                         )
                     }
                 }
-            }
-
-            if(!post.ID.isNullOrEmpty()){
-                IconButton(onClick = {
-                    if(playerVM.currentAudio.value.id != post.ID) {
-                        if(post.url!!.isNotEmpty()){
-                            playerVM.onUIEvents(UIEvents.PlayingAudio(
-                                Audio(
-                                    id = post.ID,
-                                    url = post.url,
-                                    title = post.audioName!!,
-                                    duration = post.duration?:0,
-                                    author = userInfo["username"]!!,
-                                )
-                            ))
-                        }
-                    } else if(!playerVM.isEnd) {
-                        playerVM.onUIEvents(UIEvents.PlayPause)
-                    } else {
-                        playerVM.onUIEvents(UIEvents.SeekTo(0F))
+                if(savedPost.id.isNotEmpty()){
+                    IconButton(onClick = {
+                        unSave(savedPost.id)
+                    }) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.ic_action_remove_ribbon),
+                            contentDescription = "Delete",
+                            modifier = Modifier.size(36.dp)
+                        )
                     }
-                }) {
-                    Icon(
-                        painter = if(playerVM.isPlaying && playerVM.currentAudio.value.id == post.ID) painterResource(id = R.drawable.ic_media_pause) else painterResource(id = R.drawable.ic_media_play),
-                        contentDescription = "Play/Pause",
-                        modifier = Modifier.size(36.dp)
+                }
+            } else {
+                Box(
+                    modifier = Modifier
+                        .background(MaterialTheme.colorScheme.secondaryContainer)
+                        .fillMaxWidth(),
+                    contentAlignment = Alignment.Center
+                ){
+                    //Deleted Post
+                    Text(
+                        text = "Post isn't available",
+                        style = TextStyle(
+                            color = MaterialTheme.colorScheme.onSecondaryContainer,
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Bold
+                        )
                     )
                 }
             }

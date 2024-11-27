@@ -107,12 +107,14 @@ class MediaPlayerVM @Inject constructor(
                             Toast.makeText(context, "Start Playing", Toast.LENGTH_SHORT).show()
                         } else if(oldList.isNotEmpty() && playlist.isEmpty()) {
                             Toast.makeText(context, "Clear Playlist", Toast.LENGTH_SHORT).show()
+                            onUIEvents(UIEvents.Stop)
                         } else if (oldList.size < playlist.size){ //Playlist is available : Added
                             Toast.makeText(context, "Added to playlist", Toast.LENGTH_SHORT).show()
                         } else if(oldList.size > playlist.size){ //Playlist is available : Removed
-                            Toast.makeText(context, "Removed from playlist", Toast.LENGTH_SHORT).show()
+                            //nothing
                         }
                     }
+                    else -> Unit
                 }
                 AppGlobalState.mediaState.value = _uiState.value
                 AppGlobalState.isPlaying.value = isPlaying
@@ -209,7 +211,6 @@ class MediaPlayerVM @Inject constructor(
     private fun updatePlaylist(list: MutableList<Audio>) {
         playlist = list
     }
-
 
     private fun startBackGroundService() {
         if (!isServiceRunning) {

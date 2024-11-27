@@ -1,6 +1,7 @@
 package com.example.urvoices.ui._component.SettingComponents
 
 import android.annotation.SuppressLint
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -72,7 +73,18 @@ fun SavedPostScreen(
 								navController = navController,
 								savedPost = savePost,
 								playerVM = mediaPlayerVM,
-								profileVM = profileVM
+								profileVM = profileVM,
+								unSave = {
+									settingVM.savePost(it){
+										if(it == false){
+											Toast.makeText(
+												navController.context,
+												"Unsaved post successfully",
+												Toast.LENGTH_SHORT
+											).show()
+										}
+									}
+								}
 							)
 						},
 						itemPaging = savedPostList
@@ -84,12 +96,12 @@ fun SavedPostScreen(
 						verticalArrangement = Arrangement.Center
 					){
 						Image(
-							painterResource(id = R.drawable.ic_visibility_off),
+							painterResource(id = R.drawable.newspaper_svgrepo_com),
 							contentDescription = "No saved posts",
 							modifier = Modifier.size(100.dp)
 						)
 						Text(
-							text = "No blocked posts",
+							text = "No saved posts",
 							style = TextStyle(
 								fontWeight = FontWeight.Bold,
 								fontSize = 18.sp

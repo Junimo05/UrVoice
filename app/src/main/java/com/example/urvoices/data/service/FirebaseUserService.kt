@@ -296,25 +296,6 @@ class FirebaseUserService @Inject constructor(
         return false
     }
 
-    suspend fun updateEmail(email: String): Boolean {
-        val user = auth.currentUser
-        if (user != null) {
-            try {
-                firebaseFirestore.collection("users").document(user.uid).update("email", email).await()
-                user.updateEmail(email).await()
-                return true
-            } catch (e: Exception) {
-                // Handle exception
-                e.printStackTrace()
-                Log.e(TAG, "updateEmail: ${e.message}")
-            }
-        } else {
-            // Inform the user that they are not signed in
-            println("No user is currently signed in.")
-        }
-        return false
-    }
-
     suspend fun deleteAccount(): Boolean {
         val user = auth.currentUser
         return if (user != null) {

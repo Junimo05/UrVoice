@@ -9,7 +9,6 @@ import androidx.navigation.compose.navigation
 import androidx.navigation.navArgument
 import androidx.navigation.navDeepLink
 import androidx.navigation.toRoute
-import com.algolia.search.model.rule.Edit
 import com.example.urvoices.data.model.Post
 import com.example.urvoices.ui.AuthScreen.ForgotPasswordScreen
 import com.example.urvoices.ui.AuthScreen.LoginScreen
@@ -25,14 +24,16 @@ import com.example.urvoices.ui._component.PostComponent.EditPostScreen
 import com.example.urvoices.ui._component.ProfileComponent.ProfileEditScreen
 import com.example.urvoices.ui._component.SettingComponents.BlockScreen
 import com.example.urvoices.ui._component.SettingComponents.SavedPostScreen
+import com.example.urvoices.ui._component.SettingComponents.SecurityScreen
 import com.example.urvoices.ui.noti_msg.MessageScreen
-import com.example.urvoices.ui.noti_msg.NotificationScreen
+import com.example.urvoices.ui.MainScreen.NotificationScreen
 import com.example.urvoices.utils.Auth.BASE_URL
 import com.example.urvoices.viewmodel.AuthViewModel
 import com.example.urvoices.viewmodel.EditPostVM
 import com.example.urvoices.viewmodel.HomeViewModel
 import com.example.urvoices.viewmodel.MediaPlayerVM
 import com.example.urvoices.viewmodel.MediaRecorderVM
+import com.example.urvoices.viewmodel.NotificationViewModel
 import com.example.urvoices.viewmodel.PostDetailViewModel
 import com.example.urvoices.viewmodel.ProfileViewModel
 import com.example.urvoices.viewmodel.SearchViewModel
@@ -81,6 +82,14 @@ fun NavGraphBuilder.mainGraph(
                 homeViewModel = homeViewModel
             )
         }
+
+        composable(route = MainScreen.NotificationScreen.route){
+            NotificationScreen(
+                navController = navController,
+                notificationVM = hiltViewModel<NotificationViewModel>()
+            )
+        }
+
         composable(route = MainScreen.SearchScreen.route){
             SearchScreen(
                 navController = navController,
@@ -118,6 +127,7 @@ fun NavGraphBuilder.mainGraph(
                 profileViewModel = profileViewModel
             )
         }
+
         composable(route = MainScreen.SettingsScreen.MainSettingsScreen.route){
             SettingsScreen(
                 navController = navController,
@@ -139,10 +149,17 @@ fun NavGraphBuilder.mainGraph(
                 navController = navController,
                 settingVM = settingVM,
                 mediaPlayerVM = playerViewModel,
-                profileVM = profileViewModel
+                profileVM = profileViewModel,
             )
         }
 
+        composable(route = MainScreen.SettingsScreen.SecurityScreen.route) {
+            SecurityScreen(
+                navController = navController,
+                authViewModel = authViewModel,
+                settingVM = settingVM
+            )
+        }
     }
 }
 fun NavGraphBuilder.specifyGraph(
@@ -238,9 +255,6 @@ fun NavGraphBuilder.notiMsgGraph(
     navController: NavController
 ){
     navigation(route = Graph.NOTI_MSG, startDestination = NotiMsgScreen.NotificationScreen.route){
-        composable(route = NotiMsgScreen.NotificationScreen.route){
-            NotificationScreen(navController = navController)
-        }
         composable(route = NotiMsgScreen.MessageScreen.route){
             MessageScreen(navController = navController)
         }

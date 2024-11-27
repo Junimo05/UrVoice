@@ -1,6 +1,7 @@
 package com.example.urvoices.ui.MainScreen
 
 import android.annotation.SuppressLint
+import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -49,6 +50,7 @@ import com.example.urvoices.R
 import com.example.urvoices.presentations.theme.MyTheme
 import com.example.urvoices.ui._component.PostComponent.NewFeedPostItem
 import com.example.urvoices.utils.Navigator.AuthScreen
+import com.example.urvoices.utils.Navigator.MainScreen
 import com.example.urvoices.utils.UserPreferences
 import com.example.urvoices.viewmodel.AuthState
 import com.example.urvoices.viewmodel.AuthViewModel
@@ -92,6 +94,7 @@ fun Home(
     val userPreferences = UserPreferences(LocalContext.current)
 
     LaunchedEffect(Unit) {
+
         homeViewModel.checkFirstLogin()
     }
 
@@ -109,14 +112,21 @@ fun Home(
             mainStateList.animateScrollToItem(0)
             homeViewModel.resetScrollToTopEvent()
             //
-            homeViewModel.clearData()
             homeViewModel.refreshHomeScreen()
         }
     }
 
-    LaunchedEffect(postList) {
-        if(postList.itemCount != 0){
-            homeViewModel.setIsRefreshing(false)
+    LaunchedEffect(postList.loadState) {
+        when (postList.loadState.refresh) {
+            is LoadState.Loading -> {
+                homeViewModel.setIsRefreshing(true)
+            }
+            is LoadState.NotLoading -> {
+                homeViewModel.setIsRefreshing(false)
+            }
+            is LoadState.Error -> {
+                homeViewModel.setIsRefreshing(false)
+            }
         }
     }
 
@@ -151,20 +161,6 @@ fun Home(
                             fontWeight = FontWeight.Bold
                         )
                     )
-
-                    val userName by userPreferences.userNameFlow.collectAsState(initial = "")
-
-                    userName?.let {
-                        Text(
-                            text = it,
-                            modifier = Modifier
-                                .padding(16.dp),
-                            style = TextStyle(
-                                fontSize = 16.sp,
-                                fontWeight = FontWeight.Normal
-                            )
-                        )
-                    }
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -180,19 +176,19 @@ fun Home(
                                 .size(36.dp)
                                 .padding(end = 4.dp)
                                 .clickable {
-                                    //TODO: Implement Notification
+                                    navController.navigate(MainScreen.NotificationScreen.route)
                                 }
                         )
-                        Icon(
-                            painter = painterResource(id = R.drawable.ic_contact_message),
-                            contentDescription = null,
-                            modifier = Modifier
-                                .size(36.dp)
-                                .padding(end = 4.dp)
-                                .clickable {
-                                    //TODO: Implement Message
-                                }
-                        )
+//                        Icon(
+//                            painter = painterResource(id = R.drawable.ic_contact_message),
+//                            contentDescription = null,
+//                            modifier = Modifier
+//                                .size(36.dp)
+//                                .padding(end = 4.dp)
+//                                .clickable {
+//                                    //TODO: Implement Message
+//                                }
+//                        )
                     }
                 }
             }
@@ -200,11 +196,11 @@ fun Home(
         }
     ) {paddingValue ->
         PullToRefreshBox(
-            isRefreshing = false,
+            isRefreshing = isRefreshing,
             onRefresh = {
                 homeViewModel.refreshHomeScreen()
             },
-            modifier = Modifier.padding(top = 6.dp)
+            modifier = Modifier.padding(top = 2.dp)
         ) {
             LazyColumn(
                 modifier = Modifier
@@ -213,20 +209,25 @@ fun Home(
                     .background(MaterialTheme.colorScheme.background),
                 userScrollEnabled = true,
                 state = mainStateList,
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+                verticalArrangement = Arrangement.spacedBy(2.dp)
             ) {
-                items(
-                    count = postList.itemCount,
-                    key = { postList[it]?.ID ?: it}
-                ){
+                if(isRefreshing){
+                    //refreshing time
+                } else {
+                    homeViewModel.setIsRefreshing(false)
+                    items(
+                        count = postList.itemCount,
+                        key = { postList[it]?.ID ?: it}
+                    ){
                         index ->
-                    NewFeedPostItem(
-                        navController = navController,
-                        authVM = authViewModel,
-                        post = postList[index]!!,
-                        homeViewModel = homeViewModel,
-                        playerViewModel = playerViewModel,
-                    )
+                        NewFeedPostItem(
+                            navController = navController,
+                            authVM = authViewModel,
+                            post = postList[index]!!,
+                            homeViewModel = homeViewModel,
+                            playerViewModel = playerViewModel,
+                        )
+                    }
                 }
 
                 postList.apply {

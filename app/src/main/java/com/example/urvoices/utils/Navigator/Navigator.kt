@@ -1,6 +1,8 @@
 package com.example.urvoices.utils.Navigator
 
 import android.annotation.SuppressLint
+import android.content.Intent
+import android.os.Build
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.RepeatMode
@@ -39,6 +41,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.compose.NavHost
@@ -47,6 +50,7 @@ import com.example.urvoices.data.model.Audio
 import com.example.urvoices.ui._component.BottomBar
 import com.example.urvoices.ui._component.CustomSnackBar
 import com.example.urvoices.ui._component.MediaPlayer
+import com.example.urvoices.utils.audio_player.services.AudioService
 import com.example.urvoices.viewmodel.AuthViewModel
 import com.example.urvoices.viewmodel.HomeViewModel
 import com.example.urvoices.viewmodel.InteractionViewModel
@@ -61,7 +65,8 @@ import com.example.urvoices.viewmodel.UploadViewModel
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter", "StateFlowValueCalledInComposition")
 @Composable
-fun Navigator(authViewModel: AuthViewModel) {
+fun Navigator(authViewModel: AuthViewModel, playerViewModel: MediaPlayerVM) {
+    val context = LocalContext.current
     val navController = rememberNavController()
     val selectedPage = rememberSaveable { mutableIntStateOf(0) }
     val isVisibleBottomBar = rememberSaveable { mutableStateOf(false) }
@@ -75,10 +80,9 @@ fun Navigator(authViewModel: AuthViewModel) {
     val profileViewModel = hiltViewModel<ProfileViewModel>()
     val settingVM = hiltViewModel<SettingViewModel>()
 
-
-
-    val playerViewModel: MediaPlayerVM = hiltViewModel()
     val mediaRecorderVM = hiltViewModel<MediaRecorderVM>()
+    //background service
+
 
     val interactionViewModel = hiltViewModel<InteractionViewModel>()
 

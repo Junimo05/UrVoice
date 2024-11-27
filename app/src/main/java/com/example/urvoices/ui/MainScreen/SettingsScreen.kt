@@ -54,6 +54,13 @@ fun SettingsScreen(
 
     val constSettingList = listOf(
         SettingItemData(
+            title = "Security",
+            icon = R.drawable.cogs_svgrepo_com,
+            onClick = {
+                navController.navigate(MainScreen.SettingsScreen.SecurityScreen.route)
+            }
+        ),
+        SettingItemData(
             title = "Blocks",
             icon = R.drawable.ic_visibility_off,
             onClick = {

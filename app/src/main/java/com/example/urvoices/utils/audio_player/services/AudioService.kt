@@ -18,14 +18,12 @@ class AudioService: MediaSessionService() {
     lateinit var notificationManager: Notification_Manager
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O){
-            // Start the notification service
-            notificationManager.startNotificationService(this, mediaSession)
-        }
+        // Start the notification service
+        notificationManager.startNotificationService(this, mediaSession)
         return super.onStartCommand(intent, flags, startId)
     }
 
-    override fun onGetSession(controllerInfo: MediaSession.ControllerInfo): MediaSession? {
+    override fun onGetSession(controllerInfo: MediaSession.ControllerInfo): MediaSession {
         return mediaSession
     }
 

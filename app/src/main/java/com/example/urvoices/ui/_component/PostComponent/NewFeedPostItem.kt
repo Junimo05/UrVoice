@@ -22,12 +22,14 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
@@ -64,6 +66,7 @@ import com.example.urvoices.ui._component.OptionBar
 import com.example.urvoices.ui._component.OptionItem
 import com.example.urvoices.utils.Auth.BASE_URL
 import com.example.urvoices.utils.Navigator.EditPostScreen
+import com.example.urvoices.utils.Navigator.MainScreen
 import com.example.urvoices.utils.Post_Interactions
 import com.example.urvoices.utils.getTimeElapsed
 import com.example.urvoices.viewmodel.AuthViewModel
@@ -103,6 +106,7 @@ fun NewFeedPostItem(
 
     //State
     val expandMenu = rememberSaveable { mutableStateOf(false) }
+    val showDeleteDialog = rememberSaveable { mutableStateOf(false) }
     val isBlock = rememberSaveable { mutableStateOf(false) }
     val blockInfo = rememberSaveable{
         mutableStateOf(FirebaseBlockService.BlockInfo.NO_BLOCK)
@@ -191,6 +195,7 @@ fun NewFeedPostItem(
                                 Toast.makeText(context, "Link Copied", Toast.LENGTH_SHORT).show()
                                 expandMenu.value = false
                             },
+                            isSaved = isSaved.value,
                             savePost = {
                                 interactionViewModel.savePost(post.ID!!){result ->
                                     if(result != null){
@@ -410,6 +415,8 @@ fun NewFeedPostItem(
         }
     }
 }
+
+
 
 @Composable
 fun ProfileInfo(

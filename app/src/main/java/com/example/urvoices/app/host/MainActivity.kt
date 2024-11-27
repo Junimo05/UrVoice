@@ -16,6 +16,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.example.urvoices.utils.rememberImeState
+import com.google.firebase.messaging.FirebaseMessaging
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -57,6 +58,7 @@ class MainActivity : ComponentActivity() {
         }
         handleDeeplink(intent)
     }
+
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)

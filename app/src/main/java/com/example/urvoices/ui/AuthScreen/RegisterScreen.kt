@@ -1,7 +1,6 @@
 package com.example.urvoices.ui.AuthScreen
 
 import android.annotation.SuppressLint
-import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
@@ -66,7 +65,6 @@ import com.example.urvoices.viewmodel.AuthState
 import com.example.urvoices.viewmodel.AuthViewModel
 import com.example.urvoices.viewmodel.SignupState
 import kotlinx.coroutines.delay
-import org.w3c.dom.Text
 
 
 @Composable
@@ -84,6 +82,7 @@ fun Register(
     navController: NavController,
     modifier: Modifier = Modifier
 ){
+    val scope = rememberCoroutineScope()
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
     val authState = viewModel.authState.observeAsState()
@@ -92,6 +91,7 @@ fun Register(
     val signUp = mutableStateOf(false)
     val sentEmail = mutableStateOf(false)
     val emailVerified = viewModel.emailVerificationStatus.observeAsState()
+    val emailSent = viewModel.emailSent.observeAsState()
 
     var username by remember { mutableStateOf("") }
     var validateUsername by remember { mutableStateOf("") }
@@ -133,7 +133,6 @@ fun Register(
                 //
             }
             SignupState.SendEmail -> {
-                Toast.makeText(context, "Email Verification Sent", Toast.LENGTH_SHORT).show()
                 delay(2000)
                 sentEmail.value = true
 
@@ -148,13 +147,15 @@ fun Register(
                 Toast.makeText(context, "Email Verified... We are going to create your Portal...", Toast.LENGTH_SHORT).show()
                 delay(2000)
                 if(emailVerified.value!!){
-                    viewModel.createInfo(username)
+                    viewModel.createInfoAfterVerify(username)
                 }
             }
             SignupState.Complete -> {
                 Toast.makeText(context, "Portal are created. Here we go", Toast.LENGTH_SHORT).show()
                 signUp.value = false
                 sentEmail.value = false
+                //
+                navController.navigate(AuthScreen.LoginScreen.route)
             }
             else -> Unit
         }
@@ -354,7 +355,7 @@ fun Register(
                         } else if (isMatchPassword.isNotEmpty()) {
                             Toast.makeText(context, isMatchPassword, Toast.LENGTH_SHORT).show()
                         } else {
-                            viewModel.signUpEmailPassword(email, password)
+                            viewModel.signUpEmailPassword(email, password, retypePassword)
                         }
                     },
                         colors = ButtonDefaults.buttonColors(
@@ -471,7 +472,7 @@ fun Register(
             EmailSentCheck(
                 navController = navController,
                 viewModel = viewModel,
-                modifier = Modifier.padding(paddingvalues)
+                modifier = Modifier.padding(paddingvalues),
             )
         }
         if(signUpState.value == SignupState.Loading){
@@ -490,7 +491,7 @@ fun Register(
 fun EmailSentCheck(
     navController: NavController,
     viewModel: AuthViewModel,
-    modifier: Modifier
+    modifier: Modifier,
 ){
     val signupState = viewModel.signUpState.observeAsState()
     val emailVerified = viewModel.emailVerificationStatus.observeAsState()

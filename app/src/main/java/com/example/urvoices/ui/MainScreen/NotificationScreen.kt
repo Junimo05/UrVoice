@@ -1,6 +1,7 @@
-package com.example.urvoices.ui.noti_msg
+package com.example.urvoices.ui.MainScreen
 
 import android.annotation.SuppressLint
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -12,7 +13,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -20,15 +24,32 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import androidx.paging.compose.collectAsLazyPagingItems
 import com.example.urvoices.presentations.theme.MyTheme
 import com.example.urvoices.ui._component.NotificationItem
 import com.example.urvoices.ui._component.TopBarBackButton
+import com.example.urvoices.viewmodel.NotificationViewModel
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 fun NotificationScreen(
-    navController: NavController
+    navController: NavController,
+    notificationVM: NotificationViewModel
 ) {
+    val TAG = "NotificationScreen"
+    val scope = rememberCoroutineScope()
+    val context = LocalContext.current
+
+    val notiList = notificationVM.notifications.collectAsLazyPagingItems()
+
+    LaunchedEffect(Unit) {
+        notificationVM.refreshNotifications()
+    }
+
+    LaunchedEffect(notiList.itemCount) {
+        Log.e(TAG, "LaunchedEffect: ${notiList.itemCount}")
+    }
+
     Scaffold(
         topBar = {
              TopBarBackButton(
@@ -43,10 +64,9 @@ fun NotificationScreen(
                 .background(MaterialTheme.colorScheme.background)
                 .padding(it)
                 .fillMaxSize()
+
         ) {
-            NotiPart(titlePart = "New")
-            NotiPart(titlePart = "Today")
-            NotiPart(titlePart = "7 days ago")
+            //
         }
     }
 }
@@ -76,15 +96,5 @@ fun NotiPart(
                 time =  "00.00 AM"
             )
         }
-    }
-}
-
-
-@Preview(showBackground = true)
-@Composable
-fun PreviewNotificationScreen() {
-    var navController = rememberNavController()
-    MyTheme {
-        NotificationScreen(navController = navController)
     }
 }

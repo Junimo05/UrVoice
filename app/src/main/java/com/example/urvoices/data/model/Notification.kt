@@ -28,7 +28,7 @@ data class Notification(
             "url" to url,
             "createdAt" to createdAt,
             "updatedAt" to updatedAt,
-            "deleteAt" to deleteAt
+            "deletedAt" to deleteAt
         )
     }
 }

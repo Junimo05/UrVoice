@@ -5,6 +5,7 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
 import android.os.Build
+import android.util.Log
 import androidx.annotation.OptIn
 import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
@@ -18,9 +19,9 @@ import com.example.urvoices.R
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 
-private const val NOTIFICATION_ID = 1
-private const val NOTIFICATION_CHANNEL_ID = "noti_channel_1"
-private const val NOTIFICATION_CHANNEL_NAME = "Notification Channel 1"
+private const val NOTIFICATION_ID = 2
+private const val NOTIFICATION_CHANNEL_ID = "noti_channel_music"
+private const val NOTIFICATION_CHANNEL_NAME = "Notification Channel Music"
 
 class Notification_Manager @Inject constructor(
     @ApplicationContext private val context: Context,
@@ -29,12 +30,9 @@ class Notification_Manager @Inject constructor(
     private val notificationManager = NotificationManagerCompat.from(context)
 
     init {
-        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O){
-            createNotificationChannel()
-        }
+        createNotificationChannel()
     }
 
-    @RequiresApi(Build.VERSION_CODES.O)
     fun startNotificationService(
         mediaSessionService: MediaSessionService,
         mediaSession: MediaSession
@@ -44,7 +42,6 @@ class Notification_Manager @Inject constructor(
     }
 
     // Start Foreground Service
-    @RequiresApi(Build.VERSION_CODES.O)
     private fun startForeGroundService(mediaSessionService: MediaSessionService){
         val notification = Notification.Builder(context, NOTIFICATION_CHANNEL_ID)
             .setCategory(Notification.CATEGORY_SERVICE)
@@ -55,14 +52,14 @@ class Notification_Manager @Inject constructor(
 
     @OptIn(UnstableApi::class)
     private fun buildNotification(mediaSession: MediaSession){
+        Log.e("NotificationManager", "buildNotification called")
         PlayerNotificationManager.Builder(
             context,
             NOTIFICATION_ID,
             NOTIFICATION_CHANNEL_ID,
-
-            )
+        )
             .setMediaDescriptionAdapter(Notification_Adapter(context, mediaSession.sessionActivity))
-            .setSmallIconResourceId(R.drawable.jerry2)
+            .setSmallIconResourceId(R.drawable.urvoice_circle)
             .build()
             .also {
                 it.setMediaSessionToken(mediaSession.sessionCompatToken)
@@ -74,7 +71,6 @@ class Notification_Manager @Inject constructor(
             }
     }
 
-    @RequiresApi(Build.VERSION_CODES.O)
     private fun createNotificationChannel(){
         val channel = NotificationChannel(
             NOTIFICATION_CHANNEL_ID,

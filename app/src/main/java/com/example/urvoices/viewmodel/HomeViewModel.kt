@@ -18,12 +18,15 @@ import com.example.urvoices.data.model.Post
 import com.example.urvoices.data.repository.BlockRepository
 import com.example.urvoices.data.repository.PostRepository
 import com.example.urvoices.data.repository.UserRepository
+import com.example.urvoices.data.service.FirebaseBlockService
+import com.example.urvoices.utils.MessagingService
 import com.example.urvoices.utils.SharedPreferencesHelper
 import com.example.urvoices.utils.SharedPreferencesKeys
 import com.example.urvoices.utils.SharedPreferencesKeys.isFirstTime
 import com.example.urvoices.utils.UserPreferences
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.messaging.FirebaseMessaging
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -35,6 +38,7 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 
 @SuppressLint("MutableCollectionMutableState")
@@ -46,6 +50,7 @@ class HomeViewModel @Inject constructor(
     private val userRepository: UserRepository,
     private val sharedPrefs: SharedPreferencesHelper,
     private val auth: FirebaseAuth,
+    @SuppressLint("StaticFieldLeak") private val messagingService: MessagingService,
     savedStateHandle: SavedStateHandle
 ): ViewModel(){
 
@@ -59,11 +64,14 @@ class HomeViewModel @Inject constructor(
     fun resetScrollToTopEvent() { _scrollToTopEvent.value = false }
 
     private val _postList = MutableStateFlow<PagingData<Post>>(PagingData.empty())
-    val postList: StateFlow<PagingData<Post>> = _postList
+    val postList: StateFlow<PagingData<Post>> = _postList.asStateFlow()
 
     val currentUser = mutableStateOf(auth.currentUser)
 
     init {
+        viewModelScope.launch {
+            messagingService.sendRegistrationToServer()
+        }
         loadData()
     }
 
@@ -74,6 +82,7 @@ class HomeViewModel @Inject constructor(
     }
 
     fun refreshHomeScreen(){
+        clearData()
         setIsRefreshing(true)
         viewModelScope.launch {
             fetchPosts()
@@ -93,20 +102,21 @@ class HomeViewModel @Inject constructor(
         }.flow
             .map {pagingData -> //filter out blocked users
                 pagingData.filter {
-                    post -> !blockRepository.getBlockStatus(post.userId)
+                    post ->
+                    blockRepository.getBlockStatusFromFirebase(post.userId) == FirebaseBlockService.BlockInfo.NO_BLOCK //filter out blocked users
                 }
             }
             .cachedIn(viewModelScope)
-            .collect{
-                _postList.value = it
-            }
+        postsPaging3.collect {
+            _postList.value = it
+        }
     }
 
     fun setIsRefreshing(value: Boolean){
         isRefreshing.value = value
     }
 
-    fun clearData(){
+    private fun clearData(){
         _postList.value = PagingData.empty()
     }
 
@@ -138,8 +148,10 @@ class HomeViewModel @Inject constructor(
         }
         //Check First Login/ Fetch Database Setting From Account if exists
         val isFirstTime = sharedPrefs.getBoolean(SharedPreferencesKeys.isFirstTime, true, currentUser.value!!.uid)
+
         try {
             if(isFirstTime){
+//                checkTokenSaved()
                 viewModelScope.launch {
                     val result = userRepository.getUserSettingsByID(currentUser.value!!.uid)
                     if (result != null) { //exist
@@ -164,6 +176,16 @@ class HomeViewModel @Inject constructor(
             ex: Exception
         ){
             ex.printStackTrace()
+        }
+    }
+
+    private fun checkTokenSaved(){
+        val token = sharedPrefs.getString(SharedPreferencesKeys.token, "" ,currentUser.value!!.uid)
+        if(token.isEmpty()){
+            viewModelScope.launch {
+                val newToken = FirebaseMessaging.getInstance().token.await()
+                sharedPrefs.save(SharedPreferencesKeys.token, newToken, currentUser.value!!.uid)
+            }
         }
     }
 

@@ -98,87 +98,90 @@ fun PostAction(
     isCurrentUserPost: Boolean,
     addToPlaylist: () -> Unit,
     changeInfo: () -> Unit,
-    goToPost: () -> Unit,
-    goToUser: () -> Unit,
+    goToPost: (() -> Unit)? = null,
+    goToUser: (() -> Unit)? = null,
     copyLink: () -> Unit,
+    isSaved: Boolean,
     savePost: () -> Unit,
+    deletePost: (() -> Unit)? = null,
     blockInfo: MutableState<String>,
     blockUser: () -> Unit,
     unblockUser: () -> Unit
 ): List<DropDownAction> {
 
-    return if (blockInfo.value != FirebaseBlockService.BlockInfo.NO_BLOCK) { //Block = true
-        val actions = mutableListOf(
-            DropDownAction(
-                icon = R.drawable.ic_actions_user,
-                title = "Go to User",
-                action = {
-                    goToUser()
-                }
-            )
-        )
+    return if (blockInfo.value != FirebaseBlockService.BlockInfo.NO_BLOCK) { // Block = true
+        val actions = mutableListOf<DropDownAction>()
 
-        if(blockInfo.value != FirebaseBlockService.BlockInfo.BLOCK) { //This user is blocked by current user
+        goToUser?.let {
+            actions.add(
+                DropDownAction(
+                    icon = R.drawable.ic_actions_user,
+                    title = "Go to User",
+                    action = it
+                )
+            )
+        }
+
+        if (blockInfo.value != FirebaseBlockService.BlockInfo.BLOCK) { // This user is blocked by current user
             actions.add(
                 DropDownAction(
                     icon = R.drawable.ic_visibility_on,
                     title = "Unblock User",
-                    action = {
-                        unblockUser()
-                    }
+                    action = unblockUser
                 )
             )
         }
 
         actions
     } else {
-        val actions = mutableListOf(
-            DropDownAction(
-                icon = R.drawable.playlist_add_svgrepo_com,
-                title = "Add To Playlist",
-                action = {
-                    addToPlaylist()
-                }
-            ),
-            DropDownAction(
-                icon = R.drawable.ic_actions_new_window,
-                title = "Go to Post",
-                action = {
-                    goToPost()
-                }
-            ),
-            DropDownAction(
-                icon = R.drawable.ic_actions_user,
-                title = "Go to User",
-                action = {
-                    goToUser()
-                }
-            ),
-            DropDownAction(
-                icon = R.drawable.ic_actions_add_ribbon,
-                title = "Save Post",
-                action = {
-                     savePost()
-                }
-            ),
-            DropDownAction(
-                icon = R.drawable.ic_link,
-                title = "Share",
-                action = {
-                    copyLink()
-                }
+        val actions = mutableListOf<DropDownAction>()
+        goToPost?.let {
+            actions.add(
+                DropDownAction(
+                    icon = R.drawable.ic_actions_new_window,
+                    title = "Go to Post",
+                    action = goToPost
+                ),
+            )
+        }
+
+        goToUser?.let {
+            actions.add(
+                DropDownAction(
+                    icon = R.drawable.ic_actions_user,
+                    title = "Go to User",
+                    action = it
+                )
+            )
+        }
+        actions.addAll(
+            listOf(
+                DropDownAction(
+                    icon = R.drawable.playlist_add_svgrepo_com,
+                    title = "Add To Playlist",
+                    action = addToPlaylist
+                ),
+                DropDownAction(
+                    icon = R.drawable.ic_actions_add_ribbon,
+                    title = "Save Post",
+                    action = savePost
+                ),
+                DropDownAction(
+                    icon = R.drawable.ic_link,
+                    title = "Share",
+                    action = copyLink
+                )
             )
         )
 
-        //Check Post Owner
+
+        // Check Post Owner
         if (!isCurrentUserPost) {
             actions.add(
                 DropDownAction(
                     icon = R.drawable.ic_visibility_off,
                     title = "Block User",
-                    action = {
-                        blockUser()
-                    }
+                    action = blockUser
                 )
             )
         } else {
@@ -186,11 +189,18 @@ fun PostAction(
                 DropDownAction(
                     icon = R.drawable.pencil_svgrepo_com,
                     title = "Edit",
-                    action = {
-                        changeInfo()
-                    }
+                    action = changeInfo
                 )
             )
+            if(deletePost != null) {
+                actions.add(
+                    DropDownAction(
+                        icon = R.drawable.delete_2_svgrepo_com,
+                        title = "Delete Post",
+                        action = deletePost
+                    )
+                )
+            }
         }
         actions
     }

@@ -85,7 +85,6 @@ class UserRepository @Inject constructor(
         username: String,
         bio: String,
         country: String,
-        email: String,
         avatarUri: Uri,
         oldUser: User
     ): Boolean{
@@ -99,9 +98,6 @@ class UserRepository @Inject constructor(
             }
             if(country != oldUser.country){
                 updateTasks.add(scope.async { firebaseUserService.updateCountry(country) })
-            }
-            if(email != oldUser.email){
-                updateTasks.add(scope.async { firebaseUserService.updateEmail(email) })
             }
             if(avatarUri != Uri.EMPTY){
                 updateTasks.add(scope.async { firebaseUserService.updateAvatar(avatarUri) })

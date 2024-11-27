@@ -1,10 +1,17 @@
 package com.example.urvoices.data.service
 
 import android.util.Log
+import androidx.paging.ExperimentalPagingApi
+import androidx.paging.Pager
+import androidx.paging.PagingConfig
+import androidx.paging.PagingData
 import com.example.urvoices.data.model.MessageNotification
 import com.example.urvoices.data.model.Notification
 import com.example.urvoices.data.model.TypeNotification
+import com.example.urvoices.data.remotemediator.NotificationRM
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 
@@ -16,8 +23,9 @@ import javax.inject.Inject
 class FirebaseNotificationService @Inject constructor(
     private val firebaseFirestore: FirebaseFirestore,
 
-    ){
+){
     val TAG = "FirebaseNotificationService"
+
     suspend fun followUser(targetUserID: String, actionUsername: String , followInfoID: String): Boolean {
 //        Log.e(TAG, "followUser: $actionUsername")
         val noti = Notification(
@@ -58,7 +66,7 @@ class FirebaseNotificationService @Inject constructor(
             deleteAt = null
         )
 
-        val result = firebaseFirestore.collection("notifications").add(noti)
+        val result = firebaseFirestore.collection("notifications").add(noti.toMap())
             .addOnCompleteListener {
                 firebaseFirestore.collection("notifications").document(it.result?.id!!).update("ID", it.result?.id!!)
             }
