@@ -11,5 +11,6 @@ data class SavedPost(
 	val imgUrl : String = "",
 	val avatarUrl: String = "",
 	val audioName: String = "",
-	val audioUrl: String = ""
+	val audioUrl: String = "",
+	val isDeleted: Boolean = false
 )

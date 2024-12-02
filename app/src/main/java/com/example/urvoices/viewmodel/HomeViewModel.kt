@@ -18,12 +18,16 @@ import com.example.urvoices.data.model.Post
 import com.example.urvoices.data.repository.BlockRepository
 import com.example.urvoices.data.repository.PostRepository
 import com.example.urvoices.data.repository.UserRepository
+import com.example.urvoices.data.service.FirebaseBlockService
+import com.example.urvoices.utils.MessagingService
 import com.example.urvoices.utils.SharedPreferencesHelper
 import com.example.urvoices.utils.SharedPreferencesKeys
 import com.example.urvoices.utils.SharedPreferencesKeys.isFirstTime
 import com.example.urvoices.utils.UserPreferences
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.SetOptions
+import com.google.firebase.messaging.FirebaseMessaging
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -35,6 +39,7 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 
 @SuppressLint("MutableCollectionMutableState")
@@ -59,11 +64,14 @@ class HomeViewModel @Inject constructor(
     fun resetScrollToTopEvent() { _scrollToTopEvent.value = false }
 
     private val _postList = MutableStateFlow<PagingData<Post>>(PagingData.empty())
-    val postList: StateFlow<PagingData<Post>> = _postList
+    val postList: StateFlow<PagingData<Post>> = _postList.asStateFlow()
 
     val currentUser = mutableStateOf(auth.currentUser)
 
     init {
+        viewModelScope.launch {
+            sendRegistrationToServer()
+        }
         loadData()
     }
 
@@ -74,10 +82,9 @@ class HomeViewModel @Inject constructor(
     }
 
     fun refreshHomeScreen(){
+        clearData()
         setIsRefreshing(true)
-        viewModelScope.launch {
-            fetchPosts()
-        }
+        loadData()
     }
 
 
@@ -93,20 +100,21 @@ class HomeViewModel @Inject constructor(
         }.flow
             .map {pagingData -> //filter out blocked users
                 pagingData.filter {
-                    post -> !blockRepository.getBlockStatus(post.userId)
+                    post ->
+                    blockRepository.getBlockStatusFromFirebase(post.userId) == FirebaseBlockService.BlockInfo.NO_BLOCK //filter out blocked users
                 }
             }
             .cachedIn(viewModelScope)
-            .collect{
-                _postList.value = it
-            }
+        postsPaging3.collect {
+            _postList.value = it
+        }
     }
 
     fun setIsRefreshing(value: Boolean){
         isRefreshing.value = value
     }
 
-    fun clearData(){
+    private fun clearData(){
         _postList.value = PagingData.empty()
     }
 
@@ -138,8 +146,10 @@ class HomeViewModel @Inject constructor(
         }
         //Check First Login/ Fetch Database Setting From Account if exists
         val isFirstTime = sharedPrefs.getBoolean(SharedPreferencesKeys.isFirstTime, true, currentUser.value!!.uid)
+
         try {
             if(isFirstTime){
+//                checkTokenSaved()
                 viewModelScope.launch {
                     val result = userRepository.getUserSettingsByID(currentUser.value!!.uid)
                     if (result != null) { //exist
@@ -167,6 +177,44 @@ class HomeViewModel @Inject constructor(
         }
     }
 
+    suspend fun sendRegistrationToServer() {
+        try {
+            val token = FirebaseMessaging.getInstance().token.await()
+
+            Log.e(TAG, "sendRegistrationToServer: $token")
+            val user = FirebaseAuth.getInstance().currentUser
+            if (user != null) {
+                val userDocRef = FirebaseFirestore.getInstance().collection("userTokens").document(user.uid)
+                val userDoc = userDocRef.get().await()
+                Log.e(TAG, "sendRegistrationToServer: ${userDoc.exists()}")
+                if (userDoc.exists()) {
+                    val existingTokens = userDoc.get("token") as? List<String> ?: emptyList()
+                    if (!existingTokens.contains(token)) {
+                        val updatedTokens = existingTokens.toMutableList().apply { add(token) }
+                        userDocRef.set(mapOf("token" to updatedTokens), SetOptions.merge())
+                            .addOnSuccessListener {
+                                Log.e(TAG, "sendRegistrationToServer: Token added successfully")
+                            }
+                            .addOnFailureListener {
+                                Log.e(TAG, "sendRegistrationToServer: ${it.message}")
+                            }
+                    } else {
+                        Log.e(TAG, "sendRegistrationToServer: Token already exists")
+                    }
+                } else {
+                    userDocRef.set(mapOf("token" to listOf(token)), SetOptions.merge())
+                        .addOnSuccessListener {
+                            Log.e(TAG, "sendRegistrationToServer: Token added successfully")
+                        }
+                        .addOnFailureListener {
+                            Log.e(TAG, "sendRegistrationToServer: ${it.message}")
+                        }
+                }
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "sendRegistrationToServer: ${e.message}")
+        }
+    }
 }
 
 sealed class HomeState {

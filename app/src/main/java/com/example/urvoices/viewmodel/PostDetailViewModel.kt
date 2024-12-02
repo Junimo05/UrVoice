@@ -1,6 +1,8 @@
 package com.example.urvoices.viewmodel
 
+import android.content.Context
 import android.util.Log
+import android.widget.Toast
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.SavedStateHandle
@@ -8,6 +10,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.SavedStateHandleSaveableApi
 import androidx.lifecycle.viewmodel.compose.saveable
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
@@ -15,16 +18,21 @@ import androidx.paging.cachedIn
 import androidx.paging.insertHeaderItem
 import com.example.urvoices.data.model.Comment
 import com.example.urvoices.data.model.Post
+import com.example.urvoices.data.repository.NotificationRepository
 import com.example.urvoices.data.repository.PostRepository
 import com.example.urvoices.data.repository.UserRepository
+import com.example.urvoices.utils.UserPreferences
 import com.google.firebase.auth.FirebaseAuth
+import dagger.hilt.android.internal.Contexts.getApplication
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
@@ -46,8 +54,11 @@ val emptyPost = Post(
 
 @HiltViewModel
 class PostDetailViewModel @Inject constructor(
+    @ApplicationContext private val context: Context,
     private val postRepository: PostRepository,
     private val userRepository: UserRepository,
+    private val notificationRepository: NotificationRepository,
+    private val userRef: UserPreferences,
     private val auth: FirebaseAuth,
     savedStateHandle: SavedStateHandle
 ): ViewModel() {
@@ -59,13 +70,17 @@ class PostDetailViewModel @Inject constructor(
     private val _isLoadingCmt = MutableStateFlow(false)
     val isLoadingCmt: StateFlow<Boolean> = _isLoadingCmt.asStateFlow()
 
+    private val _refreshRequire = MutableStateFlow(false)
+    val refreshRequire: StateFlow<Boolean> = _refreshRequire.asStateFlow()
+    fun triggerRefresh() { _refreshRequire.value = true }
+    fun resetRefreshRequire() { _refreshRequire.value = false }
+
     private var postID = ""
     var currentPost = mutableStateOf(emptyPost)
     @OptIn(SavedStateHandleSaveableApi::class)
     var userPost by savedStateHandle.saveable { mutableStateOf(userTemp) }
-    @OptIn(SavedStateHandleSaveableApi::class)
-    var isFollowed by savedStateHandle.saveable { mutableStateOf(false) }
-
+    var currentUser = auth.currentUser
+    var currentUsername by savedStateHandle.saveable { mutableStateOf("") }
     //Comment Control
     val lastPage = mutableIntStateOf(1)
     val lastCmt = mutableStateOf("")
@@ -80,6 +95,27 @@ class PostDetailViewModel @Inject constructor(
 
     private val _commentFlow = MutableStateFlow<PagingData<Comment>>(PagingData.empty())
     val commentFlow = _commentFlow.asStateFlow()
+    fun resetCommentFlow() {
+        _commentFlow.value = PagingData.empty()
+        lastPage.intValue = 1
+        lastCmt.value = ""
+    }
+
+    val postFlow: MutableSharedFlow<Post> = MutableSharedFlow(replay = 1)
+
+    fun configureObservers() = viewModelScope.launch {
+        postFlow
+            .distinctUntilChanged() // ignores multiple identical events
+            .collect { postUpdated ->
+                Log.e(TAG, "configureObservers: ${postUpdated.audioName}")
+            }
+    }
+
+    init {
+        viewModelScope.launch {
+            currentUsername = userRef.userNameFlow.first().toString()
+        }
+    }
 
     val postFlow: MutableSharedFlow<Post> = MutableSharedFlow(replay = 1)
 
@@ -92,6 +128,7 @@ class PostDetailViewModel @Inject constructor(
     }
 
     fun loadData(postID: String, userID: String) {
+        resetCommentFlow()
         this.postID = postID
         currentPost.value = emptyPost
         userPost = userTemp
@@ -126,15 +163,12 @@ class PostDetailViewModel @Inject constructor(
         }
     }
 
-    private fun initializeCommentPager(reload: Boolean = false) {
-        if(reload){
-            lastPage.intValue = 1
-            lastCmt.value = ""
-            _commentFlow.value = PagingData.empty()
-        }
+    private suspend fun fetchComments(){
+        val lastVisiblePost = mutableStateOf<String>("")
+        val lastVisiblePage = mutableIntStateOf(1)
         viewModelScope.launch {
             _isLoadingCmt.value = true
-            Pager(pagingConfig) {
+            val comments = Pager(pagingConfig) {
                 postRepository.getCommentsPosts(
                     postID = postID,
                     lastPage = lastPage,
@@ -145,11 +179,10 @@ class PostDetailViewModel @Inject constructor(
                     _commentFlow.value = it
                     _isLoadingCmt.value = false
                 }
-
         }
     }
+
     suspend fun sendComment(message: String, parentID: String = "") {
-        val currentUser = auth.currentUser
         if (message.isBlank()) return
         var replyCheck = false
 //        Log.e(TAG, "sendComment: $parentID")
@@ -163,7 +196,6 @@ class PostDetailViewModel @Inject constructor(
                         postID = currentPost.value.ID!!,
                         content = message
                     )
-                    
                 } else {
                     replyCheck = true
                     postRepository.replyComment(
@@ -179,13 +211,35 @@ class PostDetailViewModel @Inject constructor(
                 comments = currentPost.value.comments?.plus(1)
             )
 
-            if (result.id != null) {
+            if (result.comment.id != null) {
                 _uiState.value = PostDetailState.SendCommentSuccess
                 if (replyCheck) {
-                    initializeCommentPager()
+                    //add Noti
+                    notificationRepository.replyComment(
+                        targetUserID = currentPost.value.userId,
+                        actionUsername = currentUsername,
+                        relaID = result.relaCommentID
+                    )
+                    Toast.makeText(
+                        context,
+                        "Reply sent successfully",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                    _refreshRequire.value = true
                 } else {
-                    _commentFlow.value = _commentFlow.value.insertHeaderItem(item = result)
+                    notificationRepository.commentPost(
+                        targetUserID = currentPost.value.userId,
+                        actionUsername = currentUsername,
+                        relaID = result.relaCommentID
+                    )
+                    Toast.makeText(
+                        context,
+                        "Comment sent successfully",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                    _commentFlow.value = _commentFlow.value.insertHeaderItem(item = result.comment)
                 }
+                _uiState.value = PostDetailState.Success
             } else {
                 _uiState.value = PostDetailState.Failed
             }
@@ -199,7 +253,9 @@ class PostDetailViewModel @Inject constructor(
 
 
     fun reloadComment() {
-        initializeCommentPager(true)
+        viewModelScope.launch {
+            fetchComments()
+        }
     }
 
     private suspend fun loadPostData(postID: String) {
@@ -224,7 +280,6 @@ class PostDetailViewModel @Inject constructor(
             val user = userRepository.getInfoUserByUserID(userID)
             if (user != null) {
                 userPost = user
-                checkFollowed()
             } else {
                 _uiState.value = PostDetailState.Failed
             }
@@ -234,14 +289,9 @@ class PostDetailViewModel @Inject constructor(
         }
     }
 
-    private suspend fun checkFollowed() {
-        try {
-            val result = userRepository.getFollowStatus(currentPost.value.userId)
-            isFollowed = result
-        } catch (e: Exception) {
-            e.printStackTrace()
-            _uiState.value = PostDetailState.Error
-        }
+    override fun onCleared() {
+        super.onCleared()
+        resetCommentFlow()
     }
 }
 

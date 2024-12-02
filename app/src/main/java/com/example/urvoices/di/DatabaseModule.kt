@@ -4,6 +4,8 @@ import android.content.Context
 import com.example.urvoices.data.AudioManager
 import com.example.urvoices.data.db.AppDatabase
 import com.example.urvoices.data.db.Dao.BlockedUserDao
+import com.example.urvoices.data.db.Dao.DeletedPostDao
+import com.example.urvoices.data.db.Dao.NotificationDao
 import com.example.urvoices.data.db.Dao.SavedPostDao
 import com.example.urvoices.data.repository.NotificationRepository
 import com.example.urvoices.data.repository.PostRepository
@@ -12,6 +14,8 @@ import com.example.urvoices.data.service.FirebaseNotificationService
 import com.example.urvoices.data.service.FirebasePostService
 import com.example.urvoices.data.service.FirebaseUserService
 import com.example.urvoices.utils.SharedPreferencesHelper
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -36,7 +40,6 @@ object DatabaseModule {
     @Provides
     @Singleton
     fun provideBlockDao(
-        @ApplicationContext context: Context,
         database: AppDatabase
     ): BlockedUserDao {
         return database.blockedUserDao()
@@ -45,15 +48,31 @@ object DatabaseModule {
     @Provides
     @Singleton
     fun provideSavedPostDao(
-        @ApplicationContext context: Context,
         database: AppDatabase
     ): SavedPostDao {
         return database.savedPostDao()
     }
 
+    @Provides
+    @Singleton
+    fun provideNotificationDao(
+        database: AppDatabase
+    ): NotificationDao {
+        return database.notificationDao()
+    }
+
+    @Provides
+    @Singleton
+    fun provideDeletedPostDao(
+        database: AppDatabase
+    ): DeletedPostDao {
+        return database.deletedPostDao()
+    }
+
     /*
         Repository
     */
+
 
     @Provides
     @Singleton
@@ -65,6 +84,9 @@ object DatabaseModule {
     @Provides
     @Singleton
     fun provideNotificationRepo(
-        notificationService: FirebaseNotificationService
-    ): NotificationRepository = NotificationRepository(notificationService)
+        notificationService: FirebaseNotificationService,
+        firebaseFirestore: FirebaseFirestore,
+        notificationDao: NotificationDao,
+        auth: FirebaseAuth
+    ): NotificationRepository = NotificationRepository(notificationService, firebaseFirestore, notificationDao, auth)
 }

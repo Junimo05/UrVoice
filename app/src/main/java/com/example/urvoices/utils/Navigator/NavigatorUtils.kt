@@ -22,6 +22,7 @@ sealed class MainScreen(
     val route: String,
 ) {
     object HomeScreen: MainScreen("HOME_SCREEN")
+    object NotificationScreen: MainScreen("NOTIFICATION_SCREEN")
     object SearchScreen: MainScreen("SEARCH_SCREEN")
     object UploadScreen: MainScreen("UPLOAD_SCREEN")
     sealed class ProfileScreen(
@@ -43,6 +44,8 @@ sealed class MainScreen(
         object BlockedUsersScreen: SettingsScreen("SETTINGS_SCREEN/BlockedUsersScreen")
         object SavedPostsScreen: SettingsScreen("SETTINGS_SCREEN/SavedPostsScreen")
         object DeleteAccount: SettingsScreen("SETTINGS_SCREEN/DeleteAccount")
+        object SecurityScreen: SettingsScreen("SETTINGS_SCREEN/SecurityScreen")
+        object DeletePostScreen: SettingsScreen("SETTINGS_SCREEN/DeletePostScreen")
     }
 }
 

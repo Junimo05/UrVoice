@@ -18,8 +18,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.algolia.instantsearch.compose.searchbox.SearchBoxState
 import com.example.urvoices.R
 
@@ -29,8 +31,6 @@ fun SearchBar(
     searchBoxState: SearchBoxState,
     onValueChange: (String) -> Unit = {},
 ){
-    var text by remember { mutableStateOf("") }
-
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -43,6 +43,11 @@ fun SearchBar(
                 searchBoxState.setText(it)
                 onValueChange(it)
             },
+            textStyle = TextStyle(
+                color = MaterialTheme.colorScheme.onSurface,
+                fontSize = 16.sp,
+                fontFamily = MaterialTheme.typography.labelMedium.fontFamily,
+            ),
             maxLines = 1,
             placeholder = {
                 Text("Search...")
@@ -54,8 +59,11 @@ fun SearchBar(
                 }
             ),
             trailingIcon = {
-                if (text.isNotEmpty()) {
-                    IconButton(onClick = { text = "" }) {
+                if (searchBoxState.query.isNotEmpty()) {
+                    IconButton(onClick = {
+                        searchBoxState.setText("")
+                        onValueChange("")
+                    }) {
                         Icon(
                             painter = painterResource(id = R.drawable.ic_actions_close),
                             contentDescription = "Clear"

@@ -1,10 +1,12 @@
 package com.example.urvoices.data.service
 
+import android.annotation.SuppressLint
 import android.net.Uri
 import android.util.Log
 import androidx.compose.runtime.MutableState
 import com.example.urvoices.data.AudioManager
 import com.example.urvoices.data.model.Comment
+import com.example.urvoices.data.model.CommentData
 import com.example.urvoices.data.model.Like
 import com.example.urvoices.data.model.Post
 import com.example.urvoices.utils.getDurationFromUrl
@@ -367,6 +369,31 @@ class FirebasePostService @Inject constructor(
         }
     }
 
+    suspend fun getAllDeletePost() : List<Post>{
+        val posts = mutableListOf<Post>()
+        val user = auth.currentUser
+        try {
+        	if(user != null){
+                val deletePostRef = firebaseFirestore.collection("posts")
+                    .whereEqualTo("userId", user.uid)
+                    .whereNotEqualTo("deletedAt", null)
+                    .get()
+                    .await()
+                if (!deletePostRef.isEmpty) {
+                    deletePostRef.mapNotNull {
+                        val post = it.toObject<Post>()
+                        posts.add(post)
+                    }
+                }
+            }
+            return posts
+        } catch (e:Exception){
+            e.printStackTrace()
+            Log.e(TAG, "getAllDeletePost: ${e.message}")
+        }
+        return posts
+    }
+
     suspend fun deletePost(postID: String): Boolean {
         // delete post
         try {
@@ -375,6 +402,7 @@ class FirebasePostService @Inject constructor(
             return true
         } catch (e: Exception) {
             e.printStackTrace()
+            Log.e(TAG, "deletePost: ${e.message}")
         }
         return false
     }
@@ -452,16 +480,20 @@ class FirebasePostService @Inject constructor(
 
     private suspend fun getCountCommentsPosts(postId: String): Int {
         return try {
-            // get the count of comments which belong to the post
-            val countResult = firebaseFirestore.collection("rela_comments_users_posts")
+            // get the documents which belong to the post
+            val querySnapshot = firebaseFirestore.collection("rela_comments_users_posts")
                 .whereEqualTo("postID", postId)
-                .count()
-                .get(AggregateSource.SERVER)
+                .get()
                 .await()
-            countResult.count.toInt()
+
+            // count the documents where deletedAt is null or does not exist
+            querySnapshot.documents.count {
+                !it.contains("deletedAt") || it.get("deletedAt") == null
+            }
         } catch (e: FirebaseFirestoreException) {
             e.printStackTrace()
             Log.e(TAG, "getCountCommentsPosts: ${e.message}")
+            0
         }
     }
 
@@ -480,7 +512,7 @@ class FirebasePostService @Inject constructor(
             val likeRef = firebaseFirestore.collection("likes").add(like.toMap()).await()
             relaID = likeRef.id
             firebaseFirestore.collection("likes").document(relaID).update("ID", relaID).await()
-            Log.e(TAG, "likePost Done: $relaID")
+//            Log.e(TAG, "likePost Done: $relaID")
         } catch (e: Exception) {
             e.printStackTrace()
             Log.e(TAG, "likePost: ${e.message}")
@@ -509,8 +541,9 @@ class FirebasePostService @Inject constructor(
         return relaID
     }
 
-    suspend fun commentPost(actionUserID: String, postID: String, content: String): Comment {
+    suspend fun commentPost(actionUserID: String, postID: String, content: String): CommentData {
         var commentResultID = ""
+        var relaCommentID = ""
         val comment = Comment(
             id = null,
             userId = actionUserID,
@@ -532,24 +565,26 @@ class FirebasePostService @Inject constructor(
                 .update("ID", commentResultID).await()
 
             // Update ID for relation
-            firebaseFirestore.collection("rela_comments_users_posts").add(comment.toRelaMap()).addOnCompleteListener {
-                //update ID for relation
-                    rela ->
-                firebaseFirestore.collection("rela_comments_users_posts").document(rela.result?.id!!)
-                    .update("ID", rela.result?.id!!)
-            }.await()
+            val relaRef = firebaseFirestore.collection("rela_comments_users_posts").add(comment.toRelaMap()).await()
+            relaCommentID = relaRef.id
+            firebaseFirestore.collection("rela_comments_users_posts").document(relaCommentID)
+                .update("ID", relaCommentID, "commentID", commentResultID).await()
 
-            return comment
+            return CommentData(
+                comment = comment,
+                relaCommentID = commentResultID
+            )
         } catch (e: Exception) {
             e.printStackTrace()
             Log.e(TAG, "commentPost: ${e.message}")
         }
-        return comment
+        return CommentData()
     }
 
-    suspend fun replyComment(actionUserID: String, parentID: String, postID: String, content: String): Comment {
+    suspend fun replyComment(actionUserID: String, parentID: String, postID: String, content: String): CommentData {
         // reply comment
         var commentResultID = ""
+        var relaCommentID = ""
         val comment = Comment(
             id = null,
             userId = actionUserID,
@@ -561,30 +596,139 @@ class FirebasePostService @Inject constructor(
             deletedAt = null
         )
         try {
+            // Add comment and get the reference
+            val commentRef = firebaseFirestore.collection("comments").add(comment.toCommentMap()).await()
+            commentResultID = commentRef.id
+            comment.id = commentRef.id
 
-            firebaseFirestore.collection("comments").add(comment.toCommentMap()).addOnCompleteListener {
-                //update ID for comment
-                cmt ->
-                firebaseFirestore.collection("comments").document(cmt.result?.id!!)
-                    .update("ID", cmt.result?.id!!)
-                //update Relation
-                commentResultID = cmt.result?.id!!
-            }.await()
+            // Update ID for comment
+            firebaseFirestore.collection("comments").document(commentResultID)
+                .update("ID", commentResultID).await()
 
-            firebaseFirestore.collection("rela_comments_users_posts").add(comment.toRelaMap()).addOnCompleteListener {
-                //update ID for relation
-                rela ->
-                firebaseFirestore.collection("rela_comments_users_posts").document(rela.result?.id!!)
-                    .update("ID", rela.result?.id!!, "commentID", commentResultID)
-            }.await()
+            // Update ID for relation
+            val relaRef = firebaseFirestore.collection("rela_comments_users_posts").add(comment.toRelaMap()).await()
+            relaCommentID = relaRef.id
+            firebaseFirestore.collection("rela_comments_users_posts").document(relaCommentID)
+                .update("ID", relaCommentID, "commentID", commentResultID).await()
 
-            return comment.apply {
-                id = commentResultID
+            return CommentData(
+                comment = comment,
+                relaCommentID = commentResultID
+            )
+
+        } catch (e: Exception) {
+            e.printStackTrace()
+            Log.e(TAG, "replyComment: ${e.message}")
+        }
+        return CommentData()
+    }
+
+    suspend fun softDeleteComment(comment: Comment): Boolean {
+        return try {
+            // delete comment
+            firebaseFirestore.collection("comments").document(comment.id!!).update("deletedAt", System.currentTimeMillis())
+                .await()
+            // delete relation
+            firebaseFirestore.collection("rela_comments_users_posts")
+                .whereEqualTo("commentID", comment.id)
+                .get()
+                .addOnCompleteListener { task ->
+                    if (task.isSuccessful) {
+                        task.result?.documents?.forEach { document ->
+                            firebaseFirestore.collection("rela_comments_users_posts").document(document.id)
+                                .set(
+                                    mapOf("deletedAt" to System.currentTimeMillis()),
+                                    SetOptions.merge()
+                                )
+                        }
+                    }
+                }.await()
+            true
+        } catch (e: Exception) {
+            e.printStackTrace()
+            Log.e(TAG, "deleteComment: ${e.message}")
+            false
+        }
+    }
+
+    suspend fun unDeleteComment(comment: Comment): Boolean {
+        return try {
+            // delete comment
+            firebaseFirestore.collection("comments").document(comment.id!!).update("deletedAt", null)
+                .await()
+            // delete relation
+            firebaseFirestore.collection("rela_comments_users_posts")
+                .whereEqualTo("commentID", comment.id)
+                .get()
+                .addOnCompleteListener { task ->
+                    if (task.isSuccessful) {
+                        task.result?.documents?.forEach { document ->
+                            firebaseFirestore.collection("rela_comments_users_posts").document(document.id)
+                                .set(
+                                    mapOf("deletedAt" to null),
+                                    SetOptions.merge()
+                                )
+                        }
+                    }
+                }.await()
+            true
+        } catch (e: Exception) {
+            e.printStackTrace()
+            Log.e(TAG, "deleteComment: ${e.message}")
+            false
+        }
+    }
+
+    suspend fun deletePermanentlyComment(comment: Comment): Boolean {
+        return try {
+            coroutineScope {
+                // Delete the main comment
+                val deleteComment = async {
+                    firebaseFirestore.collection("comments").document(comment.id!!).delete().await()
+                }
+
+                // Find and delete all relationships related to this comment
+                val deleteRelationships = async {
+                    val relationshipsQuery = firebaseFirestore.collection("rela_comments_users_posts")
+                        .whereEqualTo("commentID", comment.id)
+                        .get()
+                        .await()
+
+                    // Delete all related relationship documents
+                    relationshipsQuery.documents.map { document ->
+                        async {
+                            firebaseFirestore.collection("rela_comments_users_posts")
+                                .document(document.id)
+                                .delete()
+                                .await()
+                        }
+                    }.awaitAll()
+                }
+
+                // Optional: Delete child comments if they exist
+                val deleteChildComments = async {
+                    val childCommentsQuery = firebaseFirestore.collection("comments")
+                        .whereEqualTo("parentID", comment.id)
+                        .get()
+                        .await()
+
+                    // Recursively delete child comments
+                    childCommentsQuery.documents.map { childDocument ->
+                        async {
+                            val childComment = childDocument.toObject(Comment::class.java)
+                            childComment?.let { deletePermanentlyComment(it) }
+                        }
+                    }.awaitAll()
+                }
+
+                // Wait for all deletion operations to complete
+                awaitAll(deleteComment, deleteRelationships, deleteChildComments)
+                true
             }
         } catch (e: Exception) {
             e.printStackTrace()
+            false
         }
-        return comment
     }
 
     suspend fun getCommentsPosts(page: Int ,postId: String, lastCmt: MutableState<String>, lastPage: MutableState<Int>): List<Comment>{
@@ -619,12 +763,16 @@ class FirebasePostService @Inject constructor(
                     val repliesDeferred = CoroutineScope(Dispatchers.IO).async { getCountReplyComments(commentId = commentID) }
                     //get comment
                     val commentRef = firebaseFirestore.collection("comments").document(commentID).get().await()
+                    val deletedAt = commentRef.getLong("deletedAt")
+                    if(deletedAt != null){
+                        return@forEach
+                    }
                     val userID = document.getString("userID") ?: return@forEach
                     val postID = document.getString("postID") ?: return@forEach
                     val content = commentRef.getString("content") ?: return@forEach
                     val createdAt = commentRef.getLong("createdAt") ?: return@forEach
                     val updatedAt = commentRef.getLong("updatedAt")
-                    val deletedAt = commentRef.getLong("deletedAt")
+
                     val likes = likeDeferred.await()
                     val replies = repliesDeferred.await()
 //                Log.e(TAG, "getCommentsPosts : $replies")
@@ -685,15 +833,18 @@ class FirebasePostService @Inject constructor(
         }
     }
 
+
+    @SuppressLint("SuspiciousIndentation")
     suspend fun getCountReplyComments(commentId: String): Int{
         return try {
             // get the count of reply comments which belong to the comment
-            val countResult = firebaseFirestore.collection("rela_comments_users_posts")
+            val querySnapshot = firebaseFirestore.collection("rela_comments_users_posts")
                 .whereEqualTo("parentID", commentId)
-                .count()
-                .get(AggregateSource.SERVER)
+                .get()
                 .await()
-            countResult.count.toInt()
+                querySnapshot.documents.count {
+                    !it.contains("deletedAt") || it.get("deletedAt") == null
+                }
         }catch (e: FirebaseFirestoreException){
             e.printStackTrace()
             Log.e(TAG, "getCountReplyComments: ${e.message}")
@@ -730,12 +881,13 @@ class FirebasePostService @Inject constructor(
                 val repliesDeferred = CoroutineScope(Dispatchers.IO).async { getCountReplyComments(commentId = commentID) }
                 //get comment
                 val commentRef = firebaseFirestore.collection("comments").document(commentID).get().await()
+                val deletedAt = commentRef.getLong("deletedAt")
+                if (deletedAt != null) return@mapNotNull null
                 val userID = document.getString("userID") ?: return@mapNotNull null
                 val postID = document.getString("postID") ?: return@mapNotNull null
                 val content = commentRef.getString("content") ?: return@mapNotNull null
                 val createdAt = commentRef.getLong("createdAt") ?: return@mapNotNull null
                 val updatedAt = commentRef.getLong("updatedAt")
-                val deletedAt = commentRef.getLong("deletedAt")
                 val likes = likeDeferred.await()
                 val replies = repliesDeferred.await()
 

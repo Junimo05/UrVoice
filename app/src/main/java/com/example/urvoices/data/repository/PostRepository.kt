@@ -12,6 +12,7 @@ import com.example.urvoices.data.db.AppDatabase
 import com.example.urvoices.data.db.Dao.SavedPostDao
 import com.example.urvoices.data.db.Entity.SavedPost
 import com.example.urvoices.data.model.Comment
+import com.example.urvoices.data.model.CommentData
 import com.example.urvoices.data.model.Post
 import com.example.urvoices.data.service.FirebaseNotificationService
 import com.example.urvoices.data.service.FirebasePostService
@@ -61,6 +62,32 @@ class PostRepository @Inject constructor(
         return false
     }
 
+    suspend fun deletePost(postID: String): Boolean {
+        try {
+            val result = firestorePostService.deletePost(postID)
+            if(result) {
+                return true
+            }else {
+                return false
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            Log.e(TAG, "deletePostRepo Error: ${e.message}")
+        }
+        return false
+    }
+
+    suspend fun getAllDeletePost(): List<Post> {
+        try {
+            val result = firestorePostService.getAllDeletePost()
+            return result
+        } catch (e: Exception) {
+            e.printStackTrace()
+            Log.e(TAG, "getAllDeletePostRepo Error: ${e.message}")
+        }
+        return emptyList()
+    }
+
     fun getNewFeed(lastVisiblePage: MutableState<Int>, lastVisiblePost: MutableState<String>): PagingSource<Int, Post> {
         return object : PagingSource<Int, Post>() {
             private val NETWORK_PAGE_SIZE = 4
@@ -106,9 +133,7 @@ class PostRepository @Inject constructor(
         try {
             val result = firestorePostService.savePosts(postID)
             if(result != null) {
-                if (result) {
-                    syncSavedPosts()
-                }
+                syncSavedPosts()
             }
             return result
         } catch (e: Exception) {
@@ -127,6 +152,8 @@ class PostRepository @Inject constructor(
         return false
     }
 
+
+
     suspend fun likePost(actionUserID: String, postID: String): String {
         val result = firestorePostService.likePost(
             postId = postID,
@@ -140,14 +167,24 @@ class PostRepository @Inject constructor(
         return result
     }
 
-    suspend fun commentPost(actionUserID: String, postID: String, content: String): Comment {
+    suspend fun commentPost(actionUserID: String, postID: String, content: String): CommentData {
         val result = firestorePostService.commentPost(actionUserID, postID, content)
         return result
     }
 
-    suspend fun replyComment(actionUserID: String, parentID: String, postID: String, content: String): Comment {
+    suspend fun replyComment(actionUserID: String, parentID: String, postID: String, content: String): CommentData {
         val result = firestorePostService.replyComment(actionUserID, parentID, postID, content)
         return result
+    }
+
+    suspend fun softDeleteComment(comment: Comment): Boolean{
+        try {
+            val result = firestorePostService.softDeleteComment(comment)
+            return result
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+        return false
     }
 
     //
@@ -206,6 +243,10 @@ class PostRepository @Inject constructor(
                 savedPostDao.deleteAll()
                 snapshot.forEach { id ->
                     val document = firestore.collection("posts").document(id).get().await()
+                    //check if post's state is deleted
+                    if(document.getBoolean("isDeleted") == true) {
+                        return@forEach
+                    }
                     val userDoc = firestore.collection("users").document(document.getString("userId")!!).get().await()
                     val userid = document.getString("userId") ?: ""
                     val username = userDoc.getString("username") ?: ""
@@ -213,6 +254,7 @@ class PostRepository @Inject constructor(
                     val audioName = document.getString("audioName") ?: ""
                     val audioUrl = document.getString("url") ?: ""
                     val imgUrl = document.getString("imgUrl") ?: ""
+                    val isDeleted = document.getLong("deletedAt") != null
                     savedPostDao.insert(
                         SavedPost(
                             id = id,
@@ -221,7 +263,8 @@ class PostRepository @Inject constructor(
                             avatarUrl = avatarUrl,
                             imgUrl = imgUrl,
                             audioName = audioName,
-                            audioUrl = audioUrl
+                            audioUrl = audioUrl,
+                            isDeleted = isDeleted
                         )
                     )
                 }

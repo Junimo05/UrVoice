@@ -33,7 +33,8 @@ class UserRepository @Inject constructor(
 
     suspend fun getPostCount(userId: String) = firebaseUserService.getPostCounts(userId)
 
-    suspend fun followUser(userId: String, followStatus: Boolean) = firebaseUserService.followUser(userId, followStatus)
+    suspend fun followUser(userId: String, followStatus: Boolean, isPrivate: Boolean) = firebaseUserService.followUser(userId, followStatus, isPrivate)
+
 
 
     fun getPagingFollowerList(userId: String): PagingSource<Int, User> {
@@ -85,7 +86,6 @@ class UserRepository @Inject constructor(
         username: String,
         bio: String,
         country: String,
-        email: String,
         avatarUri: Uri,
         oldUser: User
     ): Boolean{
@@ -99,9 +99,6 @@ class UserRepository @Inject constructor(
             }
             if(country != oldUser.country){
                 updateTasks.add(scope.async { firebaseUserService.updateCountry(country) })
-            }
-            if(email != oldUser.email){
-                updateTasks.add(scope.async { firebaseUserService.updateEmail(email) })
             }
             if(avatarUri != Uri.EMPTY){
                 updateTasks.add(scope.async { firebaseUserService.updateAvatar(avatarUri) })

@@ -8,15 +8,17 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.urvoices.data.model.Post
 import com.example.urvoices.data.repository.PostRepository
+import com.google.firebase.firestore.FirebaseFirestore
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 @HiltViewModel
 class EditPostVM @Inject constructor(
-
+	private val firebaseFirestore: FirebaseFirestore,
 	private val postRepository: PostRepository,
 	private val savedStateHandle: SavedStateHandle
 ): ViewModel() {
@@ -24,8 +26,14 @@ class EditPostVM @Inject constructor(
 	private val _editPostState = MutableLiveData<EditPostState>(EditPostState.Idle)
 	val editPostState: LiveData<EditPostState> get() = _editPostState
 
+
+
 	init{
 
+	}
+	suspend fun getImgUrl(postID: String): String {
+		val result = firebaseFirestore.collection("posts").document(postID).get().await()
+		return result.getString("imgUrl") ?: throw IllegalStateException("Image URL not found")
 	}
 
 	suspend fun updatePost(mapData: Map<String, Any?>, oldData: Post): Boolean {

@@ -20,6 +20,7 @@ import com.example.urvoices.data.repository.NotificationRepository
 import com.example.urvoices.data.repository.PostRepository
 import com.example.urvoices.data.repository.UserRepository
 import com.example.urvoices.data.service.FirebaseBlockService
+import com.example.urvoices.utils.FollowState
 import com.example.urvoices.utils.SharedPreferencesHelper
 import com.example.urvoices.utils.SharedPreferencesKeys
 import com.example.urvoices.utils.UserPreferences
@@ -52,7 +53,7 @@ class ProfileViewModel @Inject constructor(
     private val postRepository: PostRepository,
     private val notificationRepository: NotificationRepository,
     private val userRepository: UserRepository,
-    private val blockRepository: BlockRepository,
+    val blockRepository: BlockRepository,
     private val auth: FirebaseAuth,
     private val userDataStore: UserPreferences,
     private val sharedPrefs: SharedPreferencesHelper,
@@ -68,6 +69,8 @@ class ProfileViewModel @Inject constructor(
 
     @OptIn(SavedStateHandleSaveableApi::class)
     var isFollowed by savedStateHandle.saveable { mutableStateOf(false) }
+    @OptIn(SavedStateHandleSaveableApi::class)
+    var followState by savedStateHandle.saveable { mutableStateOf(FollowState.UNFOLLOW) }
     @OptIn(SavedStateHandleSaveableApi::class)
     var followers by savedStateHandle.saveable { mutableIntStateOf(0) }
     @OptIn(SavedStateHandleSaveableApi::class)
@@ -91,38 +94,23 @@ class ProfileViewModel @Inject constructor(
     @OptIn(SavedStateHandleSaveableApi::class)
     var isBlocked by savedStateHandle.saveable { mutableStateOf(false) }
     @OptIn(SavedStateHandleSaveableApi::class)
-    var blockMessage by savedStateHandle.saveable { mutableStateOf("") }
-
+    var blockInfo by savedStateHandle.saveable { mutableStateOf("") }
     private var userListenerRegistration: ListenerRegistration? = null
 
     //Posts
-    val lastVisiblePost = mutableStateOf("")
-    val lastVisiblePage = mutableIntStateOf(1)
-    var posts : Flow<PagingData<Post>> = Pager(PagingConfig(pageSize = 3)) {
-        if (displayuserID != currentUserID) {
-            lastVisiblePost.value = lastVisiblePost.value
-            lastVisiblePage.intValue = lastVisiblePage.intValue
-        }
-        postRepository.getAllPostFromUser(displayuserID, lastVisiblePost, lastVisiblePage)
-    }.flow.cachedIn(viewModelScope)
+    private val _posts = MutableStateFlow<PagingData<Post>>(PagingData.empty())
+    val posts: StateFlow<PagingData<Post>> = _posts.asStateFlow()
 
     //SavedPosts
-    val lastVisibleSavedPost = mutableStateOf("")
-    val lastVisibleSavedPage = mutableIntStateOf(1)
-    var savedPosts : Flow<PagingData<Post>> = Pager(PagingConfig(pageSize = 3)) {
-        if (displayuserID != currentUserID) {
-            lastVisibleSavedPost.value = lastVisibleSavedPost.value
-            lastVisibleSavedPage.intValue = lastVisibleSavedPage.intValue
-        }
-        postRepository.getAllSavedPostFromUser(displayuserID, lastVisibleSavedPost, lastVisibleSavedPage)
-    }.flow.cachedIn(viewModelScope)
-
+    private val _savedPosts = MutableStateFlow<PagingData<Post>>(PagingData.empty())
+    val savedPosts: StateFlow<PagingData<Post>> = _savedPosts.asStateFlow()
 
 
     fun loadData(userID: String){
         if(displayuserID != userID){
             this.displayuserID = userID
             reloadPost()
+            reloadSavedPost()
         }
         currentUserID = authCurrentUser?.uid ?: ""
         if (currentUserID == this.displayuserID){
@@ -146,17 +134,53 @@ class ProfileViewModel @Inject constructor(
         }
     }
 
+    fun pullToRefresh(){
+        clearPostData()
+        reloadPost()
+        reloadSavedPost()
+    }
+
     private fun reloadPost(){
-        lastVisiblePost.value = ""
-        lastVisiblePage.intValue = 1
-        lastVisibleSavedPost.value = ""
-        lastVisibleSavedPage.intValue = 1
-        posts = Pager(PagingConfig(pageSize = 3)) {
+        viewModelScope.launch {
+            fetchPost()
+        }
+    }
+
+    private fun reloadSavedPost(){
+        viewModelScope.launch {
+            fetchSavedPost()
+        }
+    }
+
+    private fun clearPostData(){
+        _posts.value = PagingData.empty()
+        _savedPosts.value = PagingData.empty()
+    }
+
+    private suspend fun fetchPost(){
+        val lastVisiblePost = mutableStateOf<String>("")
+        val lastVisiblePage = mutableIntStateOf(1)
+        val data = Pager(PagingConfig(pageSize = 4)){
             postRepository.getAllPostFromUser(displayuserID, lastVisiblePost, lastVisiblePage)
-        }.flow.cachedIn(viewModelScope)
-        savedPosts = Pager(PagingConfig(pageSize = 3)) {
-            postRepository.getAllSavedPostFromUser(displayuserID, lastVisibleSavedPost, lastVisibleSavedPage)
-        }.flow.cachedIn(viewModelScope)
+        }.flow
+            .cachedIn(viewModelScope)
+
+        data.collect{
+            _posts.value = it
+        }
+    }
+
+    private suspend fun fetchSavedPost(){
+        val lastVisiblePost = mutableStateOf<String>("")
+        val lastVisiblePage = mutableIntStateOf(1)
+        val data = Pager(PagingConfig(pageSize = 4)){
+            postRepository.getAllSavedPostFromUser(displayuserID, lastVisiblePost, lastVisiblePage)
+        }.flow
+            .cachedIn(viewModelScope)
+
+        data.collect{
+            _savedPosts.value = it
+        }
     }
 
     private suspend fun loadbaseUserData(userID: String){
@@ -188,25 +212,57 @@ class ProfileViewModel @Inject constructor(
 
     fun followUser(){
         try {
+            val privateStatus = this.isPrivate
             val targetUserID = this.displayuserID
             val actionUserID = this.currentUserID
+            val followSend = when(followState){
+                FollowState.FOLLOW -> false //unfollow
+                FollowState.UNFOLLOW -> true //follow send
+                FollowState.REQUEST_FOLLOW -> false //undo request follow
+                else -> false
+            }
             _uiState.value = ProfileState.Working
             viewModelScope.launch {
                 val actionUsername = userDataStore.userNameFlow.first()!!
-                val relaFollowID = userRepository.followUser(userId = targetUserID, followStatus = !isFollowed)
-                if(relaFollowID != ""){ //Follow
-                    if(targetUserID != actionUserID){
-                        followers++
-                        isFollowed = !isFollowed
-                    }
-                    val result = notificationRepository.followUser(targetUserID = targetUserID, actionUsername = actionUsername, followInfoID = relaFollowID)
-                    if(result){
-                        _uiState.value = ProfileState.Successful
+                val relaFollowID = userRepository.followUser(userId = targetUserID, followStatus = followSend, isPrivate = privateStatus) //follow Info ID
+                if(relaFollowID != ""){ //Success
+                    if(followSend){ // true -> do a follow request
+                        if(targetUserID != actionUserID){
+                            if(isPrivate){ //follow user private
+                                isFollowed = false
+                                followState = FollowState.REQUEST_FOLLOW
+                            }else { //follow user public
+                                followers++
+                                isFollowed = true
+                                followState = FollowState.FOLLOW
+                            }
+                        }
+                        val result = notificationRepository.followUser(targetUserID = targetUserID, actionUsername = actionUsername, followInfoID = relaFollowID, isPrivate = privateStatus)
+                        if(result){
+                            _uiState.value = ProfileState.Successful
 //                        Log.e(TAG, "followUser: Success")
+                        }
+                    } else { //false -> unfollow or undo request follow
+                        if(targetUserID != actionUserID){
+                            if(followState == FollowState.FOLLOW){
+                                followers--
+                            }
+                            if(followState == FollowState.REQUEST_FOLLOW){
+                                //delete request follow
+                               notificationRepository.deleteRequestFollow(
+                                    followID = relaFollowID,
+                                    targetUserID = targetUserID,
+                                    actionUserID = actionUserID
+                                )
+                            }
+                            isFollowed = false
+                            followState = FollowState.UNFOLLOW
+                        }
+                        _uiState.value = ProfileState.Successful
                     }
-                } else { //Unfollow
-                    followers--
-                    isFollowed = !isFollowed
+                } else { //Failed
+                    _uiState.value = ProfileState.Error("Error when following user")
+                    Log.e(TAG, "followUser: Error")
                 }
             }
         } catch (e: Exception) {
@@ -215,13 +271,15 @@ class ProfileViewModel @Inject constructor(
         }
     }
 
+    fun acceptFollowRequest(){
+
+    }
 
     //Update DATA
     suspend fun updateProfile(
         username: String,
         bio: String,
         country: String,
-        email: String,
         avatarUri: Uri = Uri.EMPTY,
     ): Boolean {
         _uiState.value = ProfileState.Working
@@ -229,7 +287,7 @@ class ProfileViewModel @Inject constructor(
 
         return withContext(Dispatchers.IO) {
             try {
-                val result = userRepository.updateUser(username, bio, country, email, avatarUri, oldUser)
+                val result = userRepository.updateUser(username, bio, country, avatarUri, oldUser)
                 if (result) {
                     _uiState.value = ProfileState.Successful
                     // Update user data
@@ -237,7 +295,6 @@ class ProfileViewModel @Inject constructor(
                         username = username,
                         bio = bio,
                         country = country,
-                        email = email,
                     )
                     true
                 } else {
@@ -284,7 +341,18 @@ class ProfileViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 val followStatus = userRepository.getFollowStatus(userId)
-                isFollowed = followStatus
+                followState = followStatus
+                when(followState){
+                    FollowState.FOLLOW -> {
+                        isFollowed = true
+                    }
+                    FollowState.UNFOLLOW -> {
+                        isFollowed = false
+                    }
+                    FollowState.REQUEST_FOLLOW -> {
+                        isFollowed = false
+                    }
+                }
             } catch (e: Exception) {
                 _uiState.value = ProfileState.Error("Error when loading follow status")
                 Log.e(TAG, "getFollowStatus: Error")
@@ -344,13 +412,13 @@ class ProfileViewModel @Inject constructor(
             val result = blockRepository.getBlockStatusFromFirebase(userID) //local get
             if (result == FirebaseBlockService.BlockInfo.BLOCK) {
                 isBlocked = true
-                blockMessage = "You have blocked this user"
+                blockInfo = result
             } else if (result == FirebaseBlockService.BlockInfo.BLOCKED) {
                 isBlocked = true
-                blockMessage = "This user has blocked you"
+                blockInfo = result
             } else {
                 isBlocked = false
-                blockMessage = ""
+                blockInfo = result
             }
         } catch (e: Exception) {
             _uiState.value = ProfileState.Error("Error when loading user privacy")

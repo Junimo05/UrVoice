@@ -65,21 +65,6 @@ private fun getFileName(context: Context, uri: Uri): String {
     return fileName
 }
 
-private fun isExternalStorageDocument(uri: Uri): Boolean {
-    return "com.android.externalstorage.documents" == uri.authority
-}
-
-private fun isDownloadsDocument(uri: Uri): Boolean {
-    return "com.android.providers.downloads.documents" == uri.authority
-}
-
-private fun isMediaDocument(uri: Uri): Boolean {
-    return "com.android.providers.media.documents" == uri.authority
-}
-
-
-
-
 fun formatFileSize(size: Long): String {
     val kilobyte: Long = 1024
     val megabyte = kilobyte * 1024
@@ -133,6 +118,13 @@ fun getTimeElapsed(createdAt: Long): String {
     }
 }
 
+fun getDayTime(time: Long): String {
+    val date = Date(time)
+    val sdf = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+    return sdf.format(date)
+}
+
+
 fun formatToMinSecFromMillisec(position: Long): String{
     val totalSec = floor(position / 1E3).toInt()
     val minutes = totalSec / 60
@@ -166,3 +158,4 @@ fun deleteOldImageFile(uri: Uri) {
         file.delete()
     }
 }
+

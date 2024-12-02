@@ -1,7 +1,5 @@
 package com.example.urvoices.ui._component
 
-import android.graphics.drawable.Drawable
-import android.graphics.drawable.Icon
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -21,29 +19,31 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
 import com.example.urvoices.R
 
 @Composable
 fun TopBarBackButton(
     navController: NavController,
-    title : String = "",
+    title: String = "",
+    backButtonAction: (() -> Unit)? = null,
     endIcon: Int? = null,
     endIconAction: () -> Unit = {},
     modifier: Modifier = Modifier,
     child: @Composable () -> Unit = {}
 ) {
+    val colorScheme = MaterialTheme.colorScheme
     Box(
-        modifier = Modifier.fillMaxWidth().then(modifier)
+        modifier = Modifier
+            .fillMaxWidth()
+            .then(modifier)
             .drawBehind {
                 val strokeWidth = 2.dp.toPx()
                 val y = size.height - strokeWidth / 2
                 drawLine(
-                    color = Color.Black,
+                    color = colorScheme.onSurfaceVariant,
                     start = Offset(0f, y),
                     end = Offset(size.width, y),
                     strokeWidth = strokeWidth
@@ -65,7 +65,8 @@ fun TopBarBackButton(
         // Back Button
         IconButton(
             onClick = {
-                navController.popBackStack()
+                if(backButtonAction != null) backButtonAction()
+                else navController.popBackStack()
             },
             modifier = Modifier.align(Alignment.CenterStart)
         ) {
@@ -85,7 +86,9 @@ fun TopBarBackButton(
                     onClick = {
                         endIconAction()
                     },
-                    modifier = Modifier.size(36.dp).padding(end = 8.dp)
+                    modifier = Modifier
+                        .size(36.dp)
+                        .padding(end = 8.dp)
                 ) {
                     Icon(
                         painter = painterResource(id = endIcon),
@@ -96,11 +99,4 @@ fun TopBarBackButton(
             }
         }
     }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun TopBarBackButtonPreview() {
-    val navController = rememberNavController()
-    TopBarBackButton(navController, title = "Title")
 }

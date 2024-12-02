@@ -2,6 +2,7 @@ package com.example.urvoices.ui.MainScreen
 
 import android.annotation.SuppressLint
 import android.content.ClipData
+import android.content.Context
 import android.util.Log
 import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
@@ -30,6 +31,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -47,6 +49,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -69,6 +72,9 @@ import com.example.urvoices.data.model.Comment
 import com.example.urvoices.data.model.Post
 import com.example.urvoices.data.model.User
 import com.example.urvoices.data.service.FirebaseBlockService
+import com.example.urvoices.ui._component.BlockDisplayScreen
+import com.example.urvoices.ui._component.DeleteConfirmationDialog
+import com.example.urvoices.ui._component.DeletedPostScreen
 import com.example.urvoices.ui._component.InteractionRow
 import com.example.urvoices.ui._component.MoreAction.DropDownMenu
 import com.example.urvoices.ui._component.MoreAction.PostAction
@@ -77,7 +83,6 @@ import com.example.urvoices.ui._component.PostComponent.CommentBar
 import com.example.urvoices.ui._component.PostComponent.CommentItem
 import com.example.urvoices.ui._component.TopBarBackButton
 import com.example.urvoices.utils.Auth.BASE_URL
-import com.example.urvoices.utils.Navigator.EditPostScreen
 import com.example.urvoices.utils.Post_Interactions
 import com.example.urvoices.utils.processUsername
 import com.example.urvoices.viewmodel.AuthViewModel
@@ -117,6 +122,9 @@ fun PostDetail(
     val isLove = remember {
         mutableStateOf(false)
     }
+    val isSave = remember {
+        mutableStateOf(false)
+    }
     val isBlock = remember {
         mutableStateOf(false)
     }
@@ -125,11 +133,11 @@ fun PostDetail(
     }
 
     LaunchedEffect(Unit){
-
+        postDetailViewModel.resetRefreshRequire()
         postDetailViewModel.configureObservers()
     }
     LaunchedEffect(isBlock.value) {
-        Log.e(TAG, "isBlock Status: ${isBlock.value}")
+//        Log.e(TAG, "isBlock Status: ${isBlock.value}")
     }
 
     LaunchedEffect(postID, userID) {
@@ -139,6 +147,9 @@ fun PostDetail(
         }
         interactionViewModel.getBlockStatus(userID){ result ->
             blockInfo.value = result
+        }
+        interactionViewModel.getSaveStatus(postID = postID) { result ->
+            isSave.value = result
         }
     }
 
@@ -159,10 +170,12 @@ fun PostDetail(
     val currentPost by postDetailViewModel.currentPost
     val userPost = postDetailViewModel.userPost
     val isLoadingCmt = postDetailViewModel.isLoadingCmt.collectAsState()
+    val refreshRequire = postDetailViewModel.refreshRequire.collectAsState()
     val commentLists = postDetailViewModel.commentFlow.collectAsLazyPagingItems()
 
     // UI States
     val listState = rememberLazyListState()
+    val showDeleteDialog = remember { mutableStateOf(false) }
     val scrollThroughContentDetail = remember { mutableStateOf(false) }
 
     //Reply State
@@ -170,6 +183,13 @@ fun PostDetail(
     val replyTo = remember { mutableStateOf<Comment?>(null) }
     val parentUserName = remember { mutableStateOf("") }
     val commentText = remember { mutableStateOf("") }
+
+    LaunchedEffect(refreshRequire) {
+        //navigate to this post
+        if(refreshRequire.value){
+            navController.navigate("post/${userID}/${postID}")
+        }
+    }
 
     LaunchedEffect(listState) {
         snapshotFlow { listState.firstVisibleItemIndex }
@@ -223,17 +243,24 @@ fun PostDetail(
                                     Toast.makeText(context, "Link Copied", Toast.LENGTH_SHORT).show()
                                     expandMoreAction.value = false
                                 },
+                                isSaved = isSave.value,
                                 savePost = {
                                     interactionViewModel.savePost(postID){result ->
                                         if(result != null){
                                             if(result){
+                                                isSave.value = true
                                                 Toast.makeText(context, "Saved", Toast.LENGTH_SHORT).show()
                                             } else {
+                                                isSave.value = false
                                                 Toast.makeText(context, "Unsaved", Toast.LENGTH_SHORT).show()
                                             }
                                         }
                                         expandMoreAction.value = false
                                     }
+                                },
+                                deletePost = {
+                                    showDeleteDialog.value = true
+                                    expandMoreAction.value = false
                                 },
                                 blockInfo = blockInfo,
                                 blockUser = {
@@ -252,7 +279,7 @@ fun PostDetail(
                                     }
                                     expandMoreAction.value = false
                                 },
-                                changeInfo = {
+                                editPost = {
                                     onEditPost(currentPost)
                                     expandMoreAction.value = false
                                 }
@@ -263,7 +290,7 @@ fun PostDetail(
             }
         },
         bottomBar = {
-            if(isBlock.value){
+            if(isBlock.value || currentPost.deletedAt != 0L){
                 CommentBar(
                     uiState = uiState.value,
                     currentUserName = currentUser?.displayName,
@@ -282,7 +309,8 @@ fun PostDetail(
                     focusRequester = focusRequester,
                 )
             }
-        }
+        },
+        modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)
     ) { paddingValues ->
         LazyColumn(
             state = listState,
@@ -299,113 +327,110 @@ fun PostDetail(
                 )
                 Spacer(modifier = Modifier.height(30.dp))
             }
-
-            if(!isBlock.value){
-                // Content section
-                item {
-                    if (uiState.value == PostDetailState.Success || currentPost.ID?.isNotEmpty() == true) {
-                        ContentDetail(
-                            navController = navController,
-                            isLove = isLove,
-                            interactionViewModel = interactionViewModel,
-                            postDetailViewModel = postDetailViewModel,
-                            scrollThroughContentDetail = scrollThroughContentDetail,
-                            playerViewModel = playerViewModel,
-                            post = currentPost,
-                            user = userPost
-                        )
-                    } else {
-                        CircularProgressIndicator(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .wrapContentSize(Alignment.Center)
-                        )
+            if(uiState.value == PostDetailState.Success){
+                if(isBlock.value) {
+                    item {
+                        BlockDisplayScreen(blockInfo = blockInfo.value)
                     }
-                    Spacer(modifier = Modifier.height(30.dp))
-                }
-
-                item{
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                    )
-                    {
-                        currentPost._tags!!.forEach {
-                            Text(
-                                text = "#$it",
-                                style = TextStyle(
-                                    fontWeight = FontWeight.Bold,
-                                    fontSize = 18.sp
-                                ),
-                                modifier = Modifier.padding(16.dp)
+                } else if(currentPost.deletedAt != null) {
+                    item {
+                        DeletedPostScreen()
+                    }
+                } else {
+                    // Content section
+                    item {
+                        if (currentPost.ID?.isNotEmpty() == true) {
+                            ContentDetail(
+                                context = context,
+                                navController = navController,
+                                isLove = isLove,
+                                isSaved = isSave,
+                                interactionViewModel = interactionViewModel,
+                                postDetailViewModel = postDetailViewModel,
+                                scrollThroughContentDetail = scrollThroughContentDetail,
+                                playerViewModel = playerViewModel,
+                                post = currentPost,
+                                user = userPost
                             )
-                        }
-                    }
-                }
-
-                item{
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                    ){
-                        Text(
-                            text = "Comments",
-                            style = TextStyle(
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 24.sp
-                            ),
-                            modifier = Modifier.padding(16.dp)
-                        )
-                        if(isLoadingCmt.value){
+                        } else {
                             CircularProgressIndicator(
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .wrapContentSize(Alignment.Center)
                             )
                         }
+                        Spacer(modifier = Modifier.height(30.dp))
                     }
-                }
 
-                // Comments section
-                items(
-                    count = commentLists.itemCount,
-                    key = { index -> commentLists[index]?.id ?: index }
-                ) { index ->
-                    commentLists[index]?.let { comment ->
-                        CommentItem(
-                            navController = navController,
-                            uiState = uiState,
-                            comment = comment,
-                            postDetailViewModel = postDetailViewModel,
-                            interactionViewModel = interactionViewModel,
-                            commentViewModel = commentViewModel,
-                            replyAct = { commentItem, parentCmtUsername ->
-                                replyTo.value = commentItem
-                                parentUserName.value = parentCmtUsername
-                            }
+                    item{
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
                         )
+                        {
+                            currentPost._tags!!.forEach {
+                                Text(
+                                    text = "#$it",
+                                    style = TextStyle(
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 18.sp
+                                    ),
+                                    modifier = Modifier.padding(16.dp)
+                                )
+                            }
+                        }
                     }
+
+                    item{
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                        ){
+                            Text(
+                                text = "Comments",
+                                style = TextStyle(
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 24.sp
+                                ),
+                                modifier = Modifier.padding(16.dp)
+                            )
+                            if(isLoadingCmt.value){
+                                CircularProgressIndicator(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .wrapContentSize(Alignment.Center)
+                                )
+                            }
+                        }
+                    }
+
+                    // Comments section
+                    items(
+                        count = commentLists.itemCount,
+                        key = { index -> commentLists[index]?.id ?: index }
+                    ) { index ->
+                        commentLists[index]?.let { comment ->
+                            CommentItem(
+                                navController = navController,
+                                uiState = uiState,
+                                comment = comment,
+                                postDetailViewModel = postDetailViewModel,
+                                interactionViewModel = interactionViewModel,
+                                commentViewModel = commentViewModel,
+                                replyAct = { commentItem, parentCmtUsername ->
+                                    replyTo.value = commentItem
+                                    parentUserName.value = parentCmtUsername
+                                }
+                            )
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(30.dp))
                 }
             } else {
                 item {
-                    Column(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        ){
-                        Icon(
-                            painterResource(id = R.drawable.crying_emoticon_rounded_square_face_svgrepo_com),
-                            contentDescription = "Blocked",
-                            modifier = Modifier.size(100.dp)
-                        )
-                        Text(
-                            text = if(blockInfo.value == FirebaseBlockService.BlockInfo.BLOCK) "You have blocked this user" else "You have been blocked by this user",
-                            style = TextStyle(
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 24.sp
-                            ),
-                            modifier = Modifier.padding(16.dp)
-                        )
-                    }
+                    LoadingItem()
                 }
             }
+
+
 
             // Loading and error states for comments
             when {
@@ -417,6 +442,22 @@ fun PostDetail(
                 }
             }
         }
+
+        DeleteConfirmationDialog(
+            showDialog = showDeleteDialog,
+            onConfirm = {
+                interactionViewModel.deletePost(currentPost.ID!!) { result ->
+                    if (result) {
+                        navController.popBackStack()
+                    } else {
+                        Toast.makeText(context, "Failed", Toast.LENGTH_SHORT).show()
+                    }
+                }
+            },
+            onCancel = {
+                showDeleteDialog.value = false
+            }
+        )
     }
 }
 
@@ -457,7 +498,7 @@ fun ProfileDetail(
     ) {
         AsyncImage(
             model = ImageRequest.Builder(LocalContext.current)
-                .data(user.avatarUrl)
+                .data(user.avatarUrl.takeIf { it.isNotEmpty() } ?: R.drawable.person)
                 .crossfade(true)
                 .build(),
             contentDescription = "Avatar",
@@ -465,8 +506,8 @@ fun ProfileDetail(
             contentScale = ContentScale.Crop,
             modifier = Modifier
                 .size(100.dp)
+                .border(2.dp, MaterialTheme.colorScheme.onBackground, CircleShape)
                 .clip(CircleShape)
-                .border(2.dp, Color.Black, CircleShape)
                 .clickable {
                     navController.navigate("profile/${user.ID}")
                 }
@@ -494,7 +535,9 @@ fun ProfileDetail(
 @SuppressLint("StateFlowValueCalledInComposition")
 @Composable
 fun ContentDetail(
+    context: Context,
     navController: NavController,
+    isSaved : MutableState<Boolean>,
     isLove: MutableState<Boolean>,
     interactionViewModel: InteractionViewModel,
     postDetailViewModel: PostDetailViewModel,
@@ -522,7 +565,9 @@ fun ContentDetail(
             .padding(4.dp)
             ,
     ) {
-        Box(modifier = Modifier.padding(8.dp).fillMaxWidth(), contentAlignment = Alignment.Center){
+        Box(modifier = Modifier
+            .padding(8.dp)
+            .fillMaxWidth(), contentAlignment = Alignment.Center){
             Text(
                 text = post.audioName!!,
                 style = TextStyle(
@@ -559,41 +604,44 @@ fun ContentDetail(
                 contentDescription = "Avatar",
                 placeholder = painterResource(id = R.drawable.ic_media_note),
                 contentScale = ContentScale.Crop,
+                colorFilter = if(post.imgUrl.isNullOrEmpty()) ColorFilter.tint(MaterialTheme.colorScheme.onSurface) else null,
                 modifier = Modifier
                     .size(100.dp)
+                    .border(2.dp, MaterialTheme.colorScheme.onBackground, RectangleShape)
                     .clip(RectangleShape)
-                    .border(2.dp, Color.Black, RectangleShape)
             )
-            Spacer(modifier = Modifier.width(8.dp))
-            AnimatedVisibility(
-                visible = transitionVisible.value,
-                modifier = Modifier
-                    .clip(RoundedCornerShape(16.dp)),
-            ) {
-                if(post.description.isNotEmpty()){
-                    Card(
-                        shape = RoundedCornerShape(16.dp),
-                        modifier = Modifier
-                            .fillMaxWidth(0.9f)
-                            .heightIn(min = 100.dp)
-                            .clickable {
-                                contentExpanded.value = !contentExpanded.value
-                            }
-                            .background(MaterialTheme.colorScheme.primaryContainer)
-                    ) {
-                        Text(
-                            text = post.description,
+            if(post.description != ""){
+                Spacer(modifier = Modifier.width(8.dp))
+                AnimatedVisibility(
+                    visible = transitionVisible.value,
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(16.dp)),
+                ) {
+                    if(post.description.isNotEmpty()){
+                        Card(
+                            shape = RoundedCornerShape(16.dp),
                             modifier = Modifier
-                                .align(Alignment.Start)
-                                .padding(start = 16.dp, top = 8.dp, bottom = 8.dp, end = 16.dp),
-                            style = TextStyle(
-                                fontWeight = FontWeight.Normal,
-                                fontSize = 18.sp,
-                                color = MaterialTheme.colorScheme.onPrimaryContainer
-                            ),
-                            maxLines = if (contentExpanded.value) Int.MAX_VALUE else 4,
-                            overflow = if (contentExpanded.value) TextOverflow.Visible else TextOverflow.Ellipsis
-                        )
+                                .fillMaxWidth(0.9f)
+                                .heightIn(min = 100.dp)
+                                .clickable {
+                                    contentExpanded.value = !contentExpanded.value
+                                }
+                                .background(MaterialTheme.colorScheme.primaryContainer)
+                        ) {
+                            Text(
+                                text = post.description,
+                                modifier = Modifier
+                                    .align(Alignment.Start)
+                                    .padding(start = 16.dp, top = 8.dp, bottom = 8.dp, end = 16.dp),
+                                style = TextStyle(
+                                    fontWeight = FontWeight.Normal,
+                                    fontSize = 18.sp,
+                                    color = MaterialTheme.colorScheme.onPrimaryContainer
+                                ),
+                                maxLines = if (contentExpanded.value) Int.MAX_VALUE else 4,
+                                overflow = if (contentExpanded.value) TextOverflow.Visible else TextOverflow.Ellipsis
+                            )
+                        }
                     }
                 }
             }
@@ -631,33 +679,58 @@ fun ContentDetail(
             },
         )
 
-        InteractionRow(
-            interactions = Post_Interactions(
-                isLove = isLove.value,
-                loveCounts = post.likes!!,
-                commentCounts = post.comments!!,
-                love_act = {
-                    interactionViewModel.loveAction(
-                        isLove = it,
-                        postID = post.ID,
-                        targetUserID = post.userId
-                    ) { result ->
-                        //get isLove input then update UI if result = true
-                        if(result){
-                            isLove.value = it
-                            if(isLove.value){
-                                post.likes = post.likes!! + 1
-                            } else {
-                                post.likes = post.likes!! - 1
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+        ){
+            InteractionRow(
+                interactions = Post_Interactions(
+                    isLove = isLove.value,
+                    loveCounts = post.likes!!,
+                    commentCounts = post.comments!!,
+                    love_act = {
+                        interactionViewModel.loveAction(
+                            isLove = it,
+                            postID = post.ID,
+                            targetUserID = post.userId
+                        ) { result ->
+                            //get isLove input then update UI if result = true
+                            if(result){
+                                isLove.value = it
+                                if(isLove.value){
+                                    post.likes = post.likes!! + 1
+                                } else {
+                                    post.likes = post.likes!! - 1
+                                }
                             }
                         }
+                    },
+                    comment_act = {
+                        postDetailViewModel.reloadComment()
                     }
-                },
-                comment_act = {
-                    postDetailViewModel.reloadComment()
+                ),
+                modifier = Modifier.weight(1f)
+            )
+            IconButton(onClick = {
+                interactionViewModel.savePost(post.ID){result ->
+                    if(result != null){
+                        if(result){
+                            isSaved.value = true
+                            Toast.makeText(context, "Saved", Toast.LENGTH_SHORT).show()
+                        } else {
+                            isSaved.value = false
+                            Toast.makeText(context, "Unsaved", Toast.LENGTH_SHORT).show()
+                        }
+                    } else {
+                        Toast.makeText(context, "Unknown Error", Toast.LENGTH_SHORT).show()
+                    }
                 }
-            ),
-            modifier = Modifier.fillMaxWidth()
-        )
+            }) {
+                Icon(
+                    painter = if(isSaved.value) painterResource(id = R.drawable.ic_action_remove_ribbon) else painterResource(id = R.drawable.ic_actions_add_ribbon),
+                    contentDescription = "Save",
+                )
+            }
+        }
     }
 }

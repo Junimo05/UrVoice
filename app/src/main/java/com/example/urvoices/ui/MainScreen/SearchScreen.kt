@@ -40,6 +40,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -294,12 +295,15 @@ fun UserSearchItem(
     ) {
         AsyncImage(
             model = ImageRequest.Builder(LocalContext.current)
-                .data(user.avatarUrl)
+                .data(user.avatarUrl.takeIf { it.isNotEmpty() } ?: R.drawable.person)
                 .crossfade(true)
                 .build(),
             contentDescription = "Avatar",
             placeholder = painterResource(id = R.drawable.person),
             contentScale = ContentScale.Crop,
+            colorFilter = if(user.avatarUrl.isEmpty()) {
+                ColorFilter.tint(MaterialTheme.colorScheme.onSurface)
+            } else null,
             modifier = Modifier
                 .size(64.dp)
                 .clip(CircleShape)

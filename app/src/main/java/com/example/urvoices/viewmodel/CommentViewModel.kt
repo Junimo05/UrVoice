@@ -78,6 +78,28 @@ class CommentViewModel @Inject constructor(
             result
         }
     }
+
+    fun softDeleteComment(comment: Comment, callback : (Boolean) -> Unit): Boolean {
+        viewModelScope.launch {
+            try {
+                _uiState.value = CommentState.Working("SOFT_DELETE_COMMENT")
+                val result = postRepository.softDeleteComment(comment)
+                if(result){
+                    _uiState.value = CommentState.Success("SOFT_DELETE_COMMENT_SUCCESS")
+                    callback(true)
+                } else {
+                    _uiState.value = CommentState.Error("SOFT_DELETE_COMMENT_ERROR")
+                    callback(false)
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+                _uiState.value = CommentState.Error("SOFT_DELETE_COMMENT_ERROR")
+                callback(false)
+            }
+        }
+        return false
+    }
+
 }
 
 sealed class CommentState {

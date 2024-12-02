@@ -91,8 +91,6 @@ fun Login(
     }
 
     var passwordVisible by remember { mutableStateOf(false) }
-    var rememberMe by remember { mutableStateOf(false) }
-
 
     LaunchedEffect(authState.value) {
         when(authState.value){

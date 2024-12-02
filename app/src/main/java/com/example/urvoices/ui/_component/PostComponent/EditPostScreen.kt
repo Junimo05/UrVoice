@@ -9,7 +9,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -18,8 +17,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -46,8 +43,6 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.net.toUri
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
@@ -56,9 +51,7 @@ import com.example.urvoices.data.model.Post
 import com.example.urvoices.ui._component.TagInputField
 import com.example.urvoices.ui._component.TopBarBackButton
 import com.example.urvoices.utils.deleteOldImageFile
-import com.example.urvoices.utils.formatFileSize
 import com.example.urvoices.utils.generateUniqueFileName
-import com.example.urvoices.utils.getRealPathFromUri
 import com.example.urvoices.viewmodel.EditPostVM
 import com.example.urvoices.viewmodel.MediaPlayerVM
 import com.mr0xf00.easycrop.CropError
@@ -67,8 +60,6 @@ import com.mr0xf00.easycrop.crop
 import com.mr0xf00.easycrop.rememberImageCropper
 import com.mr0xf00.easycrop.rememberImagePicker
 import com.mr0xf00.easycrop.ui.ImageCropperDialog
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.io.File
@@ -88,10 +79,16 @@ fun EditPostScreen(
 	val context = LocalContext.current
 	val editPostState by editPostVM.editPostState.observeAsState()
 	var imgUri by rememberSaveable { mutableStateOf(Uri.EMPTY) }
-	var currentAvatar by rememberSaveable { mutableStateOf(post.imgUrl) }
+	var currentAvatar by rememberSaveable { mutableStateOf("") }
 	var audioName by rememberSaveable { mutableStateOf(post.audioName) }
 	var audioDes by rememberSaveable { mutableStateOf(post.description) }
 	var tag by rememberSaveable { mutableStateOf(post._tags) }
+
+	LaunchedEffect(post.ID) {
+		currentAvatar = editPostVM.getImgUrl(post.ID!!)
+	}
+
+	//
 
 	//Image Picker
 	val imageCropper = rememberImageCropper()
@@ -147,13 +144,17 @@ fun EditPostScreen(
 				verticalArrangement = Arrangement.spacedBy(16.dp)
 			){
 				AsyncImage(
-					model = if(imgUri != Uri.EMPTY)
+					model = if(imgUri != Uri.EMPTY){
+							Log.e(TAG, "imgUri: $imgUri")
 							imgUri
-						else
+						}
+						else{
+							Log.e(TAG, "currentAvatar: $currentAvatar")
 						ImageRequest.Builder(LocalContext.current)
 							.data(currentAvatar)
 							.crossfade(true)
-							.build(),
+							.build()
+						},
 					contentDescription = "Avatar",
 					placeholder = painterResource(id = R.drawable.add_photo_svgrepo_com),
 					contentScale = ContentScale.Crop,
@@ -213,7 +214,7 @@ fun EditPostScreen(
 			}
 
 			Row(
-				modifier = Modifier.align(Alignment.CenterHorizontally),
+				modifier = Modifier.padding(4.dp).align(Alignment.CenterHorizontally),
 				horizontalArrangement = Arrangement.SpaceBetween,
 				verticalAlignment = Alignment.CenterVertically
 			){

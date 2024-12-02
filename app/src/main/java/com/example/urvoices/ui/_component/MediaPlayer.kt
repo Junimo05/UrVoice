@@ -3,11 +3,9 @@ package com.example.urvoices.ui._component
 import android.util.Log
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.MarqueeAnimationMode
 import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
@@ -27,7 +25,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListItemInfo
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.shape.CornerSize
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -54,7 +51,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalConfiguration
@@ -69,6 +65,7 @@ import androidx.compose.ui.zIndex
 import androidx.navigation.NavController
 import com.example.urvoices.R
 import com.example.urvoices.data.model.Audio
+import com.example.urvoices.utils.audio_player.services.PlayMode
 import com.example.urvoices.utils.formatToMinSecFromMillisec
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
@@ -102,7 +99,10 @@ fun MediaPlayer(
     onAddToPlaylist: (Audio, Int) -> Unit, //add audio to playlist
     onRemoveFromPlaylist: (Int) -> Unit, //remove audio from playlist
     onPlayFromList: (Int) -> Unit, //play audio from playlist
-    onLoopModeChange: () -> Unit, //change loop mode
+    //
+    playMode : String,
+    onPlayModeChange: () -> Unit, //change play mode
+    //
     onPlaylistReorder: (Int, Int) -> Unit, //reorder playlist
     expandOptionBar: Boolean,
     setExpandOptionBar: (Boolean) -> Unit
@@ -138,8 +138,8 @@ fun MediaPlayer(
     //Minimize MediaBar
     LaunchedEffect(lastInteractionTime) {
         while(true){
-            delay(5000) // Check every 5 seconds
-            if (System.currentTimeMillis() - lastInteractionTime > 10000 && !bottomSheetState.isVisible) { // 10 seconds of inactivity
+            delay(10000) // Check every 5 seconds
+            if (System.currentTimeMillis() - lastInteractionTime > 15000 && !bottomSheetState.isVisible) { // 10 seconds of inactivity
                 isMinimize.value = true
             }
         }
@@ -175,9 +175,18 @@ fun MediaPlayer(
             onClick = onNext
         ),
         OptionItem(
-            icon = R.drawable.loop_svgrepo_com,
+            icon = when(playMode){
+                PlayMode.OFF_MODE -> R.drawable.media_playlist_no_repeat_symbolic_svgrepo_com
+                PlayMode.REPEAT_ONE -> R.drawable.media_playlist_repeat_song_symbolic_svgrepo_com
+                PlayMode.REPEAT_ALL -> R.drawable.media_playlist_repeat_symbolic_svgrepo_com
+                PlayMode.SHUFFLE -> R.drawable.media_playlist_shuffle_symbolic_svgrepo_com
+                else -> {
+                    R.drawable.media_playlist_no_repeat_symbolic_svgrepo_com
+                }
+            }
+            ,
             des = "Loop",
-            onClick = onLoopModeChange
+            onClick = onPlayModeChange
         ),
 
     )
@@ -219,6 +228,17 @@ fun MediaPlayer(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.SpaceBetween
             ){
+                IconButton(
+                    onClick = {
+                        isMinimize.value = true
+                    },
+                    modifier = Modifier.size(24.dp)
+                ) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.minimize_svgrepo_com),
+                        contentDescription = "More"
+                    )
+                }
                 MainBar(
                     isAudioPlaying = isAudioPlaying,
                     progress = progress,
@@ -234,7 +254,8 @@ fun MediaPlayer(
                     modifier = Modifier.size(24.dp)
                 ) {
                     Icon(
-                        painter = painterResource(id = if (expandOptionBar) R.drawable.ic_chevron_top else R.drawable.ic_chevron_down),
+
+                        painter = painterResource(id = if (expandOptionBar) R.drawable.ic_chevron_top  else R.drawable.ic_chevron_down),
                         contentDescription = "More"
                     )
                 }
@@ -287,14 +308,16 @@ fun MediaPlayer(
                                         delta += dragAmount.y
 
                                         val currentDraggingItemIndex =
-                                            draggingItemIndex ?: return@detectDragGesturesAfterLongPress
+                                            draggingItemIndex
+                                                ?: return@detectDragGesturesAfterLongPress
                                         val currentDraggingItem =
                                             draggingItem ?: return@detectDragGesturesAfterLongPress
 
                                         val startOffset = currentDraggingItem.offset + delta
                                         val endOffset =
                                             currentDraggingItem.offset + currentDraggingItem.size + delta
-                                        val middleOffset = startOffset + (endOffset - startOffset) / 2
+                                        val middleOffset =
+                                            startOffset + (endOffset - startOffset) / 2
 
                                         val targetItem =
                                             lazyListState.layoutInfo.visibleItemsInfo.find { item ->
@@ -410,7 +433,7 @@ fun MainBar(
             onPlayPause()
         }) {
             Icon(
-                painter = painterResource(id = if(isAudioPlaying) R.drawable.pause_svgrepo_com else R.drawable.play_svgrepo_com),
+                painter = painterResource(id = if(isAudioPlaying) R.drawable.media_pause_circle_svgrepo_com else R.drawable.media_play_circle_svgrepo_com),
                 modifier = Modifier.size(24.dp),
                 contentDescription = "PlayPause"
             )
@@ -591,7 +614,7 @@ fun OptionBar(
         itemList.forEach {
             IconButton(
                 onClick = it.onClick,
-                modifier = Modifier.size(24.dp)
+                modifier = Modifier.size(30.dp)
             ) {
                 Icon(
                     painter = painterResource(id = it.icon),
@@ -621,10 +644,16 @@ fun TimeStampMedia(
 
     val stringMinute = progressMinutes.toString()
     val stringSec = if(progressSeconds < 10) "0$progressSeconds" else progressSeconds.toString()
-    Surface {
+    Surface(
+        modifier = Modifier.background(MaterialTheme.colorScheme.surface)
+    ) {
         Text(
             text = "$stringMinute:$stringSec/${formatToMinSecFromMillisec(duration)}",
-            style = MaterialTheme.typography.bodySmall,
+            style = TextStyle(
+                color = MaterialTheme.colorScheme.onSurface,
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Normal,
+            ),
             modifier = Modifier.padding(4.dp)
         )
     }

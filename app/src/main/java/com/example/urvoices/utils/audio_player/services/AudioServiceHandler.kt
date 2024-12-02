@@ -157,13 +157,35 @@ class AudioServiceHandler @Inject constructor(
                 exoPlayer.seekTo((exoPlayer.duration * playerEvent.newProgress).toLong())
             }
 
-            PlayerEvent.LoopModeChange -> {
-                exoPlayer.repeatMode = when(exoPlayer.repeatMode) {
-                    Player.REPEAT_MODE_OFF -> Player.REPEAT_MODE_ONE
-                    Player.REPEAT_MODE_ONE -> Player.REPEAT_MODE_ALL
-                    else -> Player.REPEAT_MODE_OFF
+            PlayerEvent.PlayModeChange -> {
+                val currentShuffleMode = exoPlayer.shuffleModeEnabled
+                exoPlayer.repeatMode = when {
+                    exoPlayer.repeatMode == Player.REPEAT_MODE_OFF -> {
+                        //  REPEAT_ALL
+                        safeUpdateState(AudioState.PlayMode(PlayMode.REPEAT_ALL))
+                        exoPlayer.shuffleModeEnabled = false
+                        Player.REPEAT_MODE_ALL
+                    }
+                    exoPlayer.repeatMode == Player.REPEAT_MODE_ALL && !currentShuffleMode -> {
+                        //  REPEAT_ONE
+                        safeUpdateState(AudioState.PlayMode(PlayMode.REPEAT_ONE))
+                        Player.REPEAT_MODE_ONE
+                    }
+                    exoPlayer.repeatMode == Player.REPEAT_MODE_ONE && !currentShuffleMode -> {
+                        // SHUFFLE ( repeat ALL)
+                        safeUpdateState(AudioState.PlayMode(PlayMode.SHUFFLE))
+                        exoPlayer.shuffleModeEnabled = true
+                        Player.REPEAT_MODE_ALL
+                    }
+                    else -> {
+                        //  OFF_MODE
+                        safeUpdateState(AudioState.PlayMode(PlayMode.OFF_MODE))
+                        exoPlayer.shuffleModeEnabled = false
+                        Player.REPEAT_MODE_OFF
+                    }
                 }
             }
+
 
             is PlayerEvent.AddToPlaylist -> {
                 //check if no audio playing or audio is playing -> if no audio add to list and play
@@ -310,7 +332,7 @@ sealed class PlayerEvent {
     object Backward: PlayerEvent()
     object SeekTo: PlayerEvent()
     object Stop: PlayerEvent()
-    object LoopModeChange: PlayerEvent()
+    object PlayModeChange: PlayerEvent()
     object ReorderPlaylist:PlayerEvent()
     data class UpdateProgress(val newProgress: Float): PlayerEvent()
 
@@ -329,10 +351,18 @@ sealed class AudioState {
     object Initial: AudioState()
     data class PlaylistUpdated(val list: List<Audio>): AudioState()
     data class PlaylistIndex(val index: Int): AudioState()
+    data class PlayMode(val mode: String) : AudioState()
     data class Ready(val duration: Long): AudioState()
     data class Progress(val progress: Long): AudioState()
     data class Buffering(val progress: Long): AudioState()
     data class Playing(val isPlaying: Boolean): AudioState()
     data class Ending(val isEnd: Boolean): AudioState()
     data class CurrentPlaying(val audio: Audio): AudioState()
+}
+
+object PlayMode{
+    val OFF_MODE = "OFF_MODE"
+    val REPEAT_ONE = "REPEAT_ONE"
+    val REPEAT_ALL = "REPEAT_ALL"
+    val SHUFFLE = "SHUFFLE"
 }

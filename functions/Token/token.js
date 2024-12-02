@@ -3,7 +3,7 @@ const { JWT } = require("google-auth-library");
 
 function getAccessToken() {
   return new Promise((resolve, reject) => {
-    const key = require("../../serviceAccountKey/serviceAccountKey.json");
+    const key = require("../serviceKey.json");
     const jwtClient = new JWT(
       key.client_email,
       null,

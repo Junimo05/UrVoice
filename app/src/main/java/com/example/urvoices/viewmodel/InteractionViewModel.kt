@@ -203,12 +203,17 @@ class InteractionViewModel @Inject constructor(
                                 postID = postID,
                                 commentID = commentID
                             )
+                            //add notification
                             if (likeAction != "") {
-                                result = notificationRepository.likeComment(
-                                    targetUserID = targetUserID,
-                                    actionUsername = currentUsername,
-                                    relaID = commentID
-                                )
+                                if(currentUserID == targetUserID){
+                                    result = true //filter Notification your self
+                                } else {
+                                    result = notificationRepository.likeComment(
+                                        targetUserID = targetUserID,
+                                        actionUsername = currentUsername,
+                                        relaID = likeAction
+                                    )
+                                }
                             }
                         } else {
                             val documents = firebaseFirestore.collection("likes")
@@ -228,12 +233,18 @@ class InteractionViewModel @Inject constructor(
                                 actionUserID = currentUserID,
                                 postID = postID
                             )
+                            //add notification
                             if (likeAction != "") {
-                                result = notificationRepository.likePost(
-                                    targetUserID = targetUserID,
-                                    actionUsername = currentUsername,
-                                    relaID = postID
-                                )
+                                if(currentUserID == targetUserID){
+                                    result = true //filter Notification your self
+                                } else {
+//                                    Log.e(TAG, "loveActionSuspend: $currentUserID != $targetUserID")
+                                    result = notificationRepository.likePost(
+                                        targetUserID = targetUserID,
+                                        actionUsername = currentUsername,
+                                        relaID = likeAction
+                                    )
+                                }
                             }
                         } else {
                             val documents = firebaseFirestore.collection("likes")
@@ -262,6 +273,21 @@ class InteractionViewModel @Inject constructor(
             false
         }
     }
+
+    /*
+        Delete Post
+    */
+    fun deletePost(postID: String, callback: (Boolean) -> Unit){
+        try {
+            viewModelScope.launch {
+                val result = postRepository.deletePost(postID)
+                callback(result)
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "deletePost Func Failed: ${e.message}")
+        }
+    }
+
 }
 
 sealed class InteractionRowState{

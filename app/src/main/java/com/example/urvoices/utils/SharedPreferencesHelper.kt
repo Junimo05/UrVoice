@@ -16,6 +16,18 @@ class SharedPreferencesHelper(context: Context) {
     private val prefs: SharedPreferences = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
     private val appContext = context.applicationContext
 
+
+    companion object {
+        @Volatile
+        private var instance: SharedPreferencesHelper? = null
+
+        fun getInstance(context: Context): SharedPreferencesHelper {
+            return instance ?: synchronized(this) {
+                instance ?: SharedPreferencesHelper(context).also { instance = it }
+            }
+        }
+    }
+
     fun getUserSharedPreferences(userId: String): SharedPreferences {
         return appContext.getSharedPreferences("user_prefs_$userId", Context.MODE_PRIVATE)
     }
@@ -108,6 +120,7 @@ class SharedPreferencesHelper(context: Context) {
     }
 }
 object SharedPreferencesKeys {
+    const val token = "deviceToken"
     const val isFirstTime = "isFirstTime"
     const val shareLoving = "shareLoving"
     const val privateAccount = "privateAccount"

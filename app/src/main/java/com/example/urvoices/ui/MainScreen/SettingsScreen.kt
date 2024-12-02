@@ -54,10 +54,24 @@ fun SettingsScreen(
 
     val constSettingList = listOf(
         SettingItemData(
+            title = "Security",
+            icon = R.drawable.cogs_svgrepo_com,
+            onClick = {
+                navController.navigate(MainScreen.SettingsScreen.SecurityScreen.route)
+            }
+        ),
+        SettingItemData(
             title = "Blocks",
             icon = R.drawable.ic_visibility_off,
             onClick = {
                 navController.navigate(MainScreen.SettingsScreen.BlockedUsersScreen.route)
+            }
+        ),
+        SettingItemData(
+            title = "Deleted Posts",
+            icon = R.drawable.trash_03_svgrepo_com,
+            onClick = {
+                navController.navigate(MainScreen.SettingsScreen.DeletePostScreen.route)
             }
         ),
         SettingItemData(
@@ -76,12 +90,20 @@ fun SettingsScreen(
             }
         ),
         SettingItemData(
-            title = "Delete Account",
-            icon = R.drawable.ic_emoji_crying,
-            onClick = {
-                navController.navigate(MainScreen.SettingsScreen.DeleteAccount.route)
+            title = "Private Account",
+            icon = R.drawable.globe_private_svgrepo_com,
+            switchState = settingVM.isPrivate,
+            onSwitch = {
+                settingVM.privateAccountChange(it)
             }
         ),
+//        SettingItemData(
+//            title = "Delete Account",
+//            icon = R.drawable.ic_emoji_crying,
+//            onClick = {
+//                navController.navigate(MainScreen.SettingsScreen.DeleteAccount.route)
+//            }
+//        ),
         SettingItemData(
             title = "Sign out",
             icon = R.drawable.ic_actions_log_out,

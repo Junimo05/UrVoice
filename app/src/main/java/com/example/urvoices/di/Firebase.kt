@@ -1,11 +1,13 @@
 package com.example.urvoices.di
 
 import com.example.urvoices.data.AudioManager
+import com.example.urvoices.data.repository.NotificationRepository
 import com.example.urvoices.data.service.FirebaseAudioService
 import com.example.urvoices.data.service.FirebaseBlockService
 import com.example.urvoices.data.service.FirebaseNotificationService
 import com.example.urvoices.data.service.FirebasePostService
 import com.example.urvoices.data.service.FirebaseUserService
+import com.example.urvoices.utils.MessagingService
 import com.example.urvoices.utils.SharedPreferencesHelper
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
@@ -73,9 +75,10 @@ object Firebase {
     @Provides
     @Singleton
     fun provideFirebaseNotificationService(
-        firestore: FirebaseFirestore
+        firestore: FirebaseFirestore,
+        auth: FirebaseAuth
     ): FirebaseNotificationService {
-        return FirebaseNotificationService(firestore)
+        return FirebaseNotificationService(firestore, auth)
     }
 
     @Provides
@@ -86,4 +89,6 @@ object Firebase {
     ): FirebaseBlockService {
         return FirebaseBlockService(firebaseFirestore, auth)
     }
+
+
 }

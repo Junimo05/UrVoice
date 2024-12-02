@@ -39,6 +39,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.compose.NavHost
@@ -52,6 +53,7 @@ import com.example.urvoices.viewmodel.HomeViewModel
 import com.example.urvoices.viewmodel.InteractionViewModel
 import com.example.urvoices.viewmodel.MediaPlayerVM
 import com.example.urvoices.viewmodel.MediaRecorderVM
+import com.example.urvoices.viewmodel.NotificationViewModel
 import com.example.urvoices.viewmodel.PostDetailViewModel
 import com.example.urvoices.viewmodel.ProfileViewModel
 import com.example.urvoices.viewmodel.SearchViewModel
@@ -61,7 +63,8 @@ import com.example.urvoices.viewmodel.UploadViewModel
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter", "StateFlowValueCalledInComposition")
 @Composable
-fun Navigator(authViewModel: AuthViewModel) {
+fun Navigator(authViewModel: AuthViewModel, playerViewModel: MediaPlayerVM) {
+    val context = LocalContext.current
     val navController = rememberNavController()
     val selectedPage = rememberSaveable { mutableIntStateOf(0) }
     val isVisibleBottomBar = rememberSaveable { mutableStateOf(false) }
@@ -74,11 +77,11 @@ fun Navigator(authViewModel: AuthViewModel) {
     val uploadViewModel: UploadViewModel = hiltViewModel()
     val profileViewModel = hiltViewModel<ProfileViewModel>()
     val settingVM = hiltViewModel<SettingViewModel>()
+    val notificationVM = hiltViewModel<NotificationViewModel>()
 
-
-
-    val playerViewModel: MediaPlayerVM = hiltViewModel()
     val mediaRecorderVM = hiltViewModel<MediaRecorderVM>()
+    //background service
+
 
     val interactionViewModel = hiltViewModel<InteractionViewModel>()
 
@@ -221,8 +224,9 @@ fun Navigator(authViewModel: AuthViewModel) {
                                 onPlaylistReorder = { fromIndex: Int, toIndex: Int ->
                                     playerViewModel.onUIEvents(UIEvents.ReorderPlaylist(fromIndex, toIndex))
                                 },
-                                onLoopModeChange = {
-                                    playerViewModel.onUIEvents(UIEvents.LoopModeChange)
+                                playMode = playerViewModel.playmode,
+                                onPlayModeChange = {
+                                    playerViewModel.onUIEvents(UIEvents.PlayModeChange)
                                 },
                                 expandOptionBar = expandOptionBar.value,
                                 setExpandOptionBar = {
@@ -310,6 +314,7 @@ fun Navigator(authViewModel: AuthViewModel) {
                         mediaRecorderVM = mediaRecorderVM,
                         searchViewModel = searchVM,
                         settingVM = settingVM,
+                        notificationVM = notificationVM,
 
                         ) //home nav
                     specifyGraph(

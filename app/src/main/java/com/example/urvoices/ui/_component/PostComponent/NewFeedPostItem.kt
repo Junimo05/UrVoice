@@ -40,6 +40,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -103,6 +104,7 @@ fun NewFeedPostItem(
 
     //State
     val expandMenu = rememberSaveable { mutableStateOf(false) }
+    val showDeleteDialog = rememberSaveable { mutableStateOf(false) }
     val isBlock = rememberSaveable { mutableStateOf(false) }
     val blockInfo = rememberSaveable{
         mutableStateOf(FirebaseBlockService.BlockInfo.NO_BLOCK)
@@ -191,6 +193,7 @@ fun NewFeedPostItem(
                                 Toast.makeText(context, "Link Copied", Toast.LENGTH_SHORT).show()
                                 expandMenu.value = false
                             },
+                            isSaved = isSaved.value,
                             savePost = {
                                 interactionViewModel.savePost(post.ID!!){result ->
                                     if(result != null){
@@ -220,7 +223,8 @@ fun NewFeedPostItem(
                                 }
                                 expandMenu.value = false
                             },
-                            changeInfo = {
+
+                            editPost = {
                                 navController.navigate(
                                     EditPostScreen(
                                         post = post
@@ -274,12 +278,13 @@ fun NewFeedPostItem(
                             .crossfade(true)
                             .build(),
                         contentDescription = "Avatar",
+                        colorFilter = if(post.imgUrl.isNullOrEmpty()) ColorFilter.tint(MaterialTheme.colorScheme.onPrimaryContainer) else null,
                         placeholder = painterResource(id = R.drawable.ic_media_note),
                         contentScale = ContentScale.Crop,
                         modifier = Modifier
                             .size(64.dp)
+                            .border(2.dp, MaterialTheme.colorScheme.onPrimaryContainer , RectangleShape)
                             .clip(RectangleShape)
-                            .border(2.dp, Color.Black, RectangleShape)
                     )
                     AudioItem(
                         id = post.ID!!,
@@ -411,6 +416,8 @@ fun NewFeedPostItem(
     }
 }
 
+
+
 @Composable
 fun ProfileInfo(
     isBlock: MutableState<Boolean>,
@@ -420,7 +427,6 @@ fun ProfileInfo(
     postDes: String,
     modifier: Modifier = Modifier
 ){
-
     if(userInfo.isEmpty()){
         CircularProgressIndicator()
     } else if(isBlock.value){
@@ -458,11 +464,12 @@ fun ProfileInfo(
                     .build(),
                 contentDescription = "Avatar",
                 placeholder = painterResource(id = R.drawable.person),
+                colorFilter = if(userInfo["avatarUrl"].isNullOrEmpty()) ColorFilter.tint(MaterialTheme.colorScheme.onPrimaryContainer) else null,
                 contentScale = ContentScale.Crop,
                 modifier = Modifier
                     .size(64.dp)
+                    .border(2.dp, MaterialTheme.colorScheme.onPrimaryContainer, CircleShape)
                     .clip(CircleShape)
-                    .border(2.dp, Color.Black, CircleShape)
                     .clickable {
                         //To Profile
                         navController.navigate("profile/$userId")

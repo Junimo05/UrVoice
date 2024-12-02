@@ -1,15 +1,19 @@
 package com.example.urvoices.viewmodel
 
 import android.content.Context
+import android.util.Log
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.SavedStateHandleSaveableApi
 import androidx.lifecycle.viewmodel.compose.saveable
+import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import com.example.urvoices.data.db.Entity.BlockedUser
+import com.example.urvoices.data.db.Entity.DeletedPost
 import com.example.urvoices.data.repository.BlockRepository
+import com.example.urvoices.data.repository.DeletedPostRepository
 import com.example.urvoices.data.repository.PostRepository
 import com.example.urvoices.data.repository.UserRepository
 import com.example.urvoices.utils.SharedPreferencesHelper
@@ -17,6 +21,7 @@ import com.example.urvoices.utils.SharedPreferencesKeys
 import com.example.urvoices.utils.UserPreferences
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -30,6 +35,7 @@ class SettingViewModel @Inject constructor(
 	@ApplicationContext context: Context,
 	private val blockRepository: BlockRepository,
 	private val postRepository: PostRepository,
+	private val deletedPostRepository: DeletedPostRepository,
 	private val userRepository: UserRepository,
 	private val sharedPrefHelper: SharedPreferencesHelper,
 	savedStateHandle: SavedStateHandle
@@ -39,7 +45,9 @@ class SettingViewModel @Inject constructor(
 	val state: StateFlow<SettingState> = _state.asStateFlow()
 
 	val blockedUsers = blockRepository.getBlockDataFromLocal().cachedIn(viewModelScope)
-	val savedPosts = postRepository.getSavedPostDataFromLocal().cachedIn(viewModelScope)
+	var savedPosts = postRepository.getSavedPostDataFromLocal().cachedIn(viewModelScope)
+	val deletedPosts: Flow<PagingData<DeletedPost>> = deletedPostRepository.getDeletedPostsFlow().cachedIn(viewModelScope)
+
 	//load blocks list from dao
 
 	@OptIn(SavedStateHandleSaveableApi::class)
@@ -52,6 +60,17 @@ class SettingViewModel @Inject constructor(
 	}
 	val username = runBlocking {
 		userPref.userNameFlow.first()
+	}
+
+	fun savePost(postID: String, callback: (Boolean?) -> Unit){
+		try {
+			viewModelScope.launch {
+				val result = postRepository.savePost(postID)
+				callback(result)
+			}
+		} catch (e: Exception) {
+			Log.e(TAG, "savePost Func Failed: ${e.message}")
+		}
 	}
 
 	fun unblockUser(blockedUser: BlockedUser){
@@ -125,6 +144,35 @@ class SettingViewModel @Inject constructor(
 			userRepository.saveUserSettings()
 		}
 	}
+
+	/*
+	   DeletedPost
+
+	 */
+	fun refreshDeletedPosts(){
+		viewModelScope.launch {
+			_state.value = SettingState.Loading
+			try {
+				deletedPostRepository.fetchNewDeletedPosts()
+				_state.value = SettingState.Loaded
+			} catch (e: Exception) {
+				_state.value = SettingState.Error
+			}
+		}
+	}
+
+	fun restoreDeletedPost(deletedPost: DeletedPost){
+		viewModelScope.launch {
+			_state.value = SettingState.Loading
+			try {
+				deletedPostRepository.restorePost(deletedPost)
+				_state.value = SettingState.Loaded
+			} catch (e: Exception) {
+				_state.value = SettingState.Error
+			}
+		}
+	}
+
 }
 
 sealed class SettingState{

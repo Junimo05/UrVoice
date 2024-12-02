@@ -55,6 +55,7 @@ fun SplashScreen(
     navController: NavController,
     authViewModel: AuthViewModel
 ) {
+
     val context = LocalContext.current
     val authState = authViewModel.authState.observeAsState()
     LaunchedEffect(authState.value) {
@@ -96,7 +97,7 @@ fun Splash(
             ){
                 Text(
                     text = "@2024_NAT",
-                    color = textColor.value,
+                    color = MaterialTheme.colorScheme.onBackground,
                     style = TextStyle(
                         fontWeight = FontWeight.Bold,
                         fontSize = 18.sp
@@ -117,14 +118,14 @@ fun Splash(
                 Box(
                     modifier = Modifier
                         .padding(bottom = 200.dp)
-                        .background(Color.White)
+                        .background(Color.Transparent)
                         .clip(CircleShape)
                     ,
                     contentAlignment = Alignment.Center,
                 ) {
                     var imageSize by remember { mutableStateOf(IntSize.Zero) }
                     Image(
-                        painter = painterResource(id = R.drawable.preview_backgroundremoved),
+                        painter = painterResource(id = R.drawable.urvoice_circle),
                         contentDescription = "Logo",
                         modifier = Modifier
                             .size(200.dp)

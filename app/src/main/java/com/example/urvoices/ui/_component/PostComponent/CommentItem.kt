@@ -1,9 +1,11 @@
 package com.example.urvoices.ui._component.PostComponent
 
 import android.annotation.SuppressLint
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -34,6 +36,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -51,6 +54,7 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.example.urvoices.R
 import com.example.urvoices.data.model.Comment
+import com.example.urvoices.ui._component.DeleteConfirmationDialog
 import com.example.urvoices.ui._component.InteractionColumn
 import com.example.urvoices.utils.Comment_Interactions
 import com.example.urvoices.utils.getTimeElapsed
@@ -75,12 +79,16 @@ fun CommentItem(
     depth: Int = 0
 ){
     val TAG = "CommentItem"
-
+    val currentUser = postDetailViewModel.currentUser
     val isLove = rememberSaveable { mutableStateOf(false) }
 
+    var repliesLoading by remember(comment.id) {
+        mutableStateOf(false)
+    }
     var replies by remember(comment.id) {
         mutableStateOf(emptyList<Comment>())
     }
+
 
     val userInfo by remember(comment.userId) {
         mutableStateOf(runBlocking { commentViewModel.getUserInfo(comment.userId) })
@@ -90,6 +98,7 @@ fun CommentItem(
         mutableIntStateOf(0)
     }
     val isExpandedComment = remember { mutableStateOf(false) }
+    val showDeleteAlert = rememberSaveable { mutableStateOf(false) }
     val isExpandedReply = rememberSaveable { mutableStateOf(false) }
 
     LaunchedEffect(replies) {
@@ -124,13 +133,22 @@ fun CommentItem(
             modifier = Modifier
                 .background(Color.Transparent)
                 .padding(
-                    start = if (depth > 0) 32.dp else 0.dp,  // Add indent for replies
-                    end = if (depth > 0) 4.dp else 0.dp, // Add indent for replies
+                    start = if (depth in 1..1) 32.dp else 0.dp,  // Add indent for replies
                     top = 4.dp,
                     bottom = 2.dp
                 )
                 .clip(RoundedCornerShape(26.dp))
                 .fillMaxWidth()
+                .padding(2.dp)
+                .pointerInput(Unit) {
+                    detectTapGestures(
+                        onLongPress = {
+                            if (comment.userId == currentUser?.uid) {
+                                showDeleteAlert.value = true
+                            }
+                        }
+                    )
+                }
         ){
             Column(
                 modifier = Modifier
@@ -237,11 +255,13 @@ fun CommentItem(
                             comment_act = {
                                 if(comment.replyComments > 0){
                                     isExpandedReply.value = true
+                                    repliesLoading = true
                                     loadMoreReply(
                                         commentID = comment.id!!,
                                         commentViewModel = commentViewModel,
                                         callback = { result ->
                                             replies = result
+                                            repliesLoading = false
                                         }
                                     )
                                 }
@@ -254,46 +274,63 @@ fun CommentItem(
                         CircularProgressIndicator()
                     }
                 }
-                if (isExpandedReply.value) {
-                    if(replies.isNotEmpty()){
-                        replies.forEachIndexed { _, reply ->
-                            CommentItem(
-                                navController = navController,
-                                uiState = uiState,
-                                comment = reply,
-                                postDetailViewModel = postDetailViewModel,
-                                interactionViewModel = interactionViewModel,
-                                commentViewModel = commentViewModel,
-                                depth = depth + 1,
-                                replyAct = {comment, parentCmtUsername ->
-                                    replyAct(comment, parentCmtUsername)
-                                }
-                            )
-                        }
-                        if(totalReplyByTime < comment.replyComments){
-                            Text(
-                                text = "Load more",
-                                modifier = Modifier.clickable {
-                                    loadMoreReply(
-                                        commentID = comment.id!!,
-                                        commentViewModel = commentViewModel,
-                                        callback = { result ->
-                                            replies = result
-                                        }
-                                    )
-                                }
-                            )
-                        }
-                    } else {
-                        Row(
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            CircularProgressIndicator()
-                        }
+
+            }
+            if (isExpandedReply.value) {
+                if(!repliesLoading){
+                    replies.forEachIndexed { _, reply ->
+                        CommentItem(
+                            navController = navController,
+                            uiState = uiState,
+                            comment = reply,
+                            postDetailViewModel = postDetailViewModel,
+                            interactionViewModel = interactionViewModel,
+                            commentViewModel = commentViewModel,
+                            depth = depth + 1,
+                            replyAct = {comment, parentCmtUsername ->
+                                replyAct(comment, parentCmtUsername)
+                            }
+                        )
+                    }
+//                    if(totalReplyByTime < comment.replyComments){
+//                        Text(
+//                            text = "Load more",
+//                            modifier = Modifier.clickable {
+//                                loadMoreReply(
+//                                    commentID = comment.id!!,
+//                                    commentViewModel = commentViewModel,
+//                                    callback = { result ->
+//                                        replies = result
+//                                    }
+//                                )
+//                            }
+//                        )
+//                    }
+                } else {
+                    Row(
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        CircularProgressIndicator()
                     }
                 }
             }
         }
+    }
+
+    if(showDeleteAlert.value) {
+        DeleteConfirmationDialog(
+            showDialog = showDeleteAlert,
+            onConfirm = {
+                commentViewModel.softDeleteComment(comment) { result ->
+                    if (result) {
+                        postDetailViewModel.triggerRefresh()
+                    }
+                }
+            },
+            onCancel = {
+                showDeleteAlert.value = false
+            }
+        )
     }
 }
 
