@@ -64,6 +64,7 @@ fun TagInputField(
         )
         Spacer(modifier = Modifier.height(8.dp))
         LazyRow(modifier = Modifier
+            .padding(4.dp)
             .fillMaxWidth()
             .padding(horizontal = 16.dp)) {
             items(tags) {tag ->

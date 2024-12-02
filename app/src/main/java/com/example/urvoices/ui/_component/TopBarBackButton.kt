@@ -34,6 +34,7 @@ fun TopBarBackButton(
     modifier: Modifier = Modifier,
     child: @Composable () -> Unit = {}
 ) {
+    val colorScheme = MaterialTheme.colorScheme
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -42,7 +43,7 @@ fun TopBarBackButton(
                 val strokeWidth = 2.dp.toPx()
                 val y = size.height - strokeWidth / 2
                 drawLine(
-                    color = Color.Black,
+                    color = colorScheme.onSurfaceVariant,
                     start = Offset(0f, y),
                     end = Offset(size.width, y),
                     strokeWidth = strokeWidth

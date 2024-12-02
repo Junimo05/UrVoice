@@ -212,17 +212,16 @@ fun UploadScreen(
     LaunchedEffect(uploadState){
         when(uploadState){
             is UploadState.Success -> {
-                clearData()
                 uploadViewModel.showSnackBar(
                     message = "Upload Success",
                 )
+                clearData()
                 //reset
-                delay(3000)
+                delay(5000)
                 uploadViewModel.hideSnackBar()
                 uploadViewModel.resetUploadState()
             }
             is UploadState.Loading -> {
-                uploadViewModel.hideSnackBar()
                 uploadViewModel.showSnackBar(
                     message = "Uploading...",
                 )
@@ -563,7 +562,7 @@ fun Record(
                         visible = recorderState != RecorderState.Idle,
                         recorderState = recorderState,
                         title = "Stop",
-                        icon = R.drawable.ic_media_stop,
+                        icon = R.drawable.media_stop_circle_svgrepo_com,
                         size = 32.dp,
                         onClick = {
                             mediaRecorderVM.pauseRecording()
@@ -643,7 +642,7 @@ fun Record(
                         visible = recorderState != RecorderState.Idle,
                         recorderState = recorderState,
                         title = "Cancel",
-                        icon = R.drawable.ic_actions_close,
+                        icon = R.drawable.close_round_svgrepo_com,
                         size = 32.dp,
                         onClick = {
                             mediaRecorderVM.cancelRecording()
@@ -681,8 +680,8 @@ fun RecordIcon(
                     painterResource(
                         when (recorderState) {
                             is RecorderState.Idle -> R.drawable.ic_media_microphone
-                            is RecorderState.Recording -> R.drawable.ic_media_pause
-                            is RecorderState.Paused -> R.drawable.ic_media_play
+                            is RecorderState.Recording -> R.drawable.media_pause_circle_svgrepo_com
+                            is RecorderState.Paused -> R.drawable.media_play_circle_svgrepo_com
                             else -> {R.drawable.ic_media_microphone}
                         }
                     )
@@ -724,7 +723,6 @@ fun Upload(
         when (uploadState) {
             is UploadState.Success -> {
                 // Reset Upload Screen
-
             }
             is UploadState.Loading -> {
                 //show loading on screen

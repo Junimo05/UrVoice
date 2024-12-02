@@ -1,7 +1,12 @@
 package com.example.urvoices.ui.MainScreen
 
 import android.annotation.SuppressLint
+import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
+import android.os.Build
 import android.util.Log
+import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -21,6 +26,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -46,6 +52,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import androidx.paging.LoadState
 import androidx.paging.compose.collectAsLazyPagingItems
+import androidx.work.impl.utils.ForceStopRunnable.BroadcastReceiver
 import com.example.urvoices.R
 import com.example.urvoices.presentations.theme.MyTheme
 import com.example.urvoices.ui._component.PostComponent.NewFeedPostItem
@@ -57,18 +64,22 @@ import com.example.urvoices.viewmodel.AuthViewModel
 import com.example.urvoices.viewmodel.HomeState
 import com.example.urvoices.viewmodel.HomeViewModel
 import com.example.urvoices.viewmodel.MediaPlayerVM
+import com.example.urvoices.viewmodel.NotificationViewModel
 import kotlinx.coroutines.launch
 
+@RequiresApi(Build.VERSION_CODES.TIRAMISU)
 @Composable
 fun HomeScreen(
     navController: NavController,
     authViewModel: AuthViewModel,
     homeViewModel: HomeViewModel,
-    playerViewModel: MediaPlayerVM
+    playerViewModel: MediaPlayerVM,
+    notificationVM: NotificationViewModel
 ) {
-    Home(navController, authViewModel, homeViewModel, playerViewModel)
+    Home(navController, authViewModel, homeViewModel,notificationVM ,playerViewModel)
 }
 
+@RequiresApi(Build.VERSION_CODES.TIRAMISU)
 @OptIn(ExperimentalMaterial3Api::class)
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter", "CoroutineCreationDuringComposition")
 @Composable
@@ -76,25 +87,60 @@ fun Home(
     navController: NavController,
     authViewModel: AuthViewModel,
     homeViewModel: HomeViewModel,
+    notificationVM: NotificationViewModel,
     playerViewModel: MediaPlayerVM,
     modifier: Modifier = Modifier
 ){
     val authState = authViewModel.authState.observeAsState()
+    val colorScheme = MaterialTheme.colorScheme
+    val context = LocalContext.current
     val scope = rememberCoroutineScope()
+
+
     val mainStateList = rememberLazyListState()
     val homeState = homeViewModel.homeState.collectAsState()
     val isRefreshing by homeViewModel.isRefreshing.collectAsStateWithLifecycle()
     val scrollToTopEvent by homeViewModel.scrollToTopEvent.collectAsState()
+
+
+
     val isScrolled = remember {
         mutableStateOf(mainStateList.firstVisibleItemIndex > 0)
     }
 
+    val newNoti = remember{ mutableStateOf(false)}
+
+    DisposableEffect(Unit) {
+        val receiver =
+        @SuppressLint("RestrictedApi")
+        object : BroadcastReceiver() {
+            override fun onReceive(context: Context, intent: Intent?) {
+                // Update state
+                Log.e("HomeScreen", "New Notification Received")
+                newNoti.value = true
+                Log.e("HomeScreen", "New Notification Received ${newNoti.value}")
+                // Gọi ViewModel để xử lý thêm nếu cần
+                scope.launch {
+                    notificationVM.refreshNotifications()
+                }
+            }
+        }
+
+        val intentFilter = IntentFilter("NEW_NOTIFICATION_RECEIVED")
+        context.registerReceiver(receiver, intentFilter, Context.RECEIVER_NOT_EXPORTED)
+
+        // When the effect leaves the Composition, remove the callback
+        onDispose {
+            context.unregisterReceiver(receiver)
+        }
+    }
+
     val postList = homeViewModel.postList.collectAsLazyPagingItems()
 
-    val userPreferences = UserPreferences(LocalContext.current)
-
     LaunchedEffect(Unit) {
-
+        scope.launch {
+            notificationVM.refreshNotifications()
+        }
         homeViewModel.checkFirstLogin()
     }
 
@@ -142,7 +188,7 @@ fun Home(
                             val strokeWidth = 2.dp.toPx()
                             val y = size.height - strokeWidth / 2
                             drawLine(
-                                color = Color.Black,
+                                color = colorScheme.onSurfaceVariant,
                                 start = Offset(0f, y),
                                 end = Offset(size.width, y),
                                 strokeWidth = strokeWidth
@@ -164,13 +210,13 @@ fun Home(
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(16.dp)
-                            ,
+                            .padding(16.dp),
                         horizontalArrangement = Arrangement.End,
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
+                        //Notification
                         Icon(
-                            painter = painterResource(id = R.drawable.ic_actions_notifications),
+                            painter = painterResource(id = if(newNoti.value) R.drawable.notification_on_svgrepo_com else R.drawable.notification_svgrepo_com),
                             contentDescription = null,
                             modifier = Modifier
                                 .size(36.dp)
@@ -214,7 +260,6 @@ fun Home(
                 if(isRefreshing){
                     //refreshing time
                 } else {
-                    homeViewModel.setIsRefreshing(false)
                     items(
                         count = postList.itemCount,
                         key = { postList[it]?.ID ?: it}

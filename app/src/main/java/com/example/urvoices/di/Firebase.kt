@@ -75,9 +75,10 @@ object Firebase {
     @Provides
     @Singleton
     fun provideFirebaseNotificationService(
-        firestore: FirebaseFirestore
+        firestore: FirebaseFirestore,
+        auth: FirebaseAuth
     ): FirebaseNotificationService {
-        return FirebaseNotificationService(firestore)
+        return FirebaseNotificationService(firestore, auth)
     }
 
     @Provides
@@ -90,10 +91,4 @@ object Firebase {
     }
 
 
-    /////Message Service
-    @Provides
-    @Singleton
-    fun provideFirebaseMessagingService(): MessagingService {
-        return MessagingService()
-    }
 }

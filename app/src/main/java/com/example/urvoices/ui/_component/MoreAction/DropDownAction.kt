@@ -97,12 +97,12 @@ fun UserAction(
 fun PostAction(
     isCurrentUserPost: Boolean,
     addToPlaylist: () -> Unit,
-    changeInfo: () -> Unit,
+    editPost: () -> Unit,
     goToPost: (() -> Unit)? = null,
     goToUser: (() -> Unit)? = null,
     copyLink: () -> Unit,
-    isSaved: Boolean,
-    savePost: () -> Unit,
+    isSaved: Boolean? = null,
+    savePost: (() -> Unit) ? = null,
     deletePost: (() -> Unit)? = null,
     blockInfo: MutableState<String>,
     blockUser: () -> Unit,
@@ -154,17 +154,33 @@ fun PostAction(
                 )
             )
         }
+
+        if (isSaved != null && savePost != null) {
+            if (isSaved) {
+                actions.add(
+                    DropDownAction(
+                        icon = R.drawable.ic_action_remove_ribbon,
+                        title = "Unsave Post",
+                        action = savePost
+                    )
+                )
+            } else {
+                actions.add(
+                    DropDownAction(
+                        icon = R.drawable.ic_actions_add_ribbon,
+                        title = "Save Post",
+                        action = savePost
+                    )
+                )
+            }
+        }
+
         actions.addAll(
             listOf(
                 DropDownAction(
                     icon = R.drawable.playlist_add_svgrepo_com,
                     title = "Add To Playlist",
                     action = addToPlaylist
-                ),
-                DropDownAction(
-                    icon = R.drawable.ic_actions_add_ribbon,
-                    title = "Save Post",
-                    action = savePost
                 ),
                 DropDownAction(
                     icon = R.drawable.ic_link,
@@ -189,7 +205,7 @@ fun PostAction(
                 DropDownAction(
                     icon = R.drawable.pencil_svgrepo_com,
                     title = "Edit",
-                    action = changeInfo
+                    action = editPost
                 )
             )
             if(deletePost != null) {

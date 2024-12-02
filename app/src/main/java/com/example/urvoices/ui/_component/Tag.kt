@@ -45,8 +45,11 @@ fun TagSection(
 ) {
     val TAG = "TagSection"
 
-    val filters = filterState.filters.value.getTagGroups()
 
+
+    LaunchedEffect(filterState.filters.value) {
+        Log.d(TAG, "FilterListState items: ${filterListState.items.size}")
+    }
 
     Column(
         modifier = Modifier
@@ -60,18 +63,20 @@ fun TagSection(
             Text(
                 text = "Tag",
                 style = TextStyle(
-                    color = MaterialTheme.colorScheme.onPrimary,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer,
                     fontSize = 22.sp,
                     fontWeight = FontWeight.Bold
                 ),
                 color = Color.Black,
-                modifier = Modifier.padding(bottom = 8.dp).weight(1f)
+                modifier = Modifier
+                    .padding(bottom = 8.dp)
+                    .weight(1f)
             )
-            if(filters.isNotEmpty()){
+            if(isFiltered.value){
                 Text(
                     text = "Clear Filter",
                     style = TextStyle(
-                        color = MaterialTheme.colorScheme.onPrimary,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer,
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Bold
                     ),
@@ -102,14 +107,12 @@ fun TagSection(
                 }
             } else {
                 filterListState.items.forEach { filter ->
-                    val filterTag = filter.first // Extract Filter.Tag from SelectableItem
-                    val isSelected = filters.values.contains(setOf(filterTag))
                     Tag(
                         filterTag = filter,
-                        isSelected = isSelected,
+                        isSelected = filter.second,
                         onClick = {
                             isFiltered.value = !isFiltered.value
-                            filterListState.onSelection?.invoke(it)
+                            filterListState.onSelection?.invoke(it.first)
                         }
                     )
                 }
@@ -123,7 +126,7 @@ fun Tag(
     text: String = "",
     isSelected: Boolean = false,
     filterTag: SelectableItem<Filter.Tag> = SelectableItem(Filter.Tag(text), false),
-    onClick: (Filter.Tag) -> Unit = {}
+    onClick: (SelectableItem<Filter.Tag>) -> Unit = {}
 ) {
     val value = text.ifEmpty { filterTag.first.value }
     Surface(
@@ -137,8 +140,8 @@ fun Tag(
                 shape = RoundedCornerShape(16.dp)
             )
             .clickable {
-            onClick(filterTag.first)
-        }
+                onClick(filterTag)
+            }
     ) {
         Text(
             text = "#$value",

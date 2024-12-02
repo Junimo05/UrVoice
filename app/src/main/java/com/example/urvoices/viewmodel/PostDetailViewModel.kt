@@ -18,8 +18,10 @@ import androidx.paging.cachedIn
 import androidx.paging.insertHeaderItem
 import com.example.urvoices.data.model.Comment
 import com.example.urvoices.data.model.Post
+import com.example.urvoices.data.repository.NotificationRepository
 import com.example.urvoices.data.repository.PostRepository
 import com.example.urvoices.data.repository.UserRepository
+import com.example.urvoices.utils.UserPreferences
 import com.google.firebase.auth.FirebaseAuth
 import dagger.hilt.android.internal.Contexts.getApplication
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -30,6 +32,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
@@ -54,6 +57,8 @@ class PostDetailViewModel @Inject constructor(
     @ApplicationContext private val context: Context,
     private val postRepository: PostRepository,
     private val userRepository: UserRepository,
+    private val notificationRepository: NotificationRepository,
+    private val userRef: UserPreferences,
     private val auth: FirebaseAuth,
     savedStateHandle: SavedStateHandle
 ): ViewModel() {
@@ -74,9 +79,8 @@ class PostDetailViewModel @Inject constructor(
     var currentPost = mutableStateOf(emptyPost)
     @OptIn(SavedStateHandleSaveableApi::class)
     var userPost by savedStateHandle.saveable { mutableStateOf(userTemp) }
-    @OptIn(SavedStateHandleSaveableApi::class)
-    var isFollowed by savedStateHandle.saveable { mutableStateOf(false) }
     var currentUser = auth.currentUser
+    var currentUsername by savedStateHandle.saveable { mutableStateOf("") }
     //Comment Control
     val lastPage = mutableIntStateOf(1)
     val lastCmt = mutableStateOf("")
@@ -105,6 +109,12 @@ class PostDetailViewModel @Inject constructor(
             .collect { postUpdated ->
                 Log.e(TAG, "configureObservers: ${postUpdated.audioName}")
             }
+    }
+
+    init {
+        viewModelScope.launch {
+            currentUsername = userRef.userNameFlow.first().toString()
+        }
     }
 
     fun loadData(postID: String, userID: String) {
@@ -176,8 +186,6 @@ class PostDetailViewModel @Inject constructor(
                         postID = currentPost.value.ID!!,
                         content = message
                     )
-                    //add Notification
-
                 } else {
                     replyCheck = true
                     postRepository.replyComment(
@@ -186,8 +194,6 @@ class PostDetailViewModel @Inject constructor(
                         postID = currentPost.value.ID!!,
                         content = message
                     )
-                    //add Notification
-
                 }
             }
 
@@ -195,9 +201,15 @@ class PostDetailViewModel @Inject constructor(
                 comments = currentPost.value.comments?.plus(1)
             )
 
-            if (result.id != null) {
+            if (result.comment.id != null) {
                 _uiState.value = PostDetailState.SendCommentSuccess
                 if (replyCheck) {
+                    //add Noti
+                    notificationRepository.replyComment(
+                        targetUserID = currentPost.value.userId,
+                        actionUsername = currentUsername,
+                        relaID = result.relaCommentID
+                    )
                     Toast.makeText(
                         context,
                         "Reply sent successfully",
@@ -205,13 +217,19 @@ class PostDetailViewModel @Inject constructor(
                     ).show()
                     _refreshRequire.value = true
                 } else {
+                    notificationRepository.commentPost(
+                        targetUserID = currentPost.value.userId,
+                        actionUsername = currentUsername,
+                        relaID = result.relaCommentID
+                    )
                     Toast.makeText(
                         context,
                         "Comment sent successfully",
                         Toast.LENGTH_SHORT
                     ).show()
-                    _commentFlow.value = _commentFlow.value.insertHeaderItem(item = result)
+                    _commentFlow.value = _commentFlow.value.insertHeaderItem(item = result.comment)
                 }
+                _uiState.value = PostDetailState.Success
             } else {
                 _uiState.value = PostDetailState.Failed
             }
@@ -252,20 +270,9 @@ class PostDetailViewModel @Inject constructor(
             val user = userRepository.getInfoUserByUserID(userID)
             if (user != null) {
                 userPost = user
-                checkFollowed()
             } else {
                 _uiState.value = PostDetailState.Failed
             }
-        } catch (e: Exception) {
-            e.printStackTrace()
-            _uiState.value = PostDetailState.Error
-        }
-    }
-
-    private suspend fun checkFollowed() {
-        try {
-            val result = userRepository.getFollowStatus(currentPost.value.userId)
-            isFollowed = result
         } catch (e: Exception) {
             e.printStackTrace()
             _uiState.value = PostDetailState.Error

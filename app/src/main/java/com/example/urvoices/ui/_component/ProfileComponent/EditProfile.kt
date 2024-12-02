@@ -55,6 +55,7 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -269,8 +270,8 @@ fun ProfileEditScreen(
             TextButton(onClick = { navController.navigate(MainScreen.SettingsScreen.SecurityScreen.route) }) {
                 Card(
                     modifier = Modifier
-                        .padding(8.dp)
                         .fillMaxWidth(0.95f)
+                        .padding(8.dp)
                         .border(
                             width = 1.dp,
                             color = MaterialTheme.colorScheme.primary,
@@ -290,13 +291,14 @@ fun ProfileEditScreen(
                         style = TextStyle(
                             color = MaterialTheme.colorScheme.onPrimaryContainer,
                             fontSize = 14.sp,
-                            fontWeight = FontWeight.Light
-                        )
+                            fontWeight = FontWeight.Bold
+                        ),
+                        modifier = Modifier.padding(8.dp)
                     )
                 }
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            /*Spacer(modifier = Modifier.height(16.dp))
 
             Column(
                 modifier = Modifier
@@ -343,7 +345,8 @@ fun ProfileEditScreen(
                     }
                 }
 
-            }
+            }*/
+
             Spacer(modifier = Modifier.height(16.dp))
             if (updating) {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -448,11 +451,16 @@ fun AvatarChangeComponent(
                 imgUri
             else
                 ImageRequest.Builder(LocalContext.current)
-                .data(currentAvatarUrl)
+                .data(currentAvatarUrl.takeIf { !it.isNullOrBlank() } ?: R.drawable.person)
                 .crossfade(true)
                 .build(),
             contentDescription = "Avatar",
             placeholder = painterResource(id = R.drawable.person),
+            colorFilter = if (currentAvatarUrl == null) {
+                ColorFilter.tint(MaterialTheme.colorScheme.onSurface)
+            } else {
+                null
+            },
             contentScale = ContentScale.Crop,
             modifier = Modifier
                 .size(64.dp)

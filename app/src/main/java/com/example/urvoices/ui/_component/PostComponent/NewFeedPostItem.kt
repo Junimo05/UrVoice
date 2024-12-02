@@ -22,14 +22,12 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
@@ -42,6 +40,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -66,7 +65,6 @@ import com.example.urvoices.ui._component.OptionBar
 import com.example.urvoices.ui._component.OptionItem
 import com.example.urvoices.utils.Auth.BASE_URL
 import com.example.urvoices.utils.Navigator.EditPostScreen
-import com.example.urvoices.utils.Navigator.MainScreen
 import com.example.urvoices.utils.Post_Interactions
 import com.example.urvoices.utils.getTimeElapsed
 import com.example.urvoices.viewmodel.AuthViewModel
@@ -74,7 +72,6 @@ import com.example.urvoices.viewmodel.HomeViewModel
 import com.example.urvoices.viewmodel.InteractionRowState
 import com.example.urvoices.viewmodel.InteractionViewModel
 import com.example.urvoices.viewmodel.MediaPlayerVM
-import com.example.urvoices.viewmodel.PostDetailState
 import com.example.urvoices.viewmodel.UIEvents
 import kotlinx.coroutines.runBlocking
 
@@ -225,7 +222,7 @@ fun NewFeedPostItem(
                                 }
                                 expandMenu.value = false
                             },
-                            changeInfo = {
+                            editPost = {
                                 navController.navigate(
                                     EditPostScreen(
                                         post = post
@@ -279,12 +276,13 @@ fun NewFeedPostItem(
                             .crossfade(true)
                             .build(),
                         contentDescription = "Avatar",
+                        colorFilter = if(post.imgUrl.isNullOrEmpty()) ColorFilter.tint(MaterialTheme.colorScheme.onPrimaryContainer) else null,
                         placeholder = painterResource(id = R.drawable.ic_media_note),
                         contentScale = ContentScale.Crop,
                         modifier = Modifier
                             .size(64.dp)
+                            .border(2.dp, MaterialTheme.colorScheme.onPrimaryContainer , RectangleShape)
                             .clip(RectangleShape)
-                            .border(2.dp, Color.Black, RectangleShape)
                     )
                     AudioItem(
                         id = post.ID!!,
@@ -427,7 +425,6 @@ fun ProfileInfo(
     postDes: String,
     modifier: Modifier = Modifier
 ){
-
     if(userInfo.isEmpty()){
         CircularProgressIndicator()
     } else if(isBlock.value){
@@ -465,11 +462,12 @@ fun ProfileInfo(
                     .build(),
                 contentDescription = "Avatar",
                 placeholder = painterResource(id = R.drawable.person),
+                colorFilter = if(userInfo["avatarUrl"].isNullOrEmpty()) ColorFilter.tint(MaterialTheme.colorScheme.onPrimaryContainer) else null,
                 contentScale = ContentScale.Crop,
                 modifier = Modifier
                     .size(64.dp)
+                    .border(2.dp, MaterialTheme.colorScheme.onPrimaryContainer, CircleShape)
                     .clip(CircleShape)
-                    .border(2.dp, Color.Black, CircleShape)
                     .clickable {
                         //To Profile
                         navController.navigate("profile/$userId")

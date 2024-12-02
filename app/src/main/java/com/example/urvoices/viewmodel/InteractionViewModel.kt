@@ -211,7 +211,7 @@ class InteractionViewModel @Inject constructor(
                                     result = notificationRepository.likeComment(
                                         targetUserID = targetUserID,
                                         actionUsername = currentUsername,
-                                        relaID = commentID
+                                        relaID = likeAction
                                     )
                                 }
                             }
@@ -242,7 +242,7 @@ class InteractionViewModel @Inject constructor(
                                     result = notificationRepository.likePost(
                                         targetUserID = targetUserID,
                                         actionUsername = currentUsername,
-                                        relaID = postID
+                                        relaID = likeAction
                                     )
                                 }
                             }

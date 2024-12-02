@@ -45,6 +45,7 @@ sealed class MainScreen(
         object SavedPostsScreen: SettingsScreen("SETTINGS_SCREEN/SavedPostsScreen")
         object DeleteAccount: SettingsScreen("SETTINGS_SCREEN/DeleteAccount")
         object SecurityScreen: SettingsScreen("SETTINGS_SCREEN/SecurityScreen")
+        object DeletePostScreen: SettingsScreen("SETTINGS_SCREEN/DeletePostScreen")
     }
 }
 

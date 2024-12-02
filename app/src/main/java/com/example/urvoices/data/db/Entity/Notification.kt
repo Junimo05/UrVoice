@@ -9,6 +9,7 @@ data class Notification(
 	val type: String = "",
 	val message: String = "",
 	val createdAt: Long = System.currentTimeMillis(),
-	val url: String = "",
+	val imgUrl: String = "",
+	val infoID: String = "",
 	val isRead: Boolean = false
 )

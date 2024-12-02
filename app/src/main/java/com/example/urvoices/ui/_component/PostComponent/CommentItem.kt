@@ -133,14 +133,13 @@ fun CommentItem(
             modifier = Modifier
                 .background(Color.Transparent)
                 .padding(
-                    start = if (depth > 0) 32.dp else 0.dp,  // Add indent for replies
-                    end = if (depth > 0) 4.dp else 0.dp, // Add indent for replies
+                    start = if (depth in 1..1) 32.dp else 0.dp,  // Add indent for replies
                     top = 4.dp,
                     bottom = 2.dp
                 )
-                .padding(5.dp)
                 .clip(RoundedCornerShape(26.dp))
                 .fillMaxWidth()
+                .padding(2.dp)
                 .pointerInput(Unit) {
                     detectTapGestures(
                         onLongPress = {
@@ -153,7 +152,6 @@ fun CommentItem(
         ){
             Column(
                 modifier = Modifier
-
                     .fillMaxSize()
                     .clip(RoundedCornerShape(28.dp))
                     .background(MaterialTheme.colorScheme.primaryContainer)
@@ -276,42 +274,43 @@ fun CommentItem(
                         CircularProgressIndicator()
                     }
                 }
-                if (isExpandedReply.value) {
-                    if(!repliesLoading){
-                        replies.forEachIndexed { _, reply ->
-                            CommentItem(
-                                navController = navController,
-                                uiState = uiState,
-                                comment = reply,
-                                postDetailViewModel = postDetailViewModel,
-                                interactionViewModel = interactionViewModel,
-                                commentViewModel = commentViewModel,
-                                depth = depth + 1,
-                                replyAct = {comment, parentCmtUsername ->
-                                    replyAct(comment, parentCmtUsername)
-                                }
-                            )
-                        }
-                        if(totalReplyByTime < comment.replyComments){
-                            Text(
-                                text = "Load more",
-                                modifier = Modifier.clickable {
-                                    loadMoreReply(
-                                        commentID = comment.id!!,
-                                        commentViewModel = commentViewModel,
-                                        callback = { result ->
-                                            replies = result
-                                        }
-                                    )
-                                }
-                            )
-                        }
-                    } else {
-                        Row(
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            CircularProgressIndicator()
-                        }
+
+            }
+            if (isExpandedReply.value) {
+                if(!repliesLoading){
+                    replies.forEachIndexed { _, reply ->
+                        CommentItem(
+                            navController = navController,
+                            uiState = uiState,
+                            comment = reply,
+                            postDetailViewModel = postDetailViewModel,
+                            interactionViewModel = interactionViewModel,
+                            commentViewModel = commentViewModel,
+                            depth = depth + 1,
+                            replyAct = {comment, parentCmtUsername ->
+                                replyAct(comment, parentCmtUsername)
+                            }
+                        )
+                    }
+//                    if(totalReplyByTime < comment.replyComments){
+//                        Text(
+//                            text = "Load more",
+//                            modifier = Modifier.clickable {
+//                                loadMoreReply(
+//                                    commentID = comment.id!!,
+//                                    commentViewModel = commentViewModel,
+//                                    callback = { result ->
+//                                        replies = result
+//                                    }
+//                                )
+//                            }
+//                        )
+//                    }
+                } else {
+                    Row(
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        CircularProgressIndicator()
                     }
                 }
             }

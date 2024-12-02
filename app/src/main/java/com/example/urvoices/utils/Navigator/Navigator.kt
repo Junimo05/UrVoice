@@ -1,8 +1,6 @@
 package com.example.urvoices.utils.Navigator
 
 import android.annotation.SuppressLint
-import android.content.Intent
-import android.os.Build
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.RepeatMode
@@ -50,12 +48,12 @@ import com.example.urvoices.data.model.Audio
 import com.example.urvoices.ui._component.BottomBar
 import com.example.urvoices.ui._component.CustomSnackBar
 import com.example.urvoices.ui._component.MediaPlayer
-import com.example.urvoices.utils.audio_player.services.AudioService
 import com.example.urvoices.viewmodel.AuthViewModel
 import com.example.urvoices.viewmodel.HomeViewModel
 import com.example.urvoices.viewmodel.InteractionViewModel
 import com.example.urvoices.viewmodel.MediaPlayerVM
 import com.example.urvoices.viewmodel.MediaRecorderVM
+import com.example.urvoices.viewmodel.NotificationViewModel
 import com.example.urvoices.viewmodel.PostDetailViewModel
 import com.example.urvoices.viewmodel.ProfileViewModel
 import com.example.urvoices.viewmodel.SearchViewModel
@@ -79,6 +77,7 @@ fun Navigator(authViewModel: AuthViewModel, playerViewModel: MediaPlayerVM) {
     val uploadViewModel: UploadViewModel = hiltViewModel()
     val profileViewModel = hiltViewModel<ProfileViewModel>()
     val settingVM = hiltViewModel<SettingViewModel>()
+    val notificationVM = hiltViewModel<NotificationViewModel>()
 
     val mediaRecorderVM = hiltViewModel<MediaRecorderVM>()
     //background service
@@ -225,8 +224,9 @@ fun Navigator(authViewModel: AuthViewModel, playerViewModel: MediaPlayerVM) {
                                 onPlaylistReorder = { fromIndex: Int, toIndex: Int ->
                                     playerViewModel.onUIEvents(UIEvents.ReorderPlaylist(fromIndex, toIndex))
                                 },
-                                onLoopModeChange = {
-                                    playerViewModel.onUIEvents(UIEvents.LoopModeChange)
+                                playMode = playerViewModel.playmode,
+                                onPlayModeChange = {
+                                    playerViewModel.onUIEvents(UIEvents.PlayModeChange)
                                 },
                                 expandOptionBar = expandOptionBar.value,
                                 setExpandOptionBar = {
@@ -314,6 +314,7 @@ fun Navigator(authViewModel: AuthViewModel, playerViewModel: MediaPlayerVM) {
                         mediaRecorderVM = mediaRecorderVM,
                         searchViewModel = searchVM,
                         settingVM = settingVM,
+                        notificationVM = notificationVM,
 
                         ) //home nav
                     specifyGraph(
@@ -324,8 +325,6 @@ fun Navigator(authViewModel: AuthViewModel, playerViewModel: MediaPlayerVM) {
                         profileViewModel = profileViewModel
                     ) //specify nav
                     notiMsgGraph(navController) //notification nav
-
-
                 }
                 SnackbarHost(
                     hostState = uploadViewModel.snackBarUploading,

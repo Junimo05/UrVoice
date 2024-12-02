@@ -79,10 +79,17 @@ fun EditPostScreen(
 	val context = LocalContext.current
 	val editPostState by editPostVM.editPostState.observeAsState()
 	var imgUri by rememberSaveable { mutableStateOf(Uri.EMPTY) }
-	var currentAvatar by rememberSaveable { mutableStateOf(post.imgUrl) }
+	var currentAvatar by rememberSaveable { mutableStateOf("") }
 	var audioName by rememberSaveable { mutableStateOf(post.audioName) }
 	var audioDes by rememberSaveable { mutableStateOf(post.description) }
 	var tag by rememberSaveable { mutableStateOf(post._tags) }
+
+	LaunchedEffect(post.ID) {
+		currentAvatar = editPostVM.getImgUrl(post.ID!!)
+	}
+
+	//
+
 
 	//Image Picker
 	val imageCropper = rememberImageCropper()
@@ -138,13 +145,17 @@ fun EditPostScreen(
 				verticalArrangement = Arrangement.spacedBy(16.dp)
 			){
 				AsyncImage(
-					model = if(imgUri != Uri.EMPTY)
+					model = if(imgUri != Uri.EMPTY){
+							Log.e(TAG, "imgUri: $imgUri")
 							imgUri
-						else
+						}
+						else{
+							Log.e(TAG, "currentAvatar: $currentAvatar")
 						ImageRequest.Builder(LocalContext.current)
 							.data(currentAvatar)
 							.crossfade(true)
-							.build(),
+							.build()
+						},
 					contentDescription = "Avatar",
 					placeholder = painterResource(id = R.drawable.add_photo_svgrepo_com),
 					contentScale = ContentScale.Crop,
@@ -204,7 +215,7 @@ fun EditPostScreen(
 			}
 
 			Row(
-				modifier = Modifier.align(Alignment.CenterHorizontally),
+				modifier = Modifier.padding(4.dp).align(Alignment.CenterHorizontally),
 				horizontalArrangement = Arrangement.SpaceBetween,
 				verticalAlignment = Alignment.CenterVertically
 			){

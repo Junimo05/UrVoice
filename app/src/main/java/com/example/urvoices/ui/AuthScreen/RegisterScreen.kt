@@ -2,6 +2,7 @@ package com.example.urvoices.ui.AuthScreen
 
 import android.annotation.SuppressLint
 import android.widget.Toast
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -91,7 +92,6 @@ fun Register(
     val signUp = mutableStateOf(false)
     val sentEmail = mutableStateOf(false)
     val emailVerified = viewModel.emailVerificationStatus.observeAsState()
-    val emailSent = viewModel.emailSent.observeAsState()
 
     var username by remember { mutableStateOf("") }
     var validateUsername by remember { mutableStateOf("") }
@@ -108,6 +108,18 @@ fun Register(
     var retypePasswordVisible by remember { mutableStateOf(false) }
 
     val scrollState = rememberScrollState()
+
+    //controller navback action to cancel sign up (if needed)
+
+    BackHandler {
+        if(signUpState.value != SignupState.Idle){
+            viewModel.cancelSignUp()
+            signUp.value = false
+            sentEmail.value = false
+        } else {
+            navController.popBackStack()
+        }
+    }
 
 
     LaunchedEffect(authState.value) {
@@ -156,6 +168,7 @@ fun Register(
                 sentEmail.value = false
                 //
                 navController.navigate(AuthScreen.LoginScreen.route)
+                viewModel.resetSignUpState()
             }
             else -> Unit
         }
@@ -392,11 +405,14 @@ fun Register(
                         Card(
                             modifier = Modifier
                                 .size(200.dp, 60.dp)
-                                .clickable {
-                                    GoogleSignIn(context, coroutineScope) { credential ->
-                                        viewModel.signInWithGoogle(credential)
+                                .clickable(
+                                    enabled = signUpState.value == SignupState.Idle,
+                                    onClick = {
+                                        GoogleSignIn(context, coroutineScope) { credential ->
+                                            viewModel.signInWithGoogle(credential)
+                                        }
                                     }
-                                },
+                                ),
                         ){
                             Row(
                                 modifier = Modifier.fillMaxSize(),
@@ -530,14 +546,17 @@ fun EmailSentCheck(
             ),
             modifier = Modifier.size(300.dp, 60.dp)
         ){
-            Text(
-                text = "Already Verified? Click Here!",
-                style = TextStyle(
-                    color = MaterialTheme.colorScheme.onPrimary,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 14.sp
+            Box(modifier = Modifier.fillMaxSize()){
+                Text(
+                    text = "Already Verified? Click Here!",
+                    style = TextStyle(
+                        color = MaterialTheme.colorScheme.onPrimary,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 14.sp
+                    ),
+                    modifier = Modifier.align(Alignment.Center)
                 )
-            )
+            }
         }
         Spacer(modifier = Modifier.height(16.dp))
         if(emailVerified.value != null){

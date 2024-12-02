@@ -6,6 +6,7 @@ import android.util.Log
 import androidx.compose.runtime.MutableState
 import com.example.urvoices.data.AudioManager
 import com.example.urvoices.data.model.Comment
+import com.example.urvoices.data.model.CommentData
 import com.example.urvoices.data.model.Like
 import com.example.urvoices.data.model.Post
 import com.example.urvoices.utils.getDurationFromUrl
@@ -540,8 +541,9 @@ class FirebasePostService @Inject constructor(
         return relaID
     }
 
-    suspend fun commentPost(actionUserID: String, postID: String, content: String): Comment {
+    suspend fun commentPost(actionUserID: String, postID: String, content: String): CommentData {
         var commentResultID = ""
+        var relaCommentID = ""
         val comment = Comment(
             id = null,
             userId = actionUserID,
@@ -563,24 +565,26 @@ class FirebasePostService @Inject constructor(
                 .update("ID", commentResultID).await()
 
             // Update ID for relation
-            firebaseFirestore.collection("rela_comments_users_posts").add(comment.toRelaMap()).addOnCompleteListener {
-                //update ID for relation
-                    rela ->
-                firebaseFirestore.collection("rela_comments_users_posts").document(rela.result?.id!!)
-                    .update("ID", rela.result?.id!!)
-            }.await()
+            val relaRef = firebaseFirestore.collection("rela_comments_users_posts").add(comment.toRelaMap()).await()
+            relaCommentID = relaRef.id
+            firebaseFirestore.collection("rela_comments_users_posts").document(relaCommentID)
+                .update("ID", relaCommentID, "commentID", commentResultID).await()
 
-            return comment
+            return CommentData(
+                comment = comment,
+                relaCommentID = commentResultID
+            )
         } catch (e: Exception) {
             e.printStackTrace()
             Log.e(TAG, "commentPost: ${e.message}")
         }
-        return comment
+        return CommentData()
     }
 
-    suspend fun replyComment(actionUserID: String, parentID: String, postID: String, content: String): Comment {
+    suspend fun replyComment(actionUserID: String, parentID: String, postID: String, content: String): CommentData {
         // reply comment
         var commentResultID = ""
+        var relaCommentID = ""
         val comment = Comment(
             id = null,
             userId = actionUserID,
@@ -592,30 +596,31 @@ class FirebasePostService @Inject constructor(
             deletedAt = null
         )
         try {
+            // Add comment and get the reference
+            val commentRef = firebaseFirestore.collection("comments").add(comment.toCommentMap()).await()
+            commentResultID = commentRef.id
+            comment.id = commentRef.id
 
-            firebaseFirestore.collection("comments").add(comment.toCommentMap()).addOnCompleteListener {
-                //update ID for comment
-                cmt ->
-                firebaseFirestore.collection("comments").document(cmt.result?.id!!)
-                    .update("ID", cmt.result?.id!!)
-                //update Relation
-                commentResultID = cmt.result?.id!!
-            }.await()
+            // Update ID for comment
+            firebaseFirestore.collection("comments").document(commentResultID)
+                .update("ID", commentResultID).await()
 
-            firebaseFirestore.collection("rela_comments_users_posts").add(comment.toRelaMap()).addOnCompleteListener {
-                //update ID for relation
-                rela ->
-                firebaseFirestore.collection("rela_comments_users_posts").document(rela.result?.id!!)
-                    .update("ID", rela.result?.id!!, "commentID", commentResultID)
-            }.await()
+            // Update ID for relation
+            val relaRef = firebaseFirestore.collection("rela_comments_users_posts").add(comment.toRelaMap()).await()
+            relaCommentID = relaRef.id
+            firebaseFirestore.collection("rela_comments_users_posts").document(relaCommentID)
+                .update("ID", relaCommentID, "commentID", commentResultID).await()
 
-            return comment.apply {
-                id = commentResultID
-            }
+            return CommentData(
+                comment = comment,
+                relaCommentID = commentResultID
+            )
+
         } catch (e: Exception) {
             e.printStackTrace()
+            Log.e(TAG, "replyComment: ${e.message}")
         }
-        return comment
+        return CommentData()
     }
 
     suspend fun softDeleteComment(comment: Comment): Boolean {
@@ -829,6 +834,7 @@ class FirebasePostService @Inject constructor(
     }
 
 
+    @SuppressLint("SuspiciousIndentation")
     suspend fun getCountReplyComments(commentId: String): Int{
         return try {
             // get the count of reply comments which belong to the comment

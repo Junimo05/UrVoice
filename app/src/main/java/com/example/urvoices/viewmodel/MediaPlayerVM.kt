@@ -18,6 +18,7 @@ import com.example.urvoices.data.model.Audio
 import com.example.urvoices.utils.audio_player.services.AudioService
 import com.example.urvoices.utils.audio_player.services.AudioServiceHandler
 import com.example.urvoices.utils.audio_player.services.AudioState
+import com.example.urvoices.utils.audio_player.services.PlayMode
 import com.example.urvoices.utils.audio_player.services.PlayerEvent
 import com.example.urvoices.viewmodel.State.AppGlobalState
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -64,7 +65,8 @@ class MediaPlayerVM @Inject constructor(
     @OptIn(SavedStateHandleSaveableApi::class)
     var isEnd by saveStateHandle.saveable { mutableStateOf(false) }
     @OptIn(SavedStateHandleSaveableApi::class)
-    var repeatMode by saveStateHandle.saveable { mutableIntStateOf(Player.REPEAT_MODE_OFF) }
+    var playmode by saveStateHandle.saveable { mutableStateOf(PlayMode.OFF_MODE)}
+
     var isServiceRunning = false
 
     //UI STATE
@@ -114,6 +116,9 @@ class MediaPlayerVM @Inject constructor(
                             //nothing
                         }
                     }
+                    is AudioState.PlayMode -> {
+                        playmode = state.mode
+                    }
                     else -> Unit
                 }
                 AppGlobalState.mediaState.value = _uiState.value
@@ -159,9 +164,8 @@ class MediaPlayerVM @Inject constructor(
                 )
                 progress = uiEvents.newProgress
             }
-            UIEvents.LoopModeChange -> {
-                audioService.onPlayerEvents(PlayerEvent.LoopModeChange)
-                repeatMode = audioService.getRepeatMode()
+            UIEvents.PlayModeChange -> {
+                audioService.onPlayerEvents(PlayerEvent.PlayModeChange)
             }
             UIEvents.Backward -> {
                 audioService.onPlayerEvents(PlayerEvent.Backward)
@@ -240,7 +244,7 @@ class MediaPlayerVM @Inject constructor(
         progress = 0f
         progressString = "00:00"
         isPlaying = false
-        repeatMode = Player.REPEAT_MODE_OFF
+        playmode = PlayMode.OFF_MODE
         isServiceRunning = false
     }
 
@@ -265,7 +269,7 @@ sealed class UIEvents {
     data class SeekTo(val position: Float): UIEvents()
     object PlayPause: UIEvents()
     object Stop: UIEvents()
-    object LoopModeChange: UIEvents()
+    object PlayModeChange: UIEvents()
     data class UpdateProgress(val newProgress: Float): UIEvents()
 }
 

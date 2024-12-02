@@ -42,6 +42,8 @@ class NotificationRM(
 					id = document.id,
 					type = document.getString("typeNotification") ?: "",
 					message = document.getString("message") ?: "",
+					infoID = document.getString("infoID") ?: "",
+					imgUrl = document.getString("imgUrl") ?: "",
 					createdAt = document.getLong("createdAt") ?: System.currentTimeMillis(),
 					isRead = document.getBoolean("isRead") ?: false
 				)

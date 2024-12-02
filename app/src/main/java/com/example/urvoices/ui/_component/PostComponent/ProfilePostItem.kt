@@ -29,7 +29,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -190,19 +189,6 @@ fun ProfilePostItem(
                                     Toast.makeText(context, "Link Copied", Toast.LENGTH_SHORT).show()
                                     expandMenu.value = false
                                 },
-                                isSaved = false, //no display for save post
-                                savePost = {
-                                    interactionViewModel.savePost(post.ID!!){result ->
-                                        if(result != null){
-                                            if(result){
-                                                Toast.makeText(context, "Saved", Toast.LENGTH_SHORT).show()
-                                            } else {
-                                                Toast.makeText(context, "Unsaved", Toast.LENGTH_SHORT).show()
-                                            }
-                                        }
-                                        expandMenu.value = false
-                                    }
-                                },
                                 deletePost = {
                                     interactionViewModel.deletePost(post.ID!!){result ->
                                         if(result){
@@ -230,7 +216,7 @@ fun ProfilePostItem(
                                     }
                                     expandMenu.value = false
                                 },
-                                changeInfo = {
+                                editPost = {
                                     navController.navigate(
                                         com.example.urvoices.utils.Navigator.EditPostScreen(
                                             post = post

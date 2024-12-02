@@ -4,15 +4,23 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.Parcelable
+import android.util.Log
 import androidx.navigation.NavType
 import com.example.urvoices.data.model.Post
+import kotlinx.serialization.KSerializer
+import kotlinx.serialization.builtins.serializer
+import kotlinx.serialization.descriptors.PrimitiveKind
+import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
+import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encodeToString
+import kotlinx.serialization.encoding.Decoder
+import kotlinx.serialization.encoding.Encoder
 import kotlinx.serialization.json.Json
 
 object CustomNavType {
-    val PostType = object: NavType<Post>(
+    val PostType = object : NavType<Post>(
         isNullableAllowed = false,
-    ){
+    ) {
         override fun get(bundle: Bundle, key: String): Post? {
             return Json.decodeFromString(bundle.getString(key) ?: return null)
         }
@@ -30,6 +38,7 @@ object CustomNavType {
         }
     }
 }
+
 
 inline fun <reified T : Parcelable?> navType(
     isNullableAllowed: Boolean = true,

@@ -16,6 +16,18 @@ data class Comment(
     val updatedAt: Long?,
     val deletedAt: Long?,
 ):Parcelable {
+
+    constructor(): this(
+        id = null,
+        userId = "",
+        parentId = null,
+        postId = "",
+        content = "",
+        createdAt = System.currentTimeMillis(),
+        updatedAt = null,
+        deletedAt = null,
+    )
+
     fun toCommentMap(): Map<String, Any?> {
         return mapOf(
             "ID" to id,

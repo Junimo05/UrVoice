@@ -26,6 +26,7 @@ import com.example.urvoices.utils.SharedPreferencesKeys.isFirstTime
 import com.example.urvoices.utils.UserPreferences
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.SetOptions
 import com.google.firebase.messaging.FirebaseMessaging
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -50,7 +51,6 @@ class HomeViewModel @Inject constructor(
     private val userRepository: UserRepository,
     private val sharedPrefs: SharedPreferencesHelper,
     private val auth: FirebaseAuth,
-    @SuppressLint("StaticFieldLeak") private val messagingService: MessagingService,
     savedStateHandle: SavedStateHandle
 ): ViewModel(){
 
@@ -70,7 +70,7 @@ class HomeViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            messagingService.sendRegistrationToServer()
+            sendRegistrationToServer()
         }
         loadData()
     }
@@ -84,9 +84,7 @@ class HomeViewModel @Inject constructor(
     fun refreshHomeScreen(){
         clearData()
         setIsRefreshing(true)
-        viewModelScope.launch {
-            fetchPosts()
-        }
+        loadData()
     }
 
 
@@ -179,13 +177,42 @@ class HomeViewModel @Inject constructor(
         }
     }
 
-    private fun checkTokenSaved(){
-        val token = sharedPrefs.getString(SharedPreferencesKeys.token, "" ,currentUser.value!!.uid)
-        if(token.isEmpty()){
-            viewModelScope.launch {
-                val newToken = FirebaseMessaging.getInstance().token.await()
-                sharedPrefs.save(SharedPreferencesKeys.token, newToken, currentUser.value!!.uid)
+    suspend fun sendRegistrationToServer() {
+        try {
+            val token = FirebaseMessaging.getInstance().token.await()
+
+            Log.e(TAG, "sendRegistrationToServer: $token")
+            val user = FirebaseAuth.getInstance().currentUser
+            if (user != null) {
+                val userDocRef = FirebaseFirestore.getInstance().collection("userTokens").document(user.uid)
+                val userDoc = userDocRef.get().await()
+                Log.e(TAG, "sendRegistrationToServer: ${userDoc.exists()}")
+                if (userDoc.exists()) {
+                    val existingTokens = userDoc.get("token") as? List<String> ?: emptyList()
+                    if (!existingTokens.contains(token)) {
+                        val updatedTokens = existingTokens.toMutableList().apply { add(token) }
+                        userDocRef.set(mapOf("token" to updatedTokens), SetOptions.merge())
+                            .addOnSuccessListener {
+                                Log.e(TAG, "sendRegistrationToServer: Token added successfully")
+                            }
+                            .addOnFailureListener {
+                                Log.e(TAG, "sendRegistrationToServer: ${it.message}")
+                            }
+                    } else {
+                        Log.e(TAG, "sendRegistrationToServer: Token already exists")
+                    }
+                } else {
+                    userDocRef.set(mapOf("token" to listOf(token)), SetOptions.merge())
+                        .addOnSuccessListener {
+                            Log.e(TAG, "sendRegistrationToServer: Token added successfully")
+                        }
+                        .addOnFailureListener {
+                            Log.e(TAG, "sendRegistrationToServer: ${it.message}")
+                        }
+                }
             }
+        } catch (e: Exception) {
+            Log.e(TAG, "sendRegistrationToServer: ${e.message}")
         }
     }
 

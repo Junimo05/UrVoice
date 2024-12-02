@@ -1,17 +1,12 @@
 package com.example.urvoices.data.service
 
 import android.util.Log
-import androidx.paging.ExperimentalPagingApi
-import androidx.paging.Pager
-import androidx.paging.PagingConfig
-import androidx.paging.PagingData
-import com.example.urvoices.data.model.MessageNotification
+
 import com.example.urvoices.data.model.Notification
-import com.example.urvoices.data.model.TypeNotification
-import com.example.urvoices.data.remotemediator.NotificationRM
+import com.example.urvoices.utils.MessageNotification
+import com.example.urvoices.utils.TypeNotification
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 
@@ -22,34 +17,47 @@ import javax.inject.Inject
 
 class FirebaseNotificationService @Inject constructor(
     private val firebaseFirestore: FirebaseFirestore,
+    private val auth: FirebaseAuth
 
 ){
     val TAG = "FirebaseNotificationService"
 
-    suspend fun followUser(targetUserID: String, actionUsername: String , followInfoID: String): Boolean {
-//        Log.e(TAG, "followUser: $actionUsername")
-        val noti = Notification(
-            id = null,
-            targetUserID = targetUserID,
-            infoID = followInfoID,
-            message = actionUsername + " " + MessageNotification.FOLLOW_USER,
-            typeNotification = TypeNotification.FOLLOW_USER,
-            isRead = false,
-            url = "",
-            createdAt = System.currentTimeMillis(),
-            updatedAt = null,
-            deleteAt = null
-        )
+    suspend fun updateMessageText(notiID: String, message: String){
+        try {
+            firebaseFirestore.collection("notifications").document(notiID).update("message", message).await()
+        } catch (e: Exception) {
+            Log.e(TAG, "updateMessageText: ${e.message}")
+        }
+    }
 
-        val result = firebaseFirestore.collection("notifications").add(noti.toMap())
-            .addOnCompleteListener {
-                firebaseFirestore.collection("notifications").document(it.result?.id!!).update("ID", it.result?.id!!)
-            }
-            .addOnFailureListener {
-                Log.e(TAG, "followUser: ${it.message}")
-            }
-            .await()
-        return result != null
+    suspend fun followUser(targetUserID: String, actionUsername: String, followInfoID: String, isPrivate: Boolean): Boolean {
+        return try {
+            val noti = Notification(
+                id = null,
+                targetUserID = targetUserID,
+                infoID = followInfoID,
+                message = actionUsername + " " + if (isPrivate) MessageNotification.REQUEST_FOLLOW else MessageNotification.FOLLOW_USER,
+                typeNotification = if (isPrivate) TypeNotification.REQUEST_FOLLOW else TypeNotification.FOLLOW_USER,
+                isRead = false,
+                imgUrl = "",
+                createdAt = System.currentTimeMillis(),
+                updatedAt = null,
+                deleteAt = null
+            )
+
+            val result = firebaseFirestore.collection("notifications").add(noti.toMap())
+                .addOnCompleteListener {
+                    firebaseFirestore.collection("notifications").document(it.result?.id!!).update("ID", it.result?.id!!)
+                }
+                .addOnFailureListener {
+                    Log.e(TAG, "followUser: ${it.message}")
+                }
+                .await()
+            result != null
+        } catch (e: Exception) {
+            Log.e(TAG, "followUser: ${e.message}")
+            false
+        }
     }
 
     suspend fun likePost(targetUserID: String, actionUsername: String, likeID: String): Boolean {
@@ -60,7 +68,7 @@ class FirebaseNotificationService @Inject constructor(
             message = actionUsername + " " + MessageNotification.LIKE_POST,
             typeNotification = TypeNotification.LIKE_POST,
             isRead = false,
-            url = "",
+            imgUrl = "",
             createdAt = System.currentTimeMillis(),
             updatedAt = null,
             deleteAt = null
@@ -86,7 +94,7 @@ class FirebaseNotificationService @Inject constructor(
             message = actionUsername + " " + MessageNotification.LIKE_COMMENT,
             typeNotification = TypeNotification.LIKE_COMMENT,
             isRead = false,
-            url = "",
+            imgUrl = "",
             createdAt = System.currentTimeMillis(),
             updatedAt = null,
             deleteAt = null
@@ -111,7 +119,7 @@ class FirebaseNotificationService @Inject constructor(
             message = actionUsername + " " + MessageNotification.REPLY_COMMENT,
             typeNotification = TypeNotification.REPLY_COMMENT,
             isRead = false,
-            url = "",
+            imgUrl = "",
             createdAt = System.currentTimeMillis(),
             updatedAt = null,
             deleteAt = null
@@ -136,7 +144,7 @@ class FirebaseNotificationService @Inject constructor(
             message = actionUsername + " " + MessageNotification.COMMENT_POST,
             typeNotification = TypeNotification.COMMENT_POST,
             isRead = false,
-            url = "",
+            imgUrl = "",
             createdAt = System.currentTimeMillis(),
             updatedAt = null,
             deleteAt = null
@@ -153,5 +161,53 @@ class FirebaseNotificationService @Inject constructor(
         return createNoti != null
     }
 
+    suspend fun acceptFollowRequest(notiID: String, relaID: String, newMessage: String): Boolean {
+        val user = auth.currentUser
+        if (user != null) {
+            try {
+                val notiRef = firebaseFirestore.collection("notifications").document(notiID)
+                notiRef.update("isRead", true).await()
+                notiRef.update("message", newMessage).await()
+                val documents = firebaseFirestore.collection("follows")
+                    .document(relaID)
+                    .get()
+                    .await()
+                documents.reference.update("accepted", true).await()
+                //change message
+
+                return true
+            } catch (e: Exception) {
+                // Handle exception
+                e.printStackTrace()
+                Log.e(TAG, "acceptFollowRequest: ${e.message}")
+            }
+        } else {
+            // Inform the user that they are not signed in
+            println("No user is currently signed in.")
+        }
+        return false
+    }
+
+    suspend fun rejectFollowRequest(notiID: String, relaID: String): Boolean {
+        val user = auth.currentUser
+        if (user != null) {
+            try {
+                firebaseFirestore.collection("follows")
+                    .document(relaID)
+                    .delete()
+                    .await()
+                firebaseFirestore.collection("notifications").document(notiID).delete().await()
+                return true
+            } catch (e: Exception) {
+                // Handle exception
+                e.printStackTrace()
+                Log.e(TAG, "rejectFollowRequest: ${e.message}")
+            }
+        } else {
+            // Inform the user that they are not signed in
+            println("No user is currently signed in.")
+        }
+        return false
+    }
 
 }

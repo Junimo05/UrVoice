@@ -49,6 +49,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -82,7 +83,6 @@ import com.example.urvoices.ui._component.PostComponent.CommentBar
 import com.example.urvoices.ui._component.PostComponent.CommentItem
 import com.example.urvoices.ui._component.TopBarBackButton
 import com.example.urvoices.utils.Auth.BASE_URL
-import com.example.urvoices.utils.Navigator.MainScreen
 import com.example.urvoices.utils.Post_Interactions
 import com.example.urvoices.utils.processUsername
 import com.example.urvoices.viewmodel.AuthViewModel
@@ -279,7 +279,7 @@ fun PostDetail(
                                     }
                                     expandMoreAction.value = false
                                 },
-                                changeInfo = {
+                                editPost = {
                                     onEditPost(currentPost)
                                     expandMoreAction.value = false
                                 }
@@ -309,7 +309,8 @@ fun PostDetail(
                     focusRequester = focusRequester,
                 )
             }
-        }
+        },
+        modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)
     ) { paddingValues ->
         LazyColumn(
             state = listState,
@@ -497,7 +498,7 @@ fun ProfileDetail(
     ) {
         AsyncImage(
             model = ImageRequest.Builder(LocalContext.current)
-                .data(user.avatarUrl)
+                .data(user.avatarUrl.takeIf { it.isNotEmpty() } ?: R.drawable.person)
                 .crossfade(true)
                 .build(),
             contentDescription = "Avatar",
@@ -505,8 +506,8 @@ fun ProfileDetail(
             contentScale = ContentScale.Crop,
             modifier = Modifier
                 .size(100.dp)
+                .border(2.dp, MaterialTheme.colorScheme.onBackground, CircleShape)
                 .clip(CircleShape)
-                .border(2.dp, Color.Black, CircleShape)
                 .clickable {
                     navController.navigate("profile/${user.ID}")
                 }
@@ -603,10 +604,11 @@ fun ContentDetail(
                 contentDescription = "Avatar",
                 placeholder = painterResource(id = R.drawable.ic_media_note),
                 contentScale = ContentScale.Crop,
+                colorFilter = if(post.imgUrl.isNullOrEmpty()) ColorFilter.tint(MaterialTheme.colorScheme.onSurface) else null,
                 modifier = Modifier
                     .size(100.dp)
+                    .border(2.dp, MaterialTheme.colorScheme.onBackground, RectangleShape)
                     .clip(RectangleShape)
-                    .border(2.dp, Color.Black, RectangleShape)
             )
             if(post.description != ""){
                 Spacer(modifier = Modifier.width(8.dp))

@@ -1,5 +1,7 @@
 package com.example.urvoices.utils.Navigator
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
@@ -27,6 +29,7 @@ import com.example.urvoices.ui._component.SettingComponents.SavedPostScreen
 import com.example.urvoices.ui._component.SettingComponents.SecurityScreen
 import com.example.urvoices.ui.noti_msg.MessageScreen
 import com.example.urvoices.ui.MainScreen.NotificationScreen
+import com.example.urvoices.ui._component.SettingComponents.DeletedPostScreen
 import com.example.urvoices.utils.Auth.BASE_URL
 import com.example.urvoices.viewmodel.AuthViewModel
 import com.example.urvoices.viewmodel.EditPostVM
@@ -62,6 +65,7 @@ fun NavGraphBuilder.authGraph(
     }
 }
 
+@RequiresApi(Build.VERSION_CODES.TIRAMISU)
 fun NavGraphBuilder.mainGraph(
     navController: NavController,
     authViewModel: AuthViewModel,
@@ -71,7 +75,8 @@ fun NavGraphBuilder.mainGraph(
     uploadViewModel: UploadViewModel,
     profileViewModel: ProfileViewModel,
     mediaRecorderVM: MediaRecorderVM,
-    settingVM: SettingViewModel
+    settingVM: SettingViewModel,
+    notificationVM: NotificationViewModel,
 ){
     navigation(route = Graph.NAV_SCREEN, startDestination = MainScreen.HomeScreen.route){
         composable(route = MainScreen.HomeScreen.route){
@@ -79,14 +84,15 @@ fun NavGraphBuilder.mainGraph(
                 navController = navController,
                 authViewModel = authViewModel,
                 playerViewModel = playerViewModel,
-                homeViewModel = homeViewModel
+                homeViewModel = homeViewModel,
+                notificationVM = notificationVM
             )
         }
 
         composable(route = MainScreen.NotificationScreen.route){
             NotificationScreen(
                 navController = navController,
-                notificationVM = hiltViewModel<NotificationViewModel>()
+                notificationVM = notificationVM
             )
         }
 
@@ -158,6 +164,15 @@ fun NavGraphBuilder.mainGraph(
                 navController = navController,
                 authViewModel = authViewModel,
                 settingVM = settingVM
+            )
+        }
+
+        composable(route = MainScreen.SettingsScreen.DeletePostScreen.route){
+            DeletedPostScreen(
+                navController = navController,
+                settingVM = settingVM,
+                mediaPlayerVM = playerViewModel,
+                profileVM = profileViewModel
             )
         }
     }

@@ -9,6 +9,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.urvoices.data.db.AppDatabase
 import com.example.urvoices.utils.SharedPreferencesHelper
 import com.example.urvoices.utils.UserPreferences
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
@@ -16,6 +17,7 @@ import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential.Co
 import com.google.firebase.auth.AuthCredential
 import com.google.firebase.auth.EmailAuthProvider
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
 import com.google.firebase.auth.FirebaseAuthInvalidUserException
 import com.google.firebase.auth.GoogleAuthProvider
 import com.google.firebase.firestore.FirebaseFirestore
@@ -31,13 +33,14 @@ class AuthViewModel @Inject constructor(
     private val sharedPreferences: SharedPreferencesHelper,
     private val firestore: FirebaseFirestore,
     private val userDataStore: UserPreferences,
+    private val appDatabase: AppDatabase,
     private val auth: FirebaseAuth
 ): ViewModel(){
 
     private val _authState = MutableLiveData<AuthState>()
     val authState: LiveData<AuthState> = _authState
 
-    private val _signUpState = MutableLiveData<SignupState>()
+    private val _signUpState = MutableLiveData<SignupState>(SignupState.Idle)
     val signUpState: LiveData<SignupState> = _signUpState
 
     val emailVerificationStatus = MutableLiveData<Boolean?>(null)
@@ -49,6 +52,9 @@ class AuthViewModel @Inject constructor(
         checkStatus()
     }
 
+    fun resetSignUpState(){
+        _signUpState.value = SignupState.Idle
+    }
 
     fun resetEmailState(){
         emailVerificationStatus.value = null
@@ -71,25 +77,25 @@ class AuthViewModel @Inject constructor(
         }
     }
 
-    fun signInEmailPassword(email: String, password: String){
+    fun signInEmailPassword(email: String, password: String) {
         _authState.value = AuthState.Loading
         auth.signInWithEmailAndPassword(email, password)
             .addOnCompleteListener { task ->
-                if(task.isSuccessful){
+                if (task.isSuccessful) {
                     val user = auth.currentUser
-                    if(user != null){
+                    if (user != null) {
                         _authState.value = AuthState.Authenticated
                         val userRef = firestore.collection("users").document(user.uid)
                         userRef.get().addOnCompleteListener {
-                            if(it.isSuccessful){
+                            if (it.isSuccessful) {
                                 val document = it.result
-                                if(document != null){
+                                if (document != null) {
                                     val username = document.getString("username")
                                     val email = document.getString("email")
                                     val id = document.getString("ID")
-                                    requireNotNull(username) { "Username is null"}
-                                    requireNotNull(email) { "Email is null"}
-                                    requireNotNull(id) { "ID is null"}
+                                    requireNotNull(username) { "Username is null" }
+                                    requireNotNull(email) { "Email is null" }
+                                    requireNotNull(id) { "ID is null" }
                                     saveDataUserPreference(id, username, email)
                                 }
                             }
@@ -99,9 +105,52 @@ class AuthViewModel @Inject constructor(
                     _authState.value = AuthState.Error("Email or Password is incorrect")
                 }
             }
-            .addOnFailureListener{
-                _authState.value = AuthState.Error(it.message ?: "An error occurred")
+            .addOnFailureListener { exception ->
+                when (exception) {
+                    is FirebaseAuthInvalidUserException -> {
+                        _authState.value = AuthState.Error("No account found with this email")
+                    }
+                    is FirebaseAuthInvalidCredentialsException -> {
+                        _authState.value = AuthState.Error("Invalid password")
+                    }
+                    else -> {
+                        Log.e("AuthViewModel", exception.message ?: "An error occurred")
+                        _authState.value = AuthState.Error("An unexpected error occurred")
+                    }
+                }
             }
+    }
+
+    fun cancelSignUp() {
+        val user = auth.currentUser
+        if (user != null) {
+            viewModelScope.launch {
+                try {
+                    // Delete user from Firestore
+                    firestore.collection("users").document(user.uid).delete().await()
+
+                    // Delete user from Firebase Authentication
+                    user.delete().await()
+
+                    // Clear user data from shared preferences or data store
+                    userDataStore.clearUserInfo()
+
+                    // Reset sign-up state
+                    resetSignUpState()
+                    resetEmailState()
+                    _authState.value = AuthState.Unauthenticated
+
+                    Toast.makeText(context, "Sign-up process cancelled and user data deleted.", Toast.LENGTH_SHORT).show()
+                } catch (e: Exception) {
+                    Log.e("AuthViewModel", "Error cancelling sign-up: ${e.message}")
+                    _signUpState.value = SignupState.Error("Error cancelling sign-up: ${e.message}")
+                }
+            }
+        } else {
+            resetEmailState()
+            resetSignUpState()
+            _authState.value = AuthState.Unauthenticated
+        }
     }
 
     fun signUpEmailPassword(email: String, password: String, retypePassword: String){
@@ -145,26 +194,12 @@ class AuthViewModel @Inject constructor(
                     _signUpState.value = SignupState.Complete
                 }else{
                     _authState.value = AuthState.Error("Cannot create user info")
-                    deleteAccountWhenSignError()
+                   cancelSignUp()
                 }
             }.addOnFailureListener {
-                deleteAccountWhenSignError()
+                cancelSignUp()
                 _authState.value = AuthState.Error(it.message ?: "An error occurred")
                 Log.e("AuthViewModel", it.message ?: "An error occurred")
-            }
-        }
-    }
-
-    private fun deleteAccountWhenSignError(){
-        val user = auth.currentUser
-        if(user != null){
-            viewModelScope.launch {
-                try {
-                    user.delete().await()
-                    _authState.value = AuthState.Unauthenticated
-                } catch (e: Exception) {
-                    _authState.value = AuthState.Error(e.message ?: "An error occurred")
-                }
             }
         }
     }
@@ -283,6 +318,21 @@ class AuthViewModel @Inject constructor(
                     _authState.value = AuthState.Error(task.exception?.message ?: "An error occurred")
                 }
             }
+            .addOnFailureListener {
+                resetSignUpState()
+                when(it){
+                    is FirebaseAuthInvalidUserException -> {
+                        _authState.value = AuthState.Error("No account found with this email")
+                    }
+                    is FirebaseAuthInvalidCredentialsException -> {
+                        _authState.value = AuthState.Error("Invalid password")
+                    }
+                    else -> {
+                        Log.e("AuthViewModel", it.message ?: "An error occurred")
+                        _authState.value = AuthState.Error("An unexpected error occurred")
+                    }
+                }
+            }
     }
 
     fun sendPasswordResetEmail(email: String, onSuccess: () -> Unit, onFailure: (String) -> Unit) {
@@ -352,6 +402,8 @@ class AuthViewModel @Inject constructor(
         auth.signOut()
         //delete data in user preference
         userDataStore.clearUserInfo()
+        //clear local Room
+        appDatabase.clearAllTables()
         _authState.value = AuthState.Unauthenticated
     }
 }

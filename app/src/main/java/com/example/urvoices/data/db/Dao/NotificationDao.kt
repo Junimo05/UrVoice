@@ -22,9 +22,20 @@ interface NotificationDao {
 	@Query("UPDATE notifications SET isRead = 1 WHERE id = :notificationId")
 	suspend fun markAsRead(notificationId: String)
 
+	@Query("DELETE FROM notifications WHERE id = :notificationId")
+	suspend fun deleteNotification(notificationId: String)
+
 	@Query("DELETE FROM notifications WHERE createdAt < :threshold")
 	suspend fun deleteOldNotifications(threshold: Long)
 
 	@Query("SELECT COUNT(*) FROM notifications WHERE isRead = 0")
 	fun getUnreadNotificationsCount(): Flow<Int>
+
+	@Query("SELECT message FROM notifications WHERE id = :notificationId")
+	suspend fun getMessage(notificationId: String): String
+	@Query("UPDATE notifications SET message = :message WHERE id = :notificationId")
+	suspend fun updateMessage(notificationId: String, message: String)
+
+	@Query("UPDATE notifications SET isRead = 1 WHERE id = :notificationId")
+	suspend fun updateReadStatus(notificationId: String)
 }

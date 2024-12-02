@@ -4,6 +4,7 @@ import android.net.Uri
 import android.util.Log
 import com.example.urvoices.data.model.User
 import com.example.urvoices.utils.Auth.isPasswordStrong
+import com.example.urvoices.utils.FollowState
 import com.example.urvoices.utils.SharedPreferencesHelper
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.AggregateSource
@@ -40,35 +41,34 @@ class FirebaseUserService @Inject constructor(
         return null
     }
 
-    suspend fun followUser(followingUserID: String, followStatus: Boolean): String {
+    suspend fun followUser(followingUserID: String, followStatus: Boolean, isPrivate: Boolean): String {
         val user = auth.currentUser
         var resultID = ""
         if (user != null) {
             try {
-                if (followStatus) {
-                    // Follow user
+                if (followStatus) { // Follow user
                     val follow = hashMapOf(
                         "ID" to null,
                         "userID" to user.uid,
                         "followingUserID" to followingUserID,
-                        "createdAt" to System.currentTimeMillis()
+                        "createdAt" to System.currentTimeMillis(),
+                        "accepted" to !isPrivate,
                     )
                     firebaseFirestore.collection("follows").add(follow)
                         .addOnCompleteListener {
                             firebaseFirestore.collection("follows").document(it.result?.id!!).update("ID", it.result?.id!!)
                             resultID = it.result?.id!!
                         }.await()
-                } else {
-                    // Unfollow user
+                } else { // Unfollow user
                     val documents = firebaseFirestore.collection("follows")
                         .whereEqualTo("userID", user.uid)
                         .whereEqualTo("followingUserID", followingUserID)
                         .get()
                         .await()
+                    resultID = documents.documents[0].id
                     for (document in documents) {
                         document.reference.delete().await()
                     }
-                    resultID = ""
                 }
                 return resultID
             } catch (e: Exception) {
@@ -88,6 +88,7 @@ class FirebaseUserService @Inject constructor(
         return try {
             val docRef = firebaseFirestore.collection("posts")
                 .whereEqualTo("userId", userId)
+                .whereEqualTo("deletedAt", null)
                 .count()
                 .get(AggregateSource.SERVER)
                 .await()
@@ -99,27 +100,35 @@ class FirebaseUserService @Inject constructor(
         }
     }
 
-    suspend fun getFollowStatus(userId: String): Boolean {
+    suspend fun getFollowStatus(userId: String): String {
         val user = auth.currentUser
+        var followStatus = FollowState.UNFOLLOW
         if (user != null) {
             return try {
                 val countResult = firebaseFirestore.collection("follows")
                     .whereEqualTo("userID", user.uid)
                     .whereEqualTo("followingUserID", userId)
-                    .count()
-                    .get(AggregateSource.SERVER)
+                    .get()
                     .await()
-                countResult.count > 0
+                if(countResult.documents.isNotEmpty()){
+                    val accepted = countResult.documents[0]["accepted"] as Boolean
+                    if(accepted){
+                        followStatus = FollowState.FOLLOW
+                    } else {
+                        followStatus = FollowState.REQUEST_FOLLOW
+                    }
+                }
+                followStatus
             } catch (e: Exception) {
                 // Handle exception
                 e.printStackTrace()
                 Log.e(TAG, "getFollowStatus: ${e.message}")
-                false
+                followStatus
             }
         } else {
             // Inform the user that they are not signed in
             println("No user is currently signed in.")
-            return false
+            return followStatus
         }
     }
 
@@ -128,6 +137,7 @@ class FirebaseUserService @Inject constructor(
         return try {
             val countResult = firebaseFirestore.collection("follows")
                 .whereEqualTo("userID", userId)
+                .whereEqualTo("accepted", true)
                 .count()
                 .get(AggregateSource.SERVER)
                 .await()
@@ -165,6 +175,7 @@ class FirebaseUserService @Inject constructor(
         return try {
             val countResult = firebaseFirestore.collection("follows")
                 .whereEqualTo("followingUserID", userId)
+                .whereEqualTo("accepted", true)
                 .count()
                 .get(AggregateSource.SERVER)
                 .await()

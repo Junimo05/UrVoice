@@ -32,39 +32,54 @@ exports.sendNotiToDevices = functions.firestore.document('notifications/{notific
                 return;
             }
 
+            // Prepare the notification payload
+            const payload = {
+                notification: {
+                    title: "New Notification",
+                    body: message,
+                },
+                data: {
+                    click_action: 'FLUTTER_NOTIFICATION_CLICK',
+                    typeNotification: type,
+                    message: message,
+                },
+            };
+
             let response;
             if (userTokens.length === 1) {
-                // Use send method for a single token
-                const notimessage = {
-                    notification: { title: "New Notification", body: message },
+                // Send notification to a single token
+                response = await admin.messaging().send({
+                    ...payload,
                     token: userTokens[0],
-                    data: { 
-                      click_action: 'FLUTTER_NOTIFICATION_CLICK',
-                      typeNotification: type,
-                      message: message 
-                    }
-                };
-                response = await admin.messaging().send(notimessage);
+                });
+                console.log(`Notification sent to single token: ${userTokens[0]}`, response);
             } else {
-                // Use sendMulticast method for multiple tokens
-                const notimessage = {
-                    notification: { title: "New Notification", body: message },
+                // Send notification to multiple tokens
+                response = await admin.messaging().sendMulticast({
+                    ...payload,
                     tokens: userTokens,
-                    data: { 
-                      click_action: 'FLUTTER_NOTIFICATION_CLICK',
-                      typeNotification: type,
-                      message: message 
+                });
+
+                // Log and filter invalid tokens
+                const invalidTokens = [];
+                response.responses.forEach((res, idx) => {
+                    if (!res.success) {
+                        const errorCode = res.error.code;
+                        console.error(`Error sending to token ${userTokens[idx]}: ${errorCode}`);
+                        invalidTokens.push(userTokens[idx]);
                     }
-                };
-                response = await admin.messaging().sendMulticast(notimessage);
+                });
+
+                console.log("Invalid tokens:", invalidTokens);
+                console.log("Notification sent to multiple tokens", response);
             }
 
-            console.log("Notification sent successfully", response);
             return response;
         } catch (error) {
             console.error("Error sending notification: ", error);
             return error;
         }
     });
+
 
 
