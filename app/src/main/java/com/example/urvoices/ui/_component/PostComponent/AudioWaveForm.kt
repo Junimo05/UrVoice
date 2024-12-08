@@ -53,12 +53,12 @@ fun AudioItem(
 ) {
     val TAG = "AudioItem"
     val colorBrush = SolidColor(MaterialTheme.colorScheme.onPrimary)
-    val colorDone = SolidColor(MaterialTheme.colorScheme.surfaceVariant)
     val animatedGradientBrush = Brush.infiniteLinearGradient(
-        colors = listOf(Color(0x500c8bde), Color(0xa10a90b8)),
+        colors = listOf(Color(0xffffc0cb), Color(0xffff6347)),
         animation = tween(durationMillis = 6000, easing = LinearEasing),
         width = 128F
     )
+
 
     val loadedWaveForm = remember {
         mutableStateOf(false)
@@ -72,7 +72,6 @@ fun AudioItem(
             .width(240.dp)
             .clip(MaterialTheme.shapes.small)
             .background(MaterialTheme.colorScheme.inversePrimary)
-
             .border(1.dp, MaterialTheme.colorScheme.onBackground, MaterialTheme.shapes.small)
             .padding(8.dp)
             .alpha(

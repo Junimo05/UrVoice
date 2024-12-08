@@ -67,7 +67,7 @@ fun SavedPostScreen(
 				}
 			} else {
 				if(savedPostList.itemCount > 0){
-					SettingGrid(
+					PagingItemGrid(
 						itemContent = {savePost ->
 							SavedItems(
 								navController = navController,

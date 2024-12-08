@@ -2,8 +2,10 @@ package com.example.urvoices.viewmodel
 
 import android.net.Uri
 import android.util.Log
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -81,12 +83,12 @@ class ProfileViewModel @Inject constructor(
 
     @OptIn(SavedStateHandleSaveableApi::class)
     var displayuserID by savedStateHandle.saveable { mutableStateOf("") }
-
     @OptIn(SavedStateHandleSaveableApi::class)
     var isCurrentUser by savedStateHandle.saveable { mutableStateOf(false) }
     @OptIn(SavedStateHandleSaveableApi::class)
     var currentUserID by savedStateHandle.saveable { mutableStateOf("") }
-    var authCurrentUser = auth.currentUser
+    var authCurrentUser by mutableStateOf(auth.currentUser)
+
     @OptIn(SavedStateHandleSaveableApi::class)
     var shareLoving by savedStateHandle.saveable { mutableStateOf(false) }
     @OptIn(SavedStateHandleSaveableApi::class)
@@ -106,13 +108,21 @@ class ProfileViewModel @Inject constructor(
     private val _savedPosts = MutableStateFlow<PagingData<Post>>(PagingData.empty())
     val savedPosts: StateFlow<PagingData<Post>> = _savedPosts.asStateFlow()
 
+    init{
+        auth.addAuthStateListener { auth ->
+            authCurrentUser = auth.currentUser
+        }
+    }
+
     fun loadData(userID: String){
         if(displayuserID != userID){
             this.displayuserID = userID
             reloadPost()
             reloadSavedPost()
         }
+
         currentUserID = authCurrentUser?.uid ?: ""
+
         if (currentUserID == this.displayuserID){
             isCurrentUser = true
         } else {
@@ -278,6 +288,7 @@ class ProfileViewModel @Inject constructor(
     //Update DATA
     suspend fun updateProfile(
         username: String,
+        pronouns: String,
         bio: String,
         country: String,
         avatarUri: Uri = Uri.EMPTY,
@@ -287,12 +298,13 @@ class ProfileViewModel @Inject constructor(
 
         return withContext(Dispatchers.IO) {
             try {
-                val result = userRepository.updateUser(username, bio, country, avatarUri, oldUser)
+                val result = userRepository.updateUser(username, pronouns, bio, country, avatarUri, oldUser)
                 if (result) {
                     _uiState.value = ProfileState.Successful
                     // Update user data
                     _displayUser.value = _displayUser.value.copy(
                         username = username,
+                        pronouns = pronouns,
                         bio = bio,
                         country = country,
                     )
@@ -431,6 +443,27 @@ class ProfileViewModel @Inject constructor(
         super.onCleared()
         stopListeningToUserChanges()
     }
+
+    fun onReset(){
+        isFollowed = false
+        followState = FollowState.UNFOLLOW
+        followers = 0
+        followings = 0
+        postCounts = 0
+        displayuserID = ""
+        isCurrentUser = false
+        currentUserID = ""
+        authCurrentUser = auth.currentUser
+        shareLoving = false
+        isPrivate = false
+        isBlocked = false
+        blockInfo = ""
+        _displayUser.value = userTemp
+        _uiState.value = ProfileState.Initial
+        _posts.value = PagingData.empty()
+        _savedPosts.value = PagingData.empty()
+    }
+
 }
 
 sealed class ProfileState {

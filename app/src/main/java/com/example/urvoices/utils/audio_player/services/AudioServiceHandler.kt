@@ -54,13 +54,12 @@ class AudioServiceHandler @Inject constructor(
             return
         }
         playlistScope.launch {
-
             if (index == -1) {
                 playlist.add(audio)
                 exoPlayer.addMediaItem(MediaItem.fromUri(audio.url))
             } else {
-                playlist.add(index, audio)
-                exoPlayer.addMediaItem(index, MediaItem.fromUri(audio.url))
+                playlist[index] = audio
+                exoPlayer.replaceMediaItem(index, MediaItem.fromUri(audio.url))
             }
             safeUpdateState(AudioState.PlaylistUpdated(playlist))
         }
@@ -118,6 +117,7 @@ class AudioServiceHandler @Inject constructor(
                         startProgressUpdate()
                   } else {
                       val existingIndex = playlist.indexOfFirst { it.url == audio.url }
+                      val currentPlaying = exoPlayer.currentMediaItemIndex
                       if(existingIndex != -1){
                             //Case2 : Audio is already in the playlist
                             exoPlayer.seekToDefaultPosition(existingIndex)
@@ -125,10 +125,11 @@ class AudioServiceHandler @Inject constructor(
                             exoPlayer.playWhenReady = true
                             startProgressUpdate()
                       } else {
-                            //Case3: Audio is not in the playlist || Replace First Audio in Playlist
-                            exoPlayer.replaceMediaItem(0, MediaItem.fromUri(audio.url))
-                            playlist[0] = audio
+                            //Case3: Audio is not in the playlist || Replace Current Playing Audio in Playlist
+                            addToPlaylist(audio, currentPlaying)
+                            exoPlayer.seekToDefaultPosition(currentPlaying)
                             safeUpdateState(AudioState.Playing(true))
+                            exoPlayer.prepare()
                             exoPlayer.playWhenReady = true
                             startProgressUpdate()
                       }

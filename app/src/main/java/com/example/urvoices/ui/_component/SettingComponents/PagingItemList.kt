@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyHorizontalGrid
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.HorizontalDivider
@@ -25,7 +24,7 @@ import com.example.urvoices.ui.MainScreen.LoadingItem
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
-fun <T : Any> SettingList(
+fun <T : Any> PagingItemList(
 	items: List<T>?  = null,
 	itemPaging: LazyPagingItems<T>? = null,
 	itemContent: @Composable (T) -> Unit,
@@ -85,7 +84,7 @@ fun <T : Any> SettingList(
 }
 
 @Composable
-fun <T : Any> SettingGrid(
+fun <T : Any> PagingItemGrid(
 	column: GridCells = GridCells.Fixed(3),
 	items: List<T>?  = null,
 	itemPaging: LazyPagingItems<T>? = null,

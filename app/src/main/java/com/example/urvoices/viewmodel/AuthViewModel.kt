@@ -9,6 +9,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.navigation.NavHostController
 import com.example.urvoices.data.db.AppDatabase
 import com.example.urvoices.utils.SharedPreferencesHelper
 import com.example.urvoices.utils.UserPreferences
@@ -23,8 +24,10 @@ import com.google.firebase.auth.GoogleAuthProvider
 import com.google.firebase.firestore.FirebaseFirestore
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 @HiltViewModel
@@ -45,7 +48,6 @@ class AuthViewModel @Inject constructor(
 
     val emailVerificationStatus = MutableLiveData<Boolean?>(null)
     val emailSent = MutableLiveData<Boolean?>(null)
-
 
 
     init {
@@ -398,13 +400,20 @@ class AuthViewModel @Inject constructor(
         auth.currentUser?.reload()?.await()
     }
 
-    suspend fun signOut(){
-        auth.signOut()
-        //delete data in user preference
-        userDataStore.clearUserInfo()
-        //clear local Room
-        appDatabase.clearAllTables()
-        _authState.value = AuthState.Unauthenticated
+    fun signOut() {
+        viewModelScope.launch {
+            try {
+                withContext(Dispatchers.IO) {
+                    // Clear all tables in the database
+                    appDatabase.clearAllTables()
+                }
+                // Perform other sign-out operations
+                auth.signOut()
+                _authState.value = AuthState.Unauthenticated
+            } catch (e: Exception) {
+                Log.e("AuthViewModel", "Error during sign-out: ${e.message}")
+            }
+        }
     }
 }
 

@@ -84,6 +84,7 @@ class UserRepository @Inject constructor(
     //Update Func
     suspend fun updateUser(
         username: String,
+        pronouns: String,
         bio: String,
         country: String,
         avatarUri: Uri,
@@ -93,6 +94,9 @@ class UserRepository @Inject constructor(
             val updateTasks = mutableListOf<Deferred<Boolean>>()
             if(username != oldUser.username){
                 updateTasks.add(scope.async { firebaseUserService.updateUsername(username) })
+            }
+            if(pronouns != oldUser.pronouns){
+                updateTasks.add(scope.async { firebaseUserService.updatePronouns(pronouns) })
             }
             if(bio != oldUser.bio){
                 updateTasks.add(scope.async { firebaseUserService.updateBio(bio) })
@@ -107,7 +111,7 @@ class UserRepository @Inject constructor(
             if(results.contains(false)){
                 Log.e(TAG, "updateUser: Error")
                 //rollback Update
-                //TODO: Rollback Update
+                //
                 return false
             }
             return true

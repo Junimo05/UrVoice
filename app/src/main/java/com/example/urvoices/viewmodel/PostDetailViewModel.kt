@@ -3,8 +3,10 @@ package com.example.urvoices.viewmodel
 import android.content.Context
 import android.util.Log
 import android.widget.Toast
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -79,7 +81,8 @@ class PostDetailViewModel @Inject constructor(
     var currentPost = mutableStateOf(emptyPost)
     @OptIn(SavedStateHandleSaveableApi::class)
     var userPost by savedStateHandle.saveable { mutableStateOf(userTemp) }
-    var currentUser = auth.currentUser
+    var currentUser by mutableStateOf(auth.currentUser)
+    @OptIn(SavedStateHandleSaveableApi::class)
     var currentUsername by savedStateHandle.saveable { mutableStateOf("") }
     //Comment Control
     val lastPage = mutableIntStateOf(1)
@@ -112,6 +115,9 @@ class PostDetailViewModel @Inject constructor(
     }
 
     init {
+        auth.addAuthStateListener {auth ->
+            currentUser = auth.currentUser
+        }
         viewModelScope.launch {
             currentUsername = userRef.userNameFlow.first().toString()
         }

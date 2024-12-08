@@ -24,7 +24,6 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.example.urvoices.R
-import com.example.urvoices.ui._component.SavedItems
 import com.example.urvoices.ui._component.TopBarBackButton
 import com.example.urvoices.viewmodel.MediaPlayerVM
 import com.example.urvoices.viewmodel.ProfileViewModel
@@ -69,7 +68,7 @@ fun DeletedPostScreen(
 				}
 			} else {
 				if (deletedPostList.itemCount > 0){
-					SettingList(
+					PagingItemList(
 						itemContent = {item ->
 							DeletedPostItem(
 								navController = navController, settingVM = settingVM, deletedPost = item)

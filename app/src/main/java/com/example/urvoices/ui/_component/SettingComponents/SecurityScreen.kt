@@ -53,6 +53,7 @@ fun SecurityScreen(
 	authViewModel: AuthViewModel,
 	settingVM: SettingViewModel
 ) {
+	val context = LocalContext.current
 	val scope = rememberCoroutineScope()
 	val dialogSuccess = remember { mutableStateOf(false) }
 	var screen by remember {
@@ -65,7 +66,11 @@ fun SecurityScreen(
 			title = "Change Email",
 			icon = R.drawable.envelope_svgrepo_com,
 			onClick = {
-				screen = SecurityScreenRoute.CHANGE_EMAIL_SCREEN
+				if(settingVM.checkIsEmailPasswordLogin()){
+					screen = SecurityScreenRoute.CHANGE_EMAIL_SCREEN
+				} else {
+					Toast.makeText(context, "Please login with email and password to change email", Toast.LENGTH_SHORT).show()
+				}
 			}
 		),
 		SettingItemData(

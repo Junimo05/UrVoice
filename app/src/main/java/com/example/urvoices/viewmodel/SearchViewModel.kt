@@ -127,7 +127,6 @@ class SearchViewModel @Inject constructor() : ViewModel() {
             clear(groupTag)
         }
     }
-
 }
 
 object Tags {

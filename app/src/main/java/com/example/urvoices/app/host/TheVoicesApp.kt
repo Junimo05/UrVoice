@@ -1,5 +1,7 @@
 package com.example.urvoices.app.host
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -9,6 +11,7 @@ import com.example.urvoices.utils.Navigator.Navigator
 import com.example.urvoices.viewmodel.AuthViewModel
 import com.example.urvoices.viewmodel.MediaPlayerVM
 
+@RequiresApi(Build.VERSION_CODES.TIRAMISU)
 @Composable
 fun TheVoicesApp(finishActivity: () -> Unit) {
     val authViewModel: AuthViewModel = hiltViewModel()

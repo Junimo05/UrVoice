@@ -506,6 +506,14 @@ fun UserInfo(
                     ),
                 )
                 Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = user.pronouns,
+                    style = TextStyle(
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 12.sp
+                    ),
+                )
+                Spacer(modifier = Modifier.height(8.dp))
                 if(!isBlock){
                     Row(
                         modifier = Modifier
@@ -520,20 +528,20 @@ fun UserInfo(
                     ) {
                         Text(
                             //Link tag
-                            text = user.country,
+                            text = user.country.takeIf { it.isNotEmpty() } ?: "Where I am....",
                             style = TextStyle(
                                 fontWeight = FontWeight.Normal,
                                 fontSize = 14.sp,
                                 color = MaterialTheme.colorScheme.inverseOnSurface
                             ),
                             maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
+                            overflow = TextOverflow.Ellipsis,
                         )
                     }
                 }
                 if(whereIamShowState.value){
                     FullScreenDialog(
-                        text = user.country,
+                        text = user.country.takeIf { it.isNotEmpty() } ?: "Who I am....?, Where I am....?, What I do....?",
                         onDismiss = {
                             whereIamShowState.value = false
                         }
@@ -585,7 +593,7 @@ fun UserInfo(
                     ,
                 ){
                     Text(
-                        text = user.bio,
+                        text = user.bio.takeIf { it.isNotEmpty() } ?: if(isUser.value) "Add your bio" else "No bio",
                         style = TextStyle(
                             fontWeight = FontWeight.Normal,
                             fontSize = 14.sp

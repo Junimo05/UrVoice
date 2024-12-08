@@ -4,6 +4,7 @@ import android.Manifest
 import android.annotation.SuppressLint
 import android.graphics.Bitmap
 import android.net.Uri
+import android.provider.ContactsContract.Profile
 import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -103,6 +104,7 @@ fun ProfileEditScreen(
 
     val isChanged = mutableStateOf(false)
     var username by remember { mutableStateOf(currentUser.username) }
+    var pronouns by remember { mutableStateOf(currentUser.pronouns) }
     var bio by remember { mutableStateOf(currentUser.bio) }
     var country by remember { mutableStateOf(currentUser.country) }
     var email by remember { mutableStateOf(currentUser.email) }
@@ -181,8 +183,8 @@ fun ProfileEditScreen(
 
 
     //Confirm Changed To Update Profile
-    LaunchedEffect(username, bio, country, email, imgUri) {
-       isChanged.value = username != currentUser.username || bio != currentUser.bio || country != currentUser.country || imgUri != Uri.EMPTY
+    LaunchedEffect(username, pronouns, bio, country, email, imgUri) {
+       isChanged.value = username != currentUser.username || pronouns != currentUser.pronouns || bio != currentUser.bio || country != currentUser.country || imgUri != Uri.EMPTY
     }
 
     Scaffold(
@@ -239,6 +241,15 @@ fun ProfileEditScreen(
                 onValueChange = { username = it },
                 currentFocusRequester = currentFocusRequester
             )
+
+            ProfileField(
+                focusRequester = focusRequester,
+                label = "Pronouns",
+                value = pronouns,
+                onValueChange = { pronouns = it },
+                currentFocusRequester = currentFocusRequester
+            )
+
             ProfileField(
                 focusRequester = focusRequester,
                 label = "Bio",
@@ -362,6 +373,7 @@ fun ProfileEditScreen(
                             updating = true
                             val result = profileViewModel.updateProfile(
                                 username = username,
+                                pronouns = pronouns,
                                 bio = bio,
                                 country = country,
                                 avatarUri = imgUri

@@ -19,6 +19,7 @@ import com.example.urvoices.data.repository.UserRepository
 import com.example.urvoices.utils.SharedPreferencesHelper
 import com.example.urvoices.utils.SharedPreferencesKeys
 import com.example.urvoices.utils.UserPreferences
+import com.google.firebase.auth.FirebaseAuth
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
@@ -38,6 +39,7 @@ class SettingViewModel @Inject constructor(
 	private val deletedPostRepository: DeletedPostRepository,
 	private val userRepository: UserRepository,
 	private val sharedPrefHelper: SharedPreferencesHelper,
+	private val auth: FirebaseAuth,
 	savedStateHandle: SavedStateHandle
 ): ViewModel(){
 	val TAG = "SettingViewModel"
@@ -171,6 +173,22 @@ class SettingViewModel @Inject constructor(
 				_state.value = SettingState.Error
 			}
 		}
+	}
+
+	//Check Login Provider
+	fun checkIsEmailPasswordLogin(): Boolean{
+		val currentUser = auth.currentUser
+		var isEmailPassword = false
+		if(currentUser != null){
+			val providerData = currentUser.providerData
+			for (profile in providerData) {
+				val providerId = profile.providerId
+				if(providerId == "password"){
+					isEmailPassword = true
+				}
+			}
+		}
+		return isEmailPassword
 	}
 
 }

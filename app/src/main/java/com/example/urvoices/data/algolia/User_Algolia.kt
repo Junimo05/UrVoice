@@ -12,6 +12,7 @@ import kotlinx.serialization.json.JsonObject
 data class User_Algolia(
     val ID: String = "",
     val username: String = "",
+    val pronouns: String = "",
     val email: String = "",
     val country: String = "",
     val avatarUrl: String = "",

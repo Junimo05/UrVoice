@@ -1,6 +1,9 @@
 package com.example.urvoices.utils.Navigator
 
 import android.annotation.SuppressLint
+import android.os.Build
+import android.widget.Toast
+import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.RepeatMode
@@ -21,6 +24,7 @@ import androidx.compose.material3.FabPosition
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -53,6 +57,7 @@ import com.example.urvoices.viewmodel.HomeViewModel
 import com.example.urvoices.viewmodel.InteractionViewModel
 import com.example.urvoices.viewmodel.MediaPlayerVM
 import com.example.urvoices.viewmodel.MediaRecorderVM
+import com.example.urvoices.viewmodel.NetworkViewModel
 import com.example.urvoices.viewmodel.NotificationViewModel
 import com.example.urvoices.viewmodel.PostDetailViewModel
 import com.example.urvoices.viewmodel.ProfileViewModel
@@ -61,29 +66,29 @@ import com.example.urvoices.viewmodel.SettingViewModel
 import com.example.urvoices.viewmodel.UIEvents
 import com.example.urvoices.viewmodel.UploadViewModel
 
+@RequiresApi(Build.VERSION_CODES.TIRAMISU)
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter", "StateFlowValueCalledInComposition")
 @Composable
 fun Navigator(authViewModel: AuthViewModel, playerViewModel: MediaPlayerVM) {
     val context = LocalContext.current
     val navController = rememberNavController()
+    val authState = authViewModel.authState.observeAsState()
     val selectedPage = rememberSaveable { mutableIntStateOf(0) }
     val isVisibleBottomBar = rememberSaveable { mutableStateOf(false) }
     val isVisibleMediaBar = rememberSaveable { mutableStateOf(false) }
-    //ViewModel instance
 
-    val searchVM: SearchViewModel = hiltViewModel()
-    val postDetailViewModel: PostDetailViewModel = hiltViewModel()
-    val homeViewModel: HomeViewModel = hiltViewModel()
-    val uploadViewModel: UploadViewModel = hiltViewModel()
+    //ViewModel instance
+    val networkVM = hiltViewModel<NetworkViewModel>()
+    val searchVM = hiltViewModel<SearchViewModel>()
+    val postDetailViewModel = hiltViewModel<PostDetailViewModel>()
+    val homeViewModel = hiltViewModel<HomeViewModel>()
+    val uploadViewModel = hiltViewModel<UploadViewModel>()
     val profileViewModel = hiltViewModel<ProfileViewModel>()
     val settingVM = hiltViewModel<SettingViewModel>()
     val notificationVM = hiltViewModel<NotificationViewModel>()
-
     val mediaRecorderVM = hiltViewModel<MediaRecorderVM>()
-    //background service
 
-
-    val interactionViewModel = hiltViewModel<InteractionViewModel>()
+    val isNetworkConnected by networkVM.isNetworkConnected.collectAsState()
 
     //Start Up
     LaunchedEffect(Unit){
@@ -91,6 +96,13 @@ fun Navigator(authViewModel: AuthViewModel, playerViewModel: MediaPlayerVM) {
         settingVM.syncSavedPostData()
     }
 
+    LaunchedEffect(isNetworkConnected){
+        if(!isNetworkConnected){
+            Toast.makeText(context, "No internet connection", Toast.LENGTH_SHORT).show()
+        } else {
+            Toast.makeText(context, "Connected to the internet", Toast.LENGTH_SHORT).show()
+        }
+    }
 
     //MediaBar State
     val isMinimize = remember { mutableStateOf(false) }
@@ -166,7 +178,6 @@ fun Navigator(authViewModel: AuthViewModel, playerViewModel: MediaPlayerVM) {
                                 .background(
                                     color = Color.Transparent
                                 )
-                                .shadow(8.dp, shape = MaterialTheme.shapes.medium)
                                 .pointerInput(Unit) {
                                     detectTapGestures {
 //                                            Log.e("Navigator", "Detect Tap Gesture")
@@ -293,10 +304,24 @@ fun Navigator(authViewModel: AuthViewModel, playerViewModel: MediaPlayerVM) {
                         }
                     }
                 }
+            },
+            snackbarHost = {
+                //Snackbar for uploading state
+                SnackbarHost(
+                    hostState = uploadViewModel.snackBarUploading,
+                    snackbar = { data ->
+                        CustomSnackBar(
+                            data = data,
+                            state = uploadViewModel.uploadState.observeAsState()
+                        )
+                    },
+                )
             }
         ) {
             Box(
-                modifier = Modifier.fillMaxSize().padding(it)
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(it)
             ){
                 NavHost(
                     navController = navController,
@@ -305,8 +330,8 @@ fun Navigator(authViewModel: AuthViewModel, playerViewModel: MediaPlayerVM) {
                 ){
                     authGraph(navController, authViewModel) //authentication nav
                     mainGraph(
-                        navController,
-                        authViewModel,
+                        navController = navController,
+                        authViewModel = authViewModel,
                         playerViewModel = playerViewModel,
                         homeViewModel = homeViewModel,
                         uploadViewModel = uploadViewModel,
@@ -318,24 +343,14 @@ fun Navigator(authViewModel: AuthViewModel, playerViewModel: MediaPlayerVM) {
 
                         ) //home nav
                     specifyGraph(
-                        navController,
-                        authViewModel,
+                        navController = navController,
+                        authViewModel = authViewModel,
                         playerViewModel = playerViewModel,
                         postDetailViewModel = postDetailViewModel,
                         profileViewModel = profileViewModel
                     ) //specify nav
                     notiMsgGraph(navController) //notification nav
                 }
-                SnackbarHost(
-                    hostState = uploadViewModel.snackBarUploading,
-                    snackbar = { data ->
-                        CustomSnackBar(
-                            data = data,
-                            state = uploadViewModel.uploadState.observeAsState()
-                        )
-                    },
-                    modifier = Modifier.align(Alignment.BottomCenter)
-                )
             }
         }
     }

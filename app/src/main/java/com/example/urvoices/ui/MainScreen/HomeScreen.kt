@@ -1,9 +1,11 @@
 package com.example.urvoices.ui.MainScreen
 
 import android.annotation.SuppressLint
+import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.net.ConnectivityManager
 import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresApi
@@ -39,29 +41,23 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import androidx.paging.LoadState
 import androidx.paging.compose.collectAsLazyPagingItems
-import androidx.work.impl.utils.ForceStopRunnable.BroadcastReceiver
 import com.example.urvoices.R
-import com.example.urvoices.presentations.theme.MyTheme
 import com.example.urvoices.ui._component.PostComponent.NewFeedPostItem
-import com.example.urvoices.utils.Navigator.AuthScreen
+import com.example.urvoices.utils.Navigator.Graph
 import com.example.urvoices.utils.Navigator.MainScreen
-import com.example.urvoices.utils.UserPreferences
+import com.example.urvoices.utils.broadcasts.SystemBroadcastReceiver
 import com.example.urvoices.viewmodel.AuthState
 import com.example.urvoices.viewmodel.AuthViewModel
-import com.example.urvoices.viewmodel.HomeState
 import com.example.urvoices.viewmodel.HomeViewModel
 import com.example.urvoices.viewmodel.MediaPlayerVM
 import com.example.urvoices.viewmodel.NotificationViewModel
@@ -104,36 +100,13 @@ fun Home(
 
 
 
-    val isScrolled = remember {
+    val isScrolled = rememberSaveable {
         mutableStateOf(mainStateList.firstVisibleItemIndex > 0)
     }
 
     val newNoti = remember{ mutableStateOf(false)}
 
-    DisposableEffect(Unit) {
-        val receiver =
-        @SuppressLint("RestrictedApi")
-        object : BroadcastReceiver() {
-            override fun onReceive(context: Context, intent: Intent?) {
-                // Update state
-                Log.e("HomeScreen", "New Notification Received")
-                newNoti.value = true
-                Log.e("HomeScreen", "New Notification Received ${newNoti.value}")
-                // Gọi ViewModel để xử lý thêm nếu cần
-                scope.launch {
-                    notificationVM.refreshNotifications()
-                }
-            }
-        }
-
-        val intentFilter = IntentFilter("NEW_NOTIFICATION_RECEIVED")
-        context.registerReceiver(receiver, intentFilter, Context.RECEIVER_NOT_EXPORTED)
-
-        // When the effect leaves the Composition, remove the callback
-        onDispose {
-            context.unregisterReceiver(receiver)
-        }
-    }
+    
 
     val postList = homeViewModel.postList.collectAsLazyPagingItems()
 
@@ -147,7 +120,11 @@ fun Home(
     LaunchedEffect(authState.value) {
         when(authState.value){
             is AuthState.Unauthenticated -> {
-                navController.navigate(AuthScreen.LoginScreen.route)
+                navController.navigate(Graph.AUTHENTICATION){
+                    popUpTo(Graph.ROOT){
+                        inclusive = true
+                    }
+                }
             }
             else -> Unit
         }
@@ -311,5 +288,6 @@ fun Home(
                 }
             }
         }
+        
     }
 }

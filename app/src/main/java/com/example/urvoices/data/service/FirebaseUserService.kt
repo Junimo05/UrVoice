@@ -29,11 +29,12 @@ class FirebaseUserService @Inject constructor(
 
             val userID = docRef.data?.get("ID") as String
             val username = docRef.data?.get("username") as String
+            val pronouns = docRef.data?.get("pronouns") as String
             val email = docRef.data?.get("email") as String
             val country = docRef.data?.get("country") as String
             val avatarUrl = docRef.data?.get("avatarUrl") as String
             val bio = docRef.data?.get("bio") as String
-            return User(userID, username, email, country, avatarUrl, bio)
+            return User(userID, username, pronouns, email, country, avatarUrl, bio)
 
         }catch (e: Exception){
             e.printStackTrace()
@@ -155,6 +156,7 @@ class FirebaseUserService @Inject constructor(
         try {
             val docRef = firebaseFirestore.collection("follows")
                 .whereEqualTo("followingUserID", userId)
+                .whereEqualTo("accepted", true)
                 .limit(10)
                 .get()
                 .await()
@@ -240,6 +242,24 @@ class FirebaseUserService @Inject constructor(
                 // Handle exception
                 e.printStackTrace()
                 Log.e(TAG, "updateUsername: ${e.message}")
+            }
+        } else {
+            // Inform the user that they are not signed in
+            println("No user is currently signed in.")
+        }
+        return false
+    }
+
+    suspend fun updatePronouns(pronouns: String): Boolean {
+        val user = auth.currentUser
+        if (user != null) {
+            try {
+                firebaseFirestore.collection("users").document(user.uid).update("pronouns", pronouns).await()
+                return true
+            } catch (e: Exception) {
+                // Handle exception
+                e.printStackTrace()
+                Log.e(TAG, "updatePronouns: ${e.message}")
             }
         } else {
             // Inform the user that they are not signed in

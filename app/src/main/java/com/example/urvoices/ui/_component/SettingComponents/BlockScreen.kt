@@ -67,7 +67,7 @@ fun BlockScreen(
 				}
 			} else {
 				if(blockList.itemCount > 0){
-					SettingList(
+					PagingItemList(
 						itemPaging = blockList,
 						itemContent = {blockUser ->
 							BlockUserItem(

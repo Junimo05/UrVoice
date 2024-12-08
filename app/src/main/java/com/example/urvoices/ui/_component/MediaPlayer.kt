@@ -5,6 +5,7 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.MarqueeAnimationMode
 import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
@@ -49,6 +50,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
@@ -191,26 +193,50 @@ fun MediaPlayer(
 
     )
 
-    val expandAnimation by animateDpAsState(targetValue = if(expandOptionBar) 150.dp else 100.dp,
+    val expandAnimation by animateDpAsState(targetValue = if(expandOptionBar) 170.dp else 125.dp,
         label = "expand_animation"
     )
 
     if(isMinimize.value){
-        Box(
-            modifier = Modifier,
-            contentAlignment = Alignment.Center
-        ){
-            IconButton(
-                onClick = { isMinimize.value = false },
-                modifier = Modifier
-                    .size(64.dp)
-                    .background(MaterialTheme.colorScheme.surfaceVariant)
-            ) {
-                Icon(
-                    painter = painterResource(id = R.drawable.cassette_svgrepo_com),
-                    contentDescription = "Expand Media Player",
-                    modifier = Modifier.size(64.dp)
-                )
+        val getCurrentNavDes = navController.currentDestination?.route
+        if(getCurrentNavDes!!.startsWith("post/")){
+            Box(
+                modifier = Modifier.padding(bottom = 40.dp)
+                    .shadow(8.dp, shape = MaterialTheme.shapes.medium),
+                contentAlignment = Alignment.Center
+            ){
+                IconButton(
+                    onClick = { isMinimize.value = false },
+                    modifier = Modifier
+                        .size(48.dp)
+                        .background(MaterialTheme.colorScheme.primary)
+                ) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.cassette_svgrepo_com),
+                        contentDescription = "Expand Media Player",
+                        modifier = Modifier.size(48.dp),
+                        tint = MaterialTheme.colorScheme.onPrimary
+                    )
+                }
+            }
+        } else {
+            Box(
+                modifier = Modifier.shadow(8.dp, shape = MaterialTheme.shapes.medium),
+                contentAlignment = Alignment.Center
+            ){
+                IconButton(
+                    onClick = { isMinimize.value = false },
+                    modifier = Modifier
+                        .size(48.dp)
+                        .background(MaterialTheme.colorScheme.primary)
+                ) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.cassette_svgrepo_com),
+                        contentDescription = "Expand Media Player",
+                        modifier = Modifier.size(48.dp),
+                        tint = MaterialTheme.colorScheme.onPrimary
+                    )
+                }
             }
         }
     } else {
@@ -218,7 +244,9 @@ fun MediaPlayer(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(expandAnimation)
+                .padding(2.dp)
                 .background(MaterialTheme.colorScheme.surface)
+                .border(1.dp, MaterialTheme.colorScheme.primary)
                 .then(modifier)
             ,
             verticalAlignment = Alignment.CenterVertically
@@ -232,7 +260,7 @@ fun MediaPlayer(
                     onClick = {
                         isMinimize.value = true
                     },
-                    modifier = Modifier.size(24.dp)
+                    modifier = Modifier.size(30.dp)
                 ) {
                     Icon(
                         painter = painterResource(id = R.drawable.minimize_svgrepo_com),
@@ -251,7 +279,7 @@ fun MediaPlayer(
                     onClick = {
                         setExpandOptionBar(!expandOptionBar)
                     },
-                    modifier = Modifier.size(24.dp)
+                    modifier = Modifier.size(36.dp)
                 ) {
                     Icon(
                         painter = painterResource(id = if (expandOptionBar) R.drawable.ic_chevron_top  else R.drawable.ic_chevron_down),
@@ -551,6 +579,7 @@ fun PlaylistItem(
                     horizontalAlignment = Alignment.Start,
                     modifier = Modifier
                         .padding(12.dp)
+                        .weight(0.9f)
                     ,
                 ){
                     Text(
