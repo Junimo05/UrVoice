@@ -99,7 +99,6 @@ fun Home(
     val scrollToTopEvent by homeViewModel.scrollToTopEvent.collectAsState()
 
 
-
     val isScrolled = rememberSaveable {
         mutableStateOf(mainStateList.firstVisibleItemIndex > 0)
     }
@@ -138,6 +137,7 @@ fun Home(
             homeViewModel.refreshHomeScreen()
         }
     }
+
 
     LaunchedEffect(postList.loadState) {
         when (postList.loadState.refresh) {

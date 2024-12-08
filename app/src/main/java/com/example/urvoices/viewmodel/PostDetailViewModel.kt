@@ -123,6 +123,16 @@ class PostDetailViewModel @Inject constructor(
         }
     }
 
+    val postFlow: MutableSharedFlow<Post> = MutableSharedFlow(replay = 1)
+
+    fun configureObservers() = viewModelScope.launch {
+        postFlow
+            .distinctUntilChanged() // ignores multiple identical events
+            .collect { postUpdated ->
+                Log.e(TAG, "configureObservers: ${postUpdated.audioName}")
+            }
+    }
+
     fun loadData(postID: String, userID: String) {
         resetCommentFlow()
         this.postID = postID

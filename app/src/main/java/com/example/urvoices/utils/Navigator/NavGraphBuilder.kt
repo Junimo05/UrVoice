@@ -175,6 +175,23 @@ fun NavGraphBuilder.mainGraph(
                 profileVM = profileViewModel
             )
         }
+
+        composable(route = MainScreen.SettingsScreen.BlockedUsersScreen.route){
+            BlockScreen(
+                navController = navController,
+                settingVM = settingVM
+            )
+        }
+
+        composable(route = MainScreen.SettingsScreen.SavedPostsScreen.route){
+            SavedPostScreen(
+                navController = navController,
+                settingVM = settingVM,
+                mediaPlayerVM = playerViewModel,
+                profileVM = profileViewModel
+            )
+        }
+
     }
 }
 fun NavGraphBuilder.specifyGraph(

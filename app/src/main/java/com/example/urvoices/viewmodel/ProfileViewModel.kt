@@ -97,7 +97,6 @@ class ProfileViewModel @Inject constructor(
     var isBlocked by savedStateHandle.saveable { mutableStateOf(false) }
     @OptIn(SavedStateHandleSaveableApi::class)
     var blockInfo by savedStateHandle.saveable { mutableStateOf("") }
-
     private var userListenerRegistration: ListenerRegistration? = null
 
     //Posts

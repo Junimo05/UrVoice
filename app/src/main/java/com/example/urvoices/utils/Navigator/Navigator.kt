@@ -350,6 +350,8 @@ fun Navigator(authViewModel: AuthViewModel, playerViewModel: MediaPlayerVM) {
                         profileViewModel = profileViewModel
                     ) //specify nav
                     notiMsgGraph(navController) //notification nav
+
+
                 }
             }
         }

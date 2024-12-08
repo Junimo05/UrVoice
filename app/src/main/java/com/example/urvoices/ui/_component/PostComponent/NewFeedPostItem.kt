@@ -72,6 +72,7 @@ import com.example.urvoices.viewmodel.HomeViewModel
 import com.example.urvoices.viewmodel.InteractionRowState
 import com.example.urvoices.viewmodel.InteractionViewModel
 import com.example.urvoices.viewmodel.MediaPlayerVM
+import com.example.urvoices.viewmodel.PostDetailState
 import com.example.urvoices.viewmodel.UIEvents
 import kotlinx.coroutines.runBlocking
 
@@ -222,6 +223,7 @@ fun NewFeedPostItem(
                                 }
                                 expandMenu.value = false
                             },
+
                             editPost = {
                                 navController.navigate(
                                     EditPostScreen(

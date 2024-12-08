@@ -1,5 +1,6 @@
 package com.example.urvoices.ui._component
 
+import android.util.Log
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.MarqueeAnimationMode
@@ -63,7 +64,6 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
-import androidx.media3.common.Player
 import androidx.navigation.NavController
 import com.example.urvoices.R
 import com.example.urvoices.data.model.Audio
@@ -282,6 +282,7 @@ fun MediaPlayer(
                     modifier = Modifier.size(36.dp)
                 ) {
                     Icon(
+
                         painter = painterResource(id = if (expandOptionBar) R.drawable.ic_chevron_top  else R.drawable.ic_chevron_down),
                         contentDescription = "More"
                     )

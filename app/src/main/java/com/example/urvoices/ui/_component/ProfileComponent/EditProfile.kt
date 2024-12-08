@@ -306,6 +306,22 @@ fun ProfileEditScreen(
                         ),
                         modifier = Modifier.padding(8.dp)
                     )
+                    Text("2",
+                        style = TextStyle(
+                            color = MaterialTheme.colorScheme.onSurface,
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Light
+                        ),
+                        modifier = Modifier.padding(start = 8.dp)
+                    )
+                }
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize(),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    items(2) {
+                        EditableTextField()
+                    }
                 }
             }
 

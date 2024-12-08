@@ -39,7 +39,6 @@ object CustomNavType {
     }
 }
 
-
 inline fun <reified T : Parcelable?> navType(
     isNullableAllowed: Boolean = true,
     json: Json = Json,

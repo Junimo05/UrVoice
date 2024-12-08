@@ -327,7 +327,6 @@ fun PostDetail(
                 )
                 Spacer(modifier = Modifier.height(30.dp))
             }
-
             if(uiState.value == PostDetailState.Success){
                 if(isBlock.value) {
                     item {
@@ -423,6 +422,7 @@ fun PostDetail(
                             )
                         }
                     }
+                    Spacer(modifier = Modifier.height(30.dp))
                 }
             } else {
                 item {

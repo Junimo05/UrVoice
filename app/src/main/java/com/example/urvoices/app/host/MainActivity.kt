@@ -59,7 +59,6 @@ class MainActivity : ComponentActivity() {
         handleDeeplink(intent)
     }
 
-
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         handleDeeplink(intent)

@@ -36,7 +36,6 @@ class EditPostVM @Inject constructor(
 		return result.getString("imgUrl") ?: throw IllegalStateException("Image URL not found")
 	}
 
-
 	suspend fun updatePost(mapData: Map<String, Any?>, oldData: Post): Boolean {
 		_editPostState.value = EditPostState.Loading
 		return withContext(viewModelScope.coroutineContext) {

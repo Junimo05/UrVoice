@@ -215,7 +215,6 @@ class HomeViewModel @Inject constructor(
             Log.e(TAG, "sendRegistrationToServer: ${e.message}")
         }
     }
-
 }
 
 sealed class HomeState {

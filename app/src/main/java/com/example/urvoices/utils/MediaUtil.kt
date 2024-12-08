@@ -65,8 +65,6 @@ private fun getFileName(context: Context, uri: Uri): String {
     return fileName
 }
 
-
-
 fun formatFileSize(size: Long): String {
     val kilobyte: Long = 1024
     val megabyte = kilobyte * 1024

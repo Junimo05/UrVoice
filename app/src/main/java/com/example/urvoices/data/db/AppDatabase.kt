@@ -82,7 +82,6 @@ val MIGRATION_4_5 = object : Migration(4, 5) {
     }
 }
 
-
 val MIGRATION_5_6 = object : Migration(5, 6) {
     override fun migrate(db: SupportSQLiteDatabase) {
         // Create Entity with correct column types
@@ -139,3 +138,4 @@ val MIGRATION_9_10 = object : Migration(9, 10) {
         db.execSQL("ALTER TABLE notifications RENAME COLUMN url TO imgUrl")
     }
 }
+

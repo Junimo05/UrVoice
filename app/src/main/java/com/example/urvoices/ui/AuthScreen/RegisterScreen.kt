@@ -1,6 +1,7 @@
 package com.example.urvoices.ui.AuthScreen
 
 import android.annotation.SuppressLint
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Image

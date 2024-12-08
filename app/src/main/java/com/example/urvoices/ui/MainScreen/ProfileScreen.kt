@@ -119,6 +119,11 @@ fun ProfileScreen(
     val shareLoving by lazy { mutableStateOf(profileViewModel.shareLoving)}
     val isPrivate by lazy { mutableStateOf(profileViewModel.isPrivate)}
 
+    val isUser by lazy {mutableStateOf(profileViewModel.isCurrentUser)}
+    val user by profileViewModel.displayUser.collectAsState()
+
+    val shareLoving by lazy { mutableStateOf(profileViewModel.shareLoving)}
+    val isPrivate by lazy { mutableStateOf(profileViewModel.isPrivate)}
 
     var tab by rememberSaveable {
         mutableIntStateOf(0)
@@ -647,7 +652,6 @@ fun UserInfo(
                                     }
                                 }
                             )
-
                         ) {
                             Text(
                                 text = if (followStatus) "Following" else if(followInfo == FollowState.REQUEST_FOLLOW) "Requested..." else "Follow",
