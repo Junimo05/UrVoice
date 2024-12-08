@@ -181,12 +181,12 @@ class HomeViewModel @Inject constructor(
         try {
             val token = FirebaseMessaging.getInstance().token.await()
 
-            Log.e(TAG, "sendRegistrationToServer: $token")
+//            Log.e(TAG, "sendRegistrationToServer: $token")
             val user = FirebaseAuth.getInstance().currentUser
             if (user != null) {
                 val userDocRef = FirebaseFirestore.getInstance().collection("userTokens").document(user.uid)
                 val userDoc = userDocRef.get().await()
-                Log.e(TAG, "sendRegistrationToServer: ${userDoc.exists()}")
+//                Log.e(TAG, "sendRegistrationToServer: ${userDoc.exists()}")
                 if (userDoc.exists()) {
                     val existingTokens = userDoc.get("token") as? List<String> ?: emptyList()
                     if (!existingTokens.contains(token)) {

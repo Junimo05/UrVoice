@@ -84,9 +84,10 @@ object DatabaseModule {
     @Provides
     @Singleton
     fun provideNotificationRepo(
+        @ApplicationContext context: Context,
         notificationService: FirebaseNotificationService,
         firebaseFirestore: FirebaseFirestore,
         notificationDao: NotificationDao,
         auth: FirebaseAuth
-    ): NotificationRepository = NotificationRepository(notificationService, firebaseFirestore, notificationDao, auth)
+    ): NotificationRepository = NotificationRepository(context,notificationService, firebaseFirestore, notificationDao, auth)
 }

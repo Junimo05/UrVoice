@@ -140,6 +140,9 @@ dependencies {
     //Gson
     implementation("com.google.code.gson:gson:2.11.0")
 
+    //EventBus
+    implementation("org.greenrobot:eventbus:3.3.1")
+
     //Media
     implementation("androidx.media3:media3-exoplayer:1.4.0")
     implementation("androidx.media3:media3-exoplayer-dash:1.4.0")

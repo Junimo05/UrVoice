@@ -20,6 +20,9 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import org.greenrobot.eventbus.EventBus
+import org.greenrobot.eventbus.Subscribe
+import org.greenrobot.eventbus.ThreadMode
 import javax.inject.Inject
 
 @HiltViewModel
@@ -38,7 +41,16 @@ class NotificationViewModel @Inject constructor(
 	val navigationEvents = _navigationEvents.asSharedFlow()
 
 	init {
+		EventBus.getDefault().register(this)
 		refreshNotifications()
+	}
+
+
+	@Subscribe(threadMode = ThreadMode.MAIN)
+	fun onNewNotificationEvent(event: NewNotificationEvent) {
+		// Handle new notifications
+		_hasNewNotification.value = event.notificationCount > 0
+		// Update UI or perform other actions
 	}
 
 	fun onNotificationClick(event: NotificationEvent) = viewModelScope.launch {
@@ -93,6 +105,7 @@ class NotificationViewModel @Inject constructor(
 	fun refreshNotifications() {
 		viewModelScope.launch {
 			notificationRepository.fetchNewNotifications()
+			_hasNewNotification.value = false
 		}
 	}
 
@@ -130,12 +143,13 @@ class NotificationViewModel @Inject constructor(
 		}
 	}
 
-	fun onNewNotification() {
-		_hasNewNotification.value = true
-	}
-
 	fun setIsRefreshing(value: Boolean) {
 		isRefreshing.value = value
+	}
+
+	override fun onCleared() {
+		EventBus.getDefault().unregister(this)
+		super.onCleared()
 	}
 
 }
@@ -154,3 +168,5 @@ sealed class NavigationEvent {
 	data class NavigateToUser(val userID: String): NavigationEvent()
 	data class NavigateToPost(val userID: String, val postID: String) : NavigationEvent()
 }
+
+data class NewNotificationEvent(val notificationCount: Int)

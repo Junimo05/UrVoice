@@ -1,5 +1,6 @@
 package com.example.urvoices.data.repository
 
+import android.content.Context
 import android.util.Log
 import androidx.paging.ExperimentalPagingApi
 import androidx.paging.Pager
@@ -12,6 +13,7 @@ import com.example.urvoices.data.remotemediator.NotificationRM
 import com.example.urvoices.data.service.FirebaseNotificationService
 import com.example.urvoices.utils.MessageNotification
 import com.example.urvoices.utils.MessageNotificationAfterAction
+import com.example.urvoices.viewmodel.NewNotificationEvent
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
@@ -20,9 +22,11 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
+import org.greenrobot.eventbus.EventBus
 import javax.inject.Inject
 
 class NotificationRepository @Inject constructor(
+    private val context: Context,
     private val notificationService: FirebaseNotificationService,
     private val firebaseFirestore: FirebaseFirestore,
     private val notificationDao: NotificationDao,
@@ -69,8 +73,12 @@ class NotificationRepository @Inject constructor(
                             }
 //                        Log.e(TAG, "fetchNewNotifications: ${newNotifications.size}")
                         scope.launch {
-                            Log.e(TAG, "fetchNewNotifications: ${newNotifications.size}")
-                            notificationDao.insertAll(newNotifications)
+//                            Log.e(TAG, "fetchNewNotifications: ${newNotifications.size}")
+                            if(newNotifications.isNotEmpty()){
+                                EventBus.getDefault().post(NewNotificationEvent(newNotifications.size))
+                                notificationDao.insertAll(newNotifications)
+                            }
+
                         }
                     }
                     .addOnFailureListener {

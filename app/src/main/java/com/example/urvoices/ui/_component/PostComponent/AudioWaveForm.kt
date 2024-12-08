@@ -54,7 +54,7 @@ fun AudioItem(
     val TAG = "AudioItem"
     val colorBrush = SolidColor(MaterialTheme.colorScheme.onPrimary)
     val animatedGradientBrush = Brush.infiniteLinearGradient(
-        colors = listOf(Color(0xffffc0cb), Color(0xffff6347)),
+        colors = listOf(Color(0xff4A148C), Color(0xff7B1FA2)),
         animation = tween(durationMillis = 6000, easing = LinearEasing),
         width = 128F
     )

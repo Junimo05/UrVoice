@@ -104,9 +104,7 @@ fun Home(
         mutableStateOf(mainStateList.firstVisibleItemIndex > 0)
     }
 
-    val newNoti = remember{ mutableStateOf(false)}
-
-    
+    val newNoti by notificationVM.hasNewNotification.collectAsState()
 
     val postList = homeViewModel.postList.collectAsLazyPagingItems()
 
@@ -193,7 +191,7 @@ fun Home(
                     ) {
                         //Notification
                         Icon(
-                            painter = painterResource(id = if(newNoti.value) R.drawable.notification_on_svgrepo_com else R.drawable.notification_svgrepo_com),
+                            painter = painterResource(id = if(newNoti) R.drawable.notification_on_svgrepo_com else R.drawable.notification_svgrepo_com),
                             contentDescription = null,
                             modifier = Modifier
                                 .size(36.dp)
