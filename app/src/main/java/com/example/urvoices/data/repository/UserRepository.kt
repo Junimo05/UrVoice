@@ -9,6 +9,7 @@ import com.example.urvoices.data.model.User
 import com.example.urvoices.data.service.FirebaseNotificationService
 import com.example.urvoices.data.service.FirebaseUserService
 import com.example.urvoices.utils.SharedPreferencesHelper
+import com.example.urvoices.utils.SharedPreferencesKeys
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
@@ -135,6 +136,11 @@ class UserRepository @Inject constructor(
             Log.e(TAG, "getUserSettingsByID: Error")
         }
         return null
+    }
+
+    suspend fun getUserPrivateAccountStatus(userId: String): Boolean? {
+        val userSettings = getUserSettingsByID(userId)
+        return userSettings?.get(SharedPreferencesKeys.privateAccount) as? Boolean
     }
 
     suspend fun saveUserSettings(): Boolean{

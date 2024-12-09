@@ -19,6 +19,7 @@ import com.example.urvoices.data.repository.BlockRepository
 import com.example.urvoices.data.repository.PostRepository
 import com.example.urvoices.data.repository.UserRepository
 import com.example.urvoices.data.service.FirebaseBlockService
+import com.example.urvoices.utils.FollowState
 import com.example.urvoices.utils.MessagingService
 import com.example.urvoices.utils.SharedPreferencesHelper
 import com.example.urvoices.utils.SharedPreferencesKeys
@@ -88,20 +89,25 @@ class HomeViewModel @Inject constructor(
     }
 
 
-    private suspend fun fetchPosts(){
+    private suspend fun fetchPosts() {
         val lastVisiblePost = mutableStateOf<String>("")
         val lastVisiblePage = mutableIntStateOf(1)
         val postsPaging3 = Pager(PagingConfig(
             pageSize = 4,
             prefetchDistance = 2,
             enablePlaceholders = false,
-        )){
+        )) {
             postRepository.getNewFeed(lastVisiblePage, lastVisiblePost)
         }.flow
-            .map {pagingData -> //filter out blocked users
-                pagingData.filter {
-                    post ->
-                    blockRepository.getBlockStatusFromFirebase(post.userId) == FirebaseBlockService.BlockInfo.NO_BLOCK //filter out blocked users
+            .map { pagingData -> // filter out blocked users and apply other conditions
+                pagingData.filter { post ->
+                    val isCurrentUser = post.userId == currentUser.value!!.uid
+                    val blockStatus = blockRepository.getBlockStatusFromFirebase(post.userId) == FirebaseBlockService.BlockInfo.NO_BLOCK //no block
+                    val privateStatus = userRepository.getUserPrivateAccountStatus(post.userId) == false // if user is not private
+                    val followStatus = userRepository.getFollowStatus(post.userId) == FollowState.FOLLOW // if user is private, only show posts from users that current user follows
+
+                    //if no block or isCurrentUser or not private or followStatus = true
+                    blockStatus && (isCurrentUser || privateStatus || followStatus)
                 }
             }
             .cachedIn(viewModelScope)
@@ -109,6 +115,7 @@ class HomeViewModel @Inject constructor(
             _postList.value = it
         }
     }
+
 
     fun setIsRefreshing(value: Boolean){
         isRefreshing.value = value
