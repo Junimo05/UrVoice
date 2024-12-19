@@ -36,7 +36,7 @@ android {
 
     kapt {
         arguments {
-            arg("room.schemaLocation", "$projectDir/schemas")
+            arg("roo    m.schemaLocation", "$projectDir/schemas")
         }
     }
 
@@ -136,6 +136,7 @@ dependencies {
 
     //Compose Gallery Picker Libs
     implementation("io.github.mr0xf00:easycrop:0.1.1")
+
 
     //Gson
     implementation("com.google.code.gson:gson:2.11.0")

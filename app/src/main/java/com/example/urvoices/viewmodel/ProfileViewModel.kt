@@ -146,6 +146,14 @@ class ProfileViewModel @Inject constructor(
 
     fun pullToRefresh(){
         clearPostData()
+        viewModelScope.launch {
+            getUserPrivacy(displayuserID)
+            getBlockStatus(displayuserID)
+            getFollowStatus(displayuserID)
+            getPostCounts(displayuserID)
+            getFollowerCount(displayuserID)
+            getFollowingCount(displayuserID)
+        }
         reloadPost()
         reloadSavedPost()
     }

@@ -310,6 +310,7 @@ class FirebasePostService @Inject constructor(
                 val refSavedPosts = firebaseFirestore.collection("rela_savePosts").document(currentUser.uid).get().await()
                 val savedPosts = refSavedPosts.get("savedPosts") as List<*>?
                 if (savedPosts != null) {
+                    Log.e(TAG, "getAllSavedPost: ${savedPosts.size}")
                     return savedPosts.mapNotNull { it as String }
                 }
             } catch (e: Exception) {
@@ -436,42 +437,46 @@ class FirebasePostService @Inject constructor(
         }
     }
 
-    suspend fun updatePost(newData: Map<String, Any?>, oldData: Post): Boolean{
-        // update post description
-        try {
+    suspend fun updatePost(newData: Map<String, Any?>, oldData: Post): Boolean {
+        return try {
             val updatedMapData = newData.toMutableMap()
-            //update imgUri
-            val newImgUri = (updatedMapData["imgUrl"] as Uri).toString()
-            val oldStorageImg = storage.child("imgs/${oldData.userId}/posts/${oldData.ID}")
-            //delete and change with new img
-            try {
-                oldStorageImg.metadata.await()
-                oldStorageImg.delete().await()
-            } catch (e: StorageException) {
-                if (e.errorCode == StorageException.ERROR_OBJECT_NOT_FOUND) {
-                    Log.e(TAG, "Old image does not exist at location.")
-                } else {
-                    throw e
-                }
+            val newImgUri = updatedMapData["imgUrl"] as? Uri
+
+            if (newImgUri != null && newImgUri != Uri.EMPTY) {
+                Log.d(TAG, "Updating post image: $newImgUri")
+
+                // Create a reference to the storage location
+                val storageRef = storage.child("imgs/${oldData.userId}/posts/${oldData.ID}")
+
+                // Remove the existing file first
+                storageRef.delete()
+                    .addOnSuccessListener {
+                        Log.d(TAG, "Old image deleted successfully")
+                    }
+                    .addOnFailureListener { exception ->
+                        Log.d(TAG, "Failed to delete old image: ${exception.message}")
+                    }
+
+                // Upload the new image
+                val uploadTask = storageRef.putFile(newImgUri).await()
+                val imgUrl = uploadTask.storage.downloadUrl.await().toString()
+
+                updatedMapData["imgUrl"] = imgUrl
             }
 
-            val uploadImgTask = oldStorageImg.putFile(Uri.parse(newImgUri)).await()
-            val imgUrl = uploadImgTask.storage.downloadUrl.await().toString()
-
-            //prepare new data
-            updatedMapData["imgUrl"] = imgUrl
             updatedMapData["updatedAt"] = System.currentTimeMillis()
 
-
-            firebaseFirestore.collection("posts").document(updatedMapData["ID"] as String)
+            // Update Firestore document
+            firebaseFirestore.collection("posts")
+                .document(updatedMapData["ID"] as String)
                 .set(updatedMapData, SetOptions.merge())
                 .await()
-            return true
-        }catch (e: Exception){
-            e.printStackTrace()
-            Log.e(TAG, "updatePost_PostService Error: ${e.message}")
+
+            true
+        } catch (e: Exception) {
+            Log.e(TAG, "updatePost error: ${e.message}", e)
+            false
         }
-        return false
     }
 
     /*

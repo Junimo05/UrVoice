@@ -21,7 +21,9 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -98,7 +100,10 @@ fun ProfileScreen(
     //interactionVM init
     val interactionViewModel = hiltViewModel<InteractionViewModel>()
     val isBlock by lazy { mutableStateOf(profileViewModel.isBlocked)}
+    val shareLoving by lazy { mutableStateOf(profileViewModel.shareLoving)}
+    val isPrivate by lazy { mutableStateOf(profileViewModel.isPrivate)}
     val blockInfo by lazy { mutableStateOf(profileViewModel.blockInfo)}
+    val isUser by lazy {mutableStateOf(profileViewModel.isCurrentUser)}
 
     //State & Data
     val uiState = profileViewModel.uiState.collectAsState()
@@ -113,23 +118,28 @@ fun ProfileScreen(
         mutableStateOf(false)
     }
 
-    val isUser by lazy {mutableStateOf(profileViewModel.isCurrentUser)}
     val user by profileViewModel.displayUser.collectAsState()
-
-    val shareLoving by lazy { mutableStateOf(profileViewModel.shareLoving)}
-    val isPrivate by lazy { mutableStateOf(profileViewModel.isPrivate)}
-
 
     var tab by rememberSaveable {
         mutableIntStateOf(0)
+    }
+
+    var allowToSeePost by remember {
+        mutableStateOf(false)
     }
 
     LaunchedEffect(userId) {
         profileViewModel.loadData(userId)
     }
 
-    LaunchedEffect(Unit) {
-//        Log.e(TAG, "ProfileScreen: ${profileViewModel.shareLoving}")
+    LaunchedEffect(isPrivate, isUser) {
+        if(isPrivate.value && !isUser.value && !profileViewModel.isFollowed){
+            allowToSeePost = false
+        } else if (isPrivate.value && profileViewModel.isFollowed){
+            allowToSeePost = true
+        } else {
+            allowToSeePost = true
+        }
     }
 
     Scaffold(
@@ -222,7 +232,7 @@ fun ProfileScreen(
                     .padding(top = 8.dp)
                     .background(MaterialTheme.colorScheme.background),
                 verticalArrangement = Arrangement.Top,
-                horizontalAlignment = Alignment.CenterHorizontally
+                horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 // User handle and name
                 UserInfo(
@@ -243,7 +253,7 @@ fun ProfileScreen(
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 if(!isBlock.value){
-                    if(!isPrivate.value || isUser.value || (isPrivate.value && profileViewModel.isFollowed)){
+                    if(allowToSeePost){
                         //Posts/Playlist
                         Row(
                             modifier = Modifier.fillMaxWidth(),
@@ -412,7 +422,8 @@ fun ProfileScreen(
                                 style = TextStyle(
                                     fontWeight = FontWeight.Bold,
                                     fontSize = 18.sp
-                                )
+                                ),
+                                modifier = Modifier.fillMaxWidth().padding(8.dp)
                             )
                         }
                     }

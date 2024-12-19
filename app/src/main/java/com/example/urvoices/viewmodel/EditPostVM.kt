@@ -32,6 +32,7 @@ class EditPostVM @Inject constructor(
 
 	}
 	suspend fun getImgUrl(postID: String): String {
+		Log.e(TAG, "getImgUrl: $postID")
 		val result = firebaseFirestore.collection("posts").document(postID).get().await()
 		return result.getString("imgUrl") ?: throw IllegalStateException("Image URL not found")
 	}

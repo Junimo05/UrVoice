@@ -49,9 +49,9 @@ fun BlockScreen(
 		val blockList = settingVM.blockedUsers.collectAsLazyPagingItems()
 		val uiState by settingVM.state.collectAsState()
 
-		LaunchedEffect(blockList.itemCount) {
-			Log.e(TAG, "BlockList: ${blockList.itemCount}")
-		}
+//		LaunchedEffect(blockList.itemCount) {
+//			Log.e(TAG, "BlockList: ${blockList.itemCount}")
+//		}
 
 		Box(
 			modifier = Modifier

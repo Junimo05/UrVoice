@@ -139,9 +139,9 @@ class NotificationRepository @Inject constructor(
 
     suspend fun getInfoForLikePostNoti(relaID: String): Map<String, String> {
         try {
-            Log.e(TAG, "RelaID get: $relaID")
+//            Log.e(TAG, "RelaID get: $relaID")
             val result = firebaseFirestore.collection("likes").document(relaID).get().await()
-            Log.e(TAG, "getLikeByRelaID result: ${result.data}")
+//            Log.e(TAG, "getLikeByRelaID result: ${result.data}")
             val userID = result.getString("userID")
             val postID = result.getString("postID")
 

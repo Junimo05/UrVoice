@@ -159,7 +159,7 @@ fun UploadScreen(
                     val fileName = generateUniqueFileName()
                     val file = File(context.cacheDir, fileName)
                     FileOutputStream(file).use { out ->
-                        croppedBitmap.compress(Bitmap.CompressFormat.JPEG, 100, out)
+                        croppedBitmap.compress(Bitmap.CompressFormat.JPEG, 80, out)
                     }
                     imgUri = Uri.fromFile(file)
                 }
@@ -217,7 +217,7 @@ fun UploadScreen(
                 )
                 clearData()
                 //reset
-                delay(5000)
+                delay(3000)
                 uploadViewModel.hideSnackBar()
                 uploadViewModel.resetUploadState()
             }

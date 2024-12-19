@@ -244,7 +244,8 @@ class PostRepository @Inject constructor(
                 snapshot.forEach { id ->
                     val document = firestore.collection("posts").document(id).get().await()
                     //check if post's state is deleted
-                    if(document.getBoolean("isDeleted") == true) {
+                    val isDeleted = document.getLong("deletedAt") != null
+                    if(isDeleted) {
                         return@forEach
                     }
                     val userDoc = firestore.collection("users").document(document.getString("userId")!!).get().await()
@@ -254,7 +255,7 @@ class PostRepository @Inject constructor(
                     val audioName = document.getString("audioName") ?: ""
                     val audioUrl = document.getString("url") ?: ""
                     val imgUrl = document.getString("imgUrl") ?: ""
-                    val isDeleted = document.getLong("deletedAt") != null
+
                     savedPostDao.insert(
                         SavedPost(
                             id = id,

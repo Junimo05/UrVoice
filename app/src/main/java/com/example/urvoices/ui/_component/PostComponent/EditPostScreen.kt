@@ -145,17 +145,22 @@ fun EditPostScreen(
 				verticalArrangement = Arrangement.spacedBy(16.dp)
 			){
 				AsyncImage(
-					model = if(imgUri != Uri.EMPTY){
+					model = when {
+						imgUri != Uri.EMPTY -> {
 							Log.e(TAG, "imgUri: $imgUri")
 							imgUri
 						}
-						else{
+						currentAvatar.isNotEmpty() -> {
 							Log.e(TAG, "currentAvatar: $currentAvatar")
-						ImageRequest.Builder(LocalContext.current)
-							.data(currentAvatar)
-							.crossfade(true)
-							.build()
-						},
+							ImageRequest.Builder(LocalContext.current)
+								.data(currentAvatar)
+								.crossfade(true)
+								.build()
+						}
+						else -> {
+							R.drawable.person
+						}
+					},
 					contentDescription = "Avatar",
 					placeholder = painterResource(id = R.drawable.add_photo_svgrepo_com),
 					contentScale = ContentScale.Crop,
