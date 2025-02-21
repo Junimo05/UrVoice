@@ -422,7 +422,9 @@ fun PostDetail(
                             )
                         }
                     }
-                    Spacer(modifier = Modifier.height(30.dp))
+                    item{
+                        Spacer(modifier = Modifier.height(30.dp))
+                    }
                 }
             } else {
                 item {
